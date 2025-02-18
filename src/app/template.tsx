@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { AppShell, Burger, Group, Skeleton } from "@mantine/core";
+import { Anchor, AppShell, Breadcrumbs, Burger, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import AppNavbar from "@/components/AppNavbar/AppNavbar";
+import { IconHome } from "@tabler/icons-react";
 
 function HomeTemplate({ children }: { children: React.ReactNode }) {
     const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
@@ -34,6 +35,11 @@ function HomeTemplate({ children }: { children: React.ReactNode }) {
                         visibleFrom="sm"
                         size="sm"
                     />
+                    <Breadcrumbs>
+                        <Anchor href="/">
+                            <IconHome size={16} />
+                        </Anchor>
+                    </Breadcrumbs>
                 </Group>
             </AppShell.Header>
             <AppShell.Navbar p="md">

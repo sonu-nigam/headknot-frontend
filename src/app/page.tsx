@@ -1,81 +1,57 @@
 "use client";
 
 import { RichTextEditor, Link } from "@mantine/tiptap";
-import { useEditor } from "@tiptap/react";
+import { mergeAttributes, Node, useEditor, FloatingMenu } from "@tiptap/react";
+import Document from "@tiptap/extension-document";
 import Highlight from "@tiptap/extension-highlight";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Superscript from "@tiptap/extension-superscript";
 import SubScript from "@tiptap/extension-subscript";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Paper } from "@mantine/core";
+import { useEffect, useRef, useState } from "react";
 
 const content =
-    '<h2 style="text-align: center;">Welcome to Mantine rich text editor</h2><p><code>RichTextEditor</code> component focuses on usability and is designed to be as simple as possible to bring a familiar editing experience to regular users. <code>RichTextEditor</code> is based on <a href="https://tiptap.dev/" rel="noopener noreferrer" target="_blank">Tiptap.dev</a> and supports all of its features:</p><ul><li>General text formatting: <strong>bold</strong>, <em>italic</em>, <u>underline</u>, <s>strike-through</s> </li><li>Headings (h1-h6)</li><li>Sub and super scripts (<sup>&lt;sup /&gt;</sup> and <sub>&lt;sub /&gt;</sub> tags)</li><li>Ordered and bullet lists</li><li>Text align&nbsp;</li><li>And all <a href="https://tiptap.dev/extensions" target="_blank" rel="noopener noreferrer">other extensions</a></li></ul>';
+    "<h1>It’ll always have a heading … </h1><p> … if you pass a custom document. That’s the beauty of having full control over the schema.</p>";
+
+const CustomDocument = Document.extend({
+    content: "heading block*",
+});
 
 export default function Home() {
+    const inputRef = useRef<HTMLInputElement>(null);
     const editor = useEditor({
         immediatelyRender: false,
-        extensions: [
-            StarterKit,
-            Underline,
-            Link,
-            Superscript,
-            SubScript,
-            Highlight,
-            TextAlign.configure({ types: ["heading", "paragraph"] }),
-        ],
+        extensions: [StarterKit, Placeholder],
         content,
+        onSelectionUpdate({ editor, transaction }) {
+            // console.log(editor, transaction);
+        },
     });
 
     return (
-        <Paper maw={600} mx="auto">
-            <RichTextEditor editor={editor}>
-                <RichTextEditor.Toolbar sticky stickyOffset={60}>
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Bold />
-                        <RichTextEditor.Italic />
-                        <RichTextEditor.Underline />
-                        <RichTextEditor.Strikethrough />
-                        <RichTextEditor.ClearFormatting />
-                        <RichTextEditor.Highlight />
-                        <RichTextEditor.Code />
-                    </RichTextEditor.ControlsGroup>
-
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.H1 />
-                        <RichTextEditor.H2 />
-                        <RichTextEditor.H3 />
-                        <RichTextEditor.H4 />
-                    </RichTextEditor.ControlsGroup>
-
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Blockquote />
-                        <RichTextEditor.Hr />
-                        <RichTextEditor.BulletList />
-                        <RichTextEditor.OrderedList />
-                        <RichTextEditor.Subscript />
-                        <RichTextEditor.Superscript />
-                    </RichTextEditor.ControlsGroup>
-
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Link />
-                        <RichTextEditor.Unlink />
-                    </RichTextEditor.ControlsGroup>
-
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.AlignLeft />
-                        <RichTextEditor.AlignCenter />
-                        <RichTextEditor.AlignJustify />
-                        <RichTextEditor.AlignRight />
-                    </RichTextEditor.ControlsGroup>
-
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Undo />
-                        <RichTextEditor.Redo />
-                    </RichTextEditor.ControlsGroup>
-                </RichTextEditor.Toolbar>
-
+        <Paper maw={680} mx="auto">
+            <input
+                type="text"
+                placeholder="Add title"
+                ref={inputRef}
+                className="w-full text-5xl font-bold outline-none focus:outline-none p-4"
+            />
+            <RichTextEditor editor={editor} bd={0}>
+                {editor && (
+                    <FloatingMenu
+                        editor={editor}
+                        tippyOptions={{ placement: "top-start" }}
+                    >
+                        <RichTextEditor.ControlsGroup>
+                            <RichTextEditor.H1 />
+                            <RichTextEditor.H2 />
+                            <RichTextEditor.BulletList />
+                        </RichTextEditor.ControlsGroup>
+                    </FloatingMenu>
+                )}
                 <RichTextEditor.Content />
             </RichTextEditor>
         </Paper>
