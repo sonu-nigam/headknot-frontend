@@ -1,15 +1,7 @@
+import { Avatar, Card, Text, Group, ActionIcon, Space } from "@mantine/core";
 import {
-    Avatar,
-    Card,
-    Text,
-    Group,
-    ActionIcon,
-    NavLink,
-    Space,
-    Divider,
-} from "@mantine/core";
-import {
-    IconBriefcase,
+    IconChevronDown,
+    IconChevronUp,
     IconDots,
     IconFile,
     IconFilePlus,
@@ -19,6 +11,8 @@ import {
     IconSearch,
     IconSelector,
 } from "@tabler/icons-react";
+import DocumentMenu from "../ContextMenu/DocumentMenu";
+import { NavLink } from "../CustomNavLink/NavLink";
 
 export default function AppNavbar() {
     return (
@@ -66,8 +60,14 @@ export default function AppNavbar() {
                     href="#required-for-focus"
                     py={4}
                 />
-                <Group gap={6} opacity={0.5} mb="xs" mt="lg">
-                    <Text tt="capitalize" fw={500} size="sm" flex={1}>
+                <Group gap={6} mb="xs" mt="lg" px={12}>
+                    <Text
+                        tt="capitalize"
+                        fw={500}
+                        size="sm"
+                        opacity={0.5}
+                        flex={1}
+                    >
                         Documents
                     </Text>
                     <ActionIcon size="sm" variant="light">
@@ -81,8 +81,23 @@ export default function AppNavbar() {
                     </ActionIcon>
                 </Group>
                 <NavLink
+                    href="#"
                     label="First parent link"
-                    leftSection={<IconFile size={16} stroke={1.5} />}
+                    rightSection={
+                        <Group
+                            gap={6}
+                            onClick={(event) => event.stopPropagation()}
+                        >
+                            <ActionIcon size="sm" variant="light">
+                                <IconFilePlus size={16} />
+                            </ActionIcon>
+                            <DocumentMenu>
+                                <ActionIcon size="sm" variant="light">
+                                    <IconDots size={16} />
+                                </ActionIcon>
+                            </DocumentMenu>
+                        </Group>
+                    }
                     childrenOffset={28}
                     py={4}
                 >
