@@ -1,25 +1,42 @@
-import React from "react";
+"use client";
+import React, { ReactNode } from "react";
 import {
     Menu,
     MenuDivider,
     MenuDropdown,
     MenuItem,
-    MenuLabel,
     MenuTarget,
     Text,
 } from "@mantine/core";
 import {
-    IconArrowsLeftRight,
     IconMessageCircle,
     IconPhoto,
     IconSearch,
     IconSettings,
     IconTrash,
 } from "@tabler/icons-react";
+import { useDeleteDocumentMutation } from "@/services/document";
 
-function DocumentMenu({ children }: Readonly<{ children: React.ReactNode }>) {
+export function DocumentMenu({
+    children,
+    id,
+}: {
+    children: ReactNode;
+    id: string;
+}) {
+    const deleteDocumentMutation = useDeleteDocumentMutation();
+
+    const onClickDeleteDocument = () => {
+        deleteDocumentMutation.mutate({ id });
+    };
+
     return (
-        <Menu shadow="md" width={200} position="bottom-start">
+        <Menu
+            shadow="md"
+            width={200}
+            position="bottom-start"
+            onChange={console.log}
+        >
             <MenuTarget>{children}</MenuTarget>
 
             <MenuDropdown>
@@ -46,7 +63,11 @@ function DocumentMenu({ children }: Readonly<{ children: React.ReactNode }>) {
 
                 <MenuDivider />
 
-                <MenuItem color="red" leftSection={<IconTrash size={14} />}>
+                <MenuItem
+                    color="red"
+                    leftSection={<IconTrash size={14} />}
+                    onClick={onClickDeleteDocument}
+                >
                     Move to bin
                 </MenuItem>
             </MenuDropdown>

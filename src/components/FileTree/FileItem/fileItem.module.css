@@ -1,0 +1,10 @@
+.file_item
+    :global(.mantine-NavLink-section):where([data-position="right"]):not(
+        *:has([data-expanded="true"])
+    ) {
+    visibility: hidden;
+}
+.file_item:hover
+    :global(.mantine-NavLink-section):where([data-position="right"]) {
+    visibility: visible;
+}

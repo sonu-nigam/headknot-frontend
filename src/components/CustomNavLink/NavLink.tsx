@@ -1,3 +1,4 @@
+"use client";
 import { useUncontrolled } from "@mantine/hooks";
 import {
     Box,
@@ -16,6 +17,7 @@ import { AccordionChevron } from "@mantine/core";
 import { Collapse } from "@mantine/core";
 import { UnstyledButton } from "@mantine/core";
 import classes from "./NavLink.module.css";
+import React from "react";
 
 export type NavLinkStylesNames =
     | "root"
@@ -76,13 +78,17 @@ export interface NavLinkProps extends BoxProps, StylesApiProps<NavLinkFactory> {
     disabled?: boolean;
 
     /** Called when the link is clicked */
-    onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+    onClickExpand?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 
     /** Link `onkeydown` event */
     onKeyDown?: (event: React.KeyboardEvent<HTMLAnchorElement>) => void;
 
     /** Determines whether button text color with filled variant should depend on `background-color`. If luminosity of the `color` prop is less than `theme.luminosityThreshold`, then `theme.white` will be used for text color, otherwise `theme.black`. Overrides `theme.autoContrast`. */
     autoContrast?: boolean;
+
+    component: any;
+
+    onClick?: (event: React.MouseEvent<any>) => void;
 }
 
 export type NavLinkFactory = PolymorphicFactory<{
@@ -132,7 +138,7 @@ export const NavLink = polymorphicFactory<NavLinkFactory>((_props, ref) => {
         defaultOpened,
         onChange,
         children,
-        onClick,
+        onClickExpand,
         active,
         disabled,
         leftSection,
@@ -145,6 +151,8 @@ export const NavLink = polymorphicFactory<NavLinkFactory>((_props, ref) => {
         onKeyDown,
         autoContrast,
         mod,
+        component,
+        onClick,
         ...others
     } = props;
 
@@ -170,8 +178,8 @@ export const NavLink = polymorphicFactory<NavLinkFactory>((_props, ref) => {
 
     const withChildren = !!children;
 
-    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        onClick?.(event);
+    const handleExpandClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        onClickExpand?.(event);
 
         if (withChildren) {
             event.preventDefault();
@@ -183,10 +191,9 @@ export const NavLink = polymorphicFactory<NavLinkFactory>((_props, ref) => {
         <>
             <UnstyledButton
                 {...getStyles("root")}
-                component="a"
+                component={component}
                 ref={ref}
-                onClick={handleClick}
-                onKeyDown={(event) => {
+                onKeyDown={(event: React.KeyboardEvent<HTMLAnchorElement>) => {
                     onKeyDown?.(event);
 
                     if (event.nativeEvent.code === "Space" && withChildren) {
@@ -196,12 +203,14 @@ export const NavLink = polymorphicFactory<NavLinkFactory>((_props, ref) => {
                 }}
                 unstyled={unstyled}
                 mod={[{ disabled, active, expanded: _opened }, mod]}
+                onClick={onClick}
                 {...others}
             >
                 {(withChildren || leftSection) && (
                     <Box
                         component="span"
                         {...getStyles("section")}
+                        onClick={handleExpandClick}
                         mod={{
                             rotate: _opened && !disableLeftSectionRotation,
                             position: "left",

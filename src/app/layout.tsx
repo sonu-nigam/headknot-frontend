@@ -10,6 +10,9 @@ import "./globals.css";
 import "@mantine/core/styles.css";
 import "@mantine/tiptap/styles.css";
 import { ReactQueryClientProvider } from "@/components/ReactQueryClientProvider";
+import { getSession } from "next-auth/react";
+import { ReactNode } from "react";
+import ClientSession from "./ClientSession";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -50,4 +53,9 @@ export default function RootLayout({
             </body>
         </html>
     );
+}
+
+async function ServerSession({ children }: { children: ReactNode }) {
+    const session = await getSession();
+    return <ClientSession session={session}>{children}</ClientSession>;
 }
