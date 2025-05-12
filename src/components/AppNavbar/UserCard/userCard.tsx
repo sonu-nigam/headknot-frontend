@@ -1,4 +1,5 @@
 "use client";
+import { useGetUserSuspenseQuery } from "@/services/users";
 import {
     ActionIcon,
     Avatar,
@@ -20,11 +21,27 @@ import {
     IconBook,
     IconLogout,
 } from "@tabler/icons-react";
+import { signOut, useSession } from "next-auth/react";
 import React, { ReactNode, useState } from "react";
 
 type Props = {};
 
+function getInitials(name: string) {
+    console.log(name);
+    const nameParts: Array<string> = name.split(" ");
+    return nameParts[0][0] + nameParts?.at(-1)?.[0];
+}
+
 function UserCard({}: Props) {
+    const session = useSession();
+
+    const { data } = useGetUserSuspenseQuery({
+        userId: session.data?.user?.id as string,
+    });
+
+    console.log(data);
+    const initials = getInitials(data.fullName);
+
     return (
         <Card w="100%" p="sm" bg="transparent">
             <Group mb={16}>
@@ -34,14 +51,14 @@ function UserCard({}: Props) {
             <UserMenu actionIcon={<IconChevronDown size={24} stroke={2} />}>
                 <Flex gap="sm" align="center">
                     <Avatar color="indigo" size={32}>
-                        MK
+                        {initials}
                     </Avatar>
                     <Space flex={1}>
                         <Text size="sm" fw={500}>
-                            John Doe
+                            {data.fullName}
                         </Text>
                         <Text size="sm" fw={500} opacity={0.5}>
-                            johndoe@gmail.com
+                            {data.email}
                         </Text>
                     </Space>
                 </Flex>
@@ -123,6 +140,11 @@ function UserMenu({
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
+                    onClick={() =>
+                        signOut({
+                            redirectTo: "/auth/signin",
+                        })
+                    }
                     color="red"
                     py={4}
                     leftSection={<IconLogout size={14} />}

@@ -15,8 +15,6 @@ import React, {
 } from "react";
 import { Command, MenuListProps } from "./types";
 
-type Props = {};
-
 type GroupedCommand = Command & {
     groupName?: string; // Optional property to be added
     groupTitle?: string; // Optional property to be added
@@ -52,6 +50,7 @@ export const SlashMenu = forwardRef((props: MenuListProps, ref) => {
         onKeyDown: ({ event }: { event: React.KeyboardEvent }) => {
             if (event.key === "ArrowDown") {
                 event.preventDefault();
+                event.stopPropagation();
                 if (!flatItems?.length) return false;
 
                 setHovered((current) => {
@@ -72,6 +71,7 @@ export const SlashMenu = forwardRef((props: MenuListProps, ref) => {
 
             if (event.key === "ArrowUp") {
                 event.preventDefault();
+                event.stopPropagation();
                 if (!flatItems?.length) return false;
 
                 setHovered((current) => {
@@ -95,6 +95,8 @@ export const SlashMenu = forwardRef((props: MenuListProps, ref) => {
             }
 
             if (event.key === "Enter") {
+                event.preventDefault();
+                event.stopPropagation();
                 if (!flatItems?.length || hovered < 0) {
                     return false;
                 }
@@ -116,6 +118,7 @@ export const SlashMenu = forwardRef((props: MenuListProps, ref) => {
             viewportRef={viewportRef}
             w={250}
             p="calc(.25rem* var(--mantine-scale))"
+            bg="var(--mantine-color-white)"
             style={{
                 boxShadow: "var(--mantine-shadow-md, none)",
                 borderRadius:
@@ -151,6 +154,7 @@ export const SlashMenu = forwardRef((props: MenuListProps, ref) => {
                             fullWidth
                             size="sm"
                             variant="subtle"
+                            className={idx === hovered ? "active" : undefined}
                             bg={
                                 idx === hovered
                                     ? "var(--button-hover)"

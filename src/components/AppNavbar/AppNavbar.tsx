@@ -50,7 +50,6 @@ export default function AppNavbar() {
                     px={8}
                     py={2}
                     c="dimmed"
-                    bg="gray.1"
                     style={{
                         borderRadius: 6,
                     }}

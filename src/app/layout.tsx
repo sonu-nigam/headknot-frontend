@@ -1,3 +1,4 @@
+import "@mantine/core/styles.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import {
@@ -7,12 +8,12 @@ import {
 } from "@mantine/core";
 import { theme } from "../theme";
 import "./globals.css";
-import "@mantine/core/styles.css";
-import "@mantine/tiptap/styles.css";
+import "./editor.css";
 import { ReactQueryClientProvider } from "@/components/ReactQueryClientProvider";
 import { getSession } from "next-auth/react";
 import { ReactNode } from "react";
 import ClientSession from "./ClientSession";
+import { auth } from "@/auth";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -37,25 +38,29 @@ export default function RootLayout({
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
+                <ColorSchemeScript defaultColorScheme="auto" />
                 <link rel="shortcut icon" href="/favicon.svg" />
                 <meta
                     name="viewport"
                     content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
                 />
-                <ColorSchemeScript defaultColorScheme="auto" />
             </head>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <ReactQueryClientProvider>
-                    <MantineProvider theme={theme}>{children}</MantineProvider>
-                </ReactQueryClientProvider>
+                <ServerSession>
+                    <MantineProvider theme={theme} defaultColorScheme="auto">
+                        <ReactQueryClientProvider>
+                            {children}
+                        </ReactQueryClientProvider>
+                    </MantineProvider>
+                </ServerSession>
             </body>
         </html>
     );
 }
 
 async function ServerSession({ children }: { children: ReactNode }) {
-    const session = await getSession();
+    const session = await auth();
     return <ClientSession session={session}>{children}</ClientSession>;
 }

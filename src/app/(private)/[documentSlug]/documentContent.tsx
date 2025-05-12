@@ -1,11 +1,14 @@
 "use client";
+import { PlateEditor } from "@/components/Editor/editor";
 import Editor from "@/components/RichTextEditor/richTextEditor";
+import { editorComponents, viewComponents } from "@/hooks/useEditor/useEditor";
 import {
     useGetDocumentSuspenseQuery,
     useUpdateDocumentMutation,
 } from "@/services/document";
 import { Box, Paper } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
+import { serializeHtml } from "@udecode/plate";
 import React from "react";
 
 type Props = {
@@ -26,18 +29,11 @@ function DocumentContent({ id }: Props) {
         });
     }, 1000);
 
-    const onUpdate = ({ editor }: any) => {
-        onUpdateHandler({
-            id,
-            content: editor.getHTML(),
-        });
-    };
+    const onUpdate = (content: string) => onUpdateHandler({id, content});
+    console.log(content)
 
-    return (
-        <Box maw={680} mx="auto">
-            <Editor content={content} onUpdate={onUpdate} />
-        </Box>
-    );
+    return <PlateEditor content={content} onUpdate={onUpdate} />;
+    // return <Editor content={content} onUpdate={onUpdate} />;
 }
 
 export default DocumentContent;

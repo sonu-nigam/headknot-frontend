@@ -1,0 +1,4 @@
+.imageUploader {
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--button-radius, var(--mantine-radius-default));
+}

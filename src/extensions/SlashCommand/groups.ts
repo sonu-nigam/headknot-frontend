@@ -125,9 +125,19 @@ export const GROUPS: Group[] = [
                 description: "Insert an image",
                 aliases: ["img"],
                 action: (editor) => {
-                    editor.chain().focus().setImageUpload().run();
+                    const url = window.prompt("URL");
+                    const caption = window.prompt("caption") || undefined;
+
+                    if (url) {
+                        editor
+                            .chain()
+                            .focus()
+                            .setFigure({ src: url, caption })
+                            .run();
+                    }
                 },
             },
+
             {
                 name: "columns",
                 label: "Columns",

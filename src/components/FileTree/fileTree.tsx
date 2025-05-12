@@ -9,8 +9,8 @@ export type Props = {
 function FileTree({ data, fileMenu }: Props) {
     return data.map((file: File) => (
         <FileItem file={file} key={file.id} fileMenu={fileMenu}>
-            {Array.isArray(file.files) && file.files.length && (
-                <FileTree data={file.files} fileMenu={fileMenu} />
+            {Array.isArray(file.children) && file.children.length && (
+                <FileTree data={file.children} fileMenu={fileMenu} />
             )}
         </FileItem>
     ));

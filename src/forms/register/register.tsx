@@ -12,12 +12,12 @@ function RegisterForm({}: Props) {
     const form = useForm({
         mode: "uncontrolled",
         initialValues: {
-            name: "",
+            fullName: "",
             email: "",
             password: "",
         },
         validate: {
-            name: (value) =>
+            fullName: (value) =>
                 /^[A-Za-z]+([ '-][A-Za-z]+)*$/.test(value)
                     ? null
                     : "Invalid name",
@@ -29,7 +29,7 @@ function RegisterForm({}: Props) {
     const onSubmit = async (values: typeof form.values) => {
         try {
             const { data, status } = await registerUser({
-                name: values.name,
+                fullName: values.fullName,
                 email: values.email,
                 password: values.password,
             });
@@ -49,11 +49,11 @@ function RegisterForm({}: Props) {
     return (
         <form onSubmit={form.onSubmit(onSubmit)}>
             <TextInput
-                label="Name"
-                placeholder="Enter Name"
-                key={form.key("name")}
+                label="Full Name"
+                placeholder="Enter Full Name"
+                key={form.key("fullName")}
                 mb="sm"
-                {...form.getInputProps("name")}
+                {...form.getInputProps("fullName")}
             />
             <TextInput
                 label="Email"

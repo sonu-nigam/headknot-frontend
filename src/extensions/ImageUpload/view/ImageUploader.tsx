@@ -1,8 +1,9 @@
 import { useDropZone, useFileUpload, useUploader } from "./hooks";
 import clsx from "clsx";
 import { ChangeEvent, useCallback } from "react";
-import { IconImageInPicture, IconUpload } from "@tabler/icons-react";
-import { Button, Loader, ThemeIcon } from "@mantine/core";
+import { IconUpload } from "@tabler/icons-react";
+import { Box, Button, Loader, ThemeIcon } from "@mantine/core";
+import styles from "./imageUploader.module.css";
 
 export const ImageUploader = ({
     onUpload,
@@ -30,36 +31,41 @@ export const ImageUploader = ({
     }
 
     const wrapperClass = clsx(
-        "flex flex-col items-center justify-center px-8 py-10 rounded-lg bg-opacity-80",
+        "flex flex-col items-center justify-center px-8 py-10 rounded-lg bg-opacity-80 border-2 border-dashed",
         draggedInside && "bg-neutral-100",
     );
 
     return (
-        <div
-            className={wrapperClass}
+        <Box
             onDrop={onDrop}
             onDragOver={onDragEnter}
             onDragLeave={onDragLeave}
             contentEditable={false}
+            className={wrapperClass}
         >
-            <ThemeIcon>
-                <IconImageInPicture />
+            <ThemeIcon
+                className="mx-auto"
+                variant="light"
+                color="dark"
+                size="xl"
+                mb="md"
+            >
+                <IconUpload />
             </ThemeIcon>
-            <div className="flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center justify-center">
                 <div className="text-sm font-medium text-center text-neutral-400 dark:text-neutral-500">
                     {draggedInside ? "Drop image here" : "Drag and drop or"}
                 </div>
-                <div>
-                    <Button
-                        disabled={draggedInside}
-                        onClick={handleUploadClick}
-                        variant="primary"
-                        size="sm"
-                        leftSection={<IconUpload />}
-                    >
-                        Upload an image
-                    </Button>
-                </div>
+                &nbsp;
+                <Button
+                    disabled={draggedInside}
+                    onClick={handleUploadClick}
+                    variant="transparent"
+                    size="compact-sm"
+                    px={0}
+                >
+                    browse image
+                </Button>
             </div>
             <input
                 className="w-0 h-0 overflow-hidden opacity-0"
@@ -68,7 +74,7 @@ export const ImageUploader = ({
                 accept=".jpg,.jpeg,.png,.webp,.gif"
                 onChange={onFileChange}
             />
-        </div>
+        </Box>
     );
 };
 

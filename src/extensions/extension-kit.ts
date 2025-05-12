@@ -37,6 +37,7 @@ import {
     TaskList,
     UniqueID,
     ImageUpload,
+    Figure,
 } from "./";
 
 import { isChangeOrigin } from "@tiptap/extension-collaboration";
@@ -69,6 +70,7 @@ export const ExtensionKit = () => [
     }),
     CodeBlock,
     TextStyle,
+    TextAlign,
     FontSize,
     FontFamily,
     Color,
@@ -79,15 +81,8 @@ export const ExtensionKit = () => [
     Highlight.configure({ multicolor: true }),
     Underline,
     CharacterCount.configure({ limit: 50000 }),
-    ImageBlock,
-    ImageUpload.configure({}),
-    TextAlign.extend({
-        addKeyboardShortcuts() {
-            return {};
-        },
-    }).configure({
-        types: ["heading", "paragraph"],
-    }),
+    // ImageBlock,
+    // ImageUpload.configure({}),
     Subscript,
     Superscript,
     Table,
@@ -102,7 +97,8 @@ export const ExtensionKit = () => [
     }),
     SlashCommand,
     Focus,
-    Figcaption,
+    Figure,
+    // Figcaption,
     BlockquoteFigure,
     Dropcursor.configure({
         width: 2,

@@ -16,7 +16,7 @@ export type File = {
     id: string;
     title: string;
     type: FileType;
-    files: File[] | [] | null;
+    children: File[] | [] | null;
 };
 
 type Props = {
@@ -45,6 +45,7 @@ function FileItem({ file, fileMenu, children }: Props) {
     const onClickAddDocument = () => {
         addDocumentMutation.mutate({
             parent: file.id,
+            title: "New Page",
         });
     };
 

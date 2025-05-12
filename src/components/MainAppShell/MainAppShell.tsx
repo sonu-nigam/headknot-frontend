@@ -28,8 +28,8 @@ function MainAppShell({ children, navbar, breadcrumbs }: Props) {
         },
     };
     return (
-        <AppShell padding="md" layout="alt" {...shellConfig}>
-            <AppShell.Header bd={0} bg="gray.0">
+        <AppShell layout="alt" {...shellConfig}>
+            <AppShell.Header bd={0}>
                 <Group justify="space-between" h="100%" px="md">
                     <Group>
                         <Burger
@@ -54,11 +54,9 @@ function MainAppShell({ children, navbar, breadcrumbs }: Props) {
                     </Group>
                 </Group>
             </AppShell.Header>
-            <AppShell.Navbar withBorder={false} bg="gray.0">
-                {navbar}
-            </AppShell.Navbar>
+            <AppShell.Navbar>{navbar}</AppShell.Navbar>
             <AppShell.Main
-                bg="gray.0"
+                // bg="gray.0"
                 style={{
                     display: "flex",
                     flexDirection: "column",

@@ -1,51 +1,26 @@
-import {
-    ActionIcon,
-    Autocomplete,
-    Box,
-    Button,
-    Combobox,
-    ComboboxItem,
-    ComboboxLikeProps,
-    ComboboxLikeRenderOptionInput,
-    defaultOptionsFilter,
-    Divider,
-    getParsedComboboxData,
-    isOptionsGroup,
-    Menu,
-    OptionsFilter,
-    Select,
-    Text,
-    useCombobox,
-} from "@mantine/core";
+import { ActionIcon, Box, Button, Divider, Select } from "@mantine/core";
 import {
     Icon,
+    IconAlignCenter,
+    IconAlignJustified,
+    IconAlignLeft,
+    IconAlignRight,
     IconBold,
     IconCode,
     IconDots,
-    IconH2,
-    IconH3,
-    IconH4,
-    IconHeading,
     IconItalic,
     IconLink,
-    IconList,
-    IconListCheck,
-    IconListNumbers,
-    IconPilcrow,
     IconProps,
-    IconSettings,
     IconSourceCode,
     IconStrikethrough,
     IconUnderline,
 } from "@tabler/icons-react";
-import { Editor, useCurrentEditor } from "@tiptap/react";
+import TextAlign from "@tiptap/extension-text-align";
+import { Editor } from "@tiptap/react";
 import React, {
     ForwardRefExoticComponent,
-    ReactNode,
     RefAttributes,
     useCallback,
-    useMemo,
-    useState,
 } from "react";
 
 type Props = {
@@ -84,98 +59,78 @@ function Toolbar({ editor }: Props) {
 
     return (
         <Box
+            bg="gray.1"
             style={{
-                zIndex: 1,
-                position: "fixed",
-                bottom: 40,
-                padding: 6,
-                width: "100%",
-                maxWidth: 680,
+                gap: 2,
+                padding: 4,
+                borderRadius: 6,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "fit-content",
             }}
         >
-            <Box
-                bg="gray.1"
-                px="lg"
-                py={4}
-                style={{
-                    gap: 2,
-                    borderRadius: 9999,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    width: "fit-content",
-                }}
-            >
-                <Button variant="light">AI Tools</Button>
-                <Divider orientation="vertical" mx={1} />
-                <Select
-                    variant="filled"
-                    searchable
-                    defaultValue="Heading 2"
-                    data={[
-                        {
-                            group: "Hierarchy",
-                            items: [
-                                "Heading 2",
-                                "Heading 3",
-                                "Heading 4",
-                                "Paragraph",
-                            ],
-                        },
-                        {
-                            group: "List",
-                            items: [
-                                "Bullet List",
-                                "Numbered List",
-                                "Todo List",
-                            ],
-                        },
-                    ]}
-                />
-                <Divider orientation="vertical" mx={1} />
-                <ToolbarIcon
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    active={editor.isActive("bold")}
-                    icon={IconBold}
-                />
-                <ToolbarIcon
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    active={editor.isActive("italic")}
-                    icon={IconItalic}
-                />
-                <ToolbarIcon
-                    onClick={() =>
-                        editor.chain().focus().toggleUnderline().run()
-                    }
-                    active={editor.isActive("underline")}
-                    icon={IconUnderline}
-                />
-                <ToolbarIcon
-                    onClick={() => editor.chain().focus().toggleStrike().run()}
-                    active={editor.isActive("strike")}
-                    icon={IconStrikethrough}
-                />
-                <ToolbarIcon
-                    onClick={() => editor.chain().focus().toggleCode().run()}
-                    active={editor.isActive("code")}
-                    icon={IconCode}
-                />
-                <ToolbarIcon
-                    onClick={() =>
-                        editor.chain().focus().toggleCodeBlock().run()
-                    }
-                    active={editor.isActive("codeBlock")}
-                    icon={IconSourceCode}
-                />
-                <ToolbarIcon
-                    onClick={setLink}
-                    active={editor.isActive("link")}
-                    icon={IconLink}
-                />
-                <ActionIcon variant="subtle">
-                    <IconDots />
-                </ActionIcon>
-            </Box>
+            <ToolbarIcon
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                active={editor.isActive("bold")}
+                icon={IconBold}
+            />
+            <ToolbarIcon
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                active={editor.isActive("italic")}
+                icon={IconItalic}
+            />
+            <ToolbarIcon
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                active={editor.isActive("underline")}
+                icon={IconUnderline}
+            />
+            <ToolbarIcon
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                active={editor.isActive("strike")}
+                icon={IconStrikethrough}
+            />
+            <ToolbarIcon
+                onClick={() => editor.chain().focus().toggleCode().run()}
+                active={editor.isActive("code")}
+                icon={IconCode}
+            />
+            <ToolbarIcon
+                onClick={setLink}
+                active={editor.isActive("link")}
+                icon={IconLink}
+            />
+            <ToolbarIcon
+                onClick={() =>
+                    editor.chain().focus().setTextAlign("left").run()
+                }
+                active={editor.isActive({ textAlign: "left" })}
+                icon={IconAlignLeft}
+            />
+            <ToolbarIcon
+                onClick={() =>
+                    editor.chain().focus().setTextAlign("center").run()
+                }
+                active={editor.isActive({ textAlign: "center" })}
+                icon={IconAlignCenter}
+            />
+            <ToolbarIcon
+                onClick={() =>
+                    editor.chain().focus().setTextAlign("right").run()
+                }
+                active={editor.isActive({ textAlign: "right" })}
+                icon={IconAlignRight}
+            />
+            <ToolbarIcon
+                onClick={() =>
+                    editor.chain().focus().setTextAlign("justify").run()
+                }
+                active={editor.isActive({ textAlign: "justify" })}
+                icon={IconAlignJustified}
+            />
+            <ActionIcon variant="subtle">
+                <IconDots size={16} stroke={1.5} />
+            </ActionIcon>
         </Box>
     );
 }
@@ -193,138 +148,8 @@ function ToolbarIcon({
 }) {
     const Icon = icon;
     return (
-        <ActionIcon
-            size="lg"
-            onClick={onClick}
-            variant={active ? "light" : "subtle"}
-        >
-            <Icon stroke={1.5} size={20} />
+        <ActionIcon onClick={onClick} variant={active ? "light" : "subtle"}>
+            <Icon stroke={1.5} size={16} />
         </ActionIcon>
-    );
-}
-
-export interface OptionsGroup {
-    group: string;
-    items: ComboboxItem[];
-}
-
-export type OptionsData = (ComboboxItem | OptionsGroup)[];
-
-interface OptionProps {
-    data: ComboboxItem | OptionsGroup;
-    value?: string | string[] | null;
-    renderOption?: (
-        input: ComboboxLikeRenderOptionInput<any>,
-    ) => React.ReactNode;
-}
-
-function isValueChecked(
-    value: string | string[] | undefined | null,
-    optionValue: string,
-) {
-    return Array.isArray(value)
-        ? value.includes(optionValue)
-        : value === optionValue;
-}
-
-function Option({ data, value, renderOption }: OptionProps) {
-    if (!isOptionsGroup(data)) {
-        const checked = isValueChecked(value, data.value);
-
-        const defaultContent = (
-            <>
-                <span>{data.label}</span>
-            </>
-        );
-
-        return (
-            <Combobox.Option
-                value={data.value}
-                disabled={data.disabled}
-                data-checked={checked || undefined}
-                aria-selected={checked}
-                active={checked}
-            >
-                {typeof renderOption === "function"
-                    ? renderOption({ option: data, checked })
-                    : defaultContent}
-            </Combobox.Option>
-        );
-    }
-
-    const options = data.items.map((item) => (
-        <Option
-            data={item}
-            value={value}
-            key={item.value}
-            renderOption={renderOption}
-        />
-    ));
-
-    return <Combobox.Group label={data.group}>{options}</Combobox.Group>;
-}
-
-function BlockMenu({ data, filter }: any) {
-    const [search, setSearch] = useState("");
-    const [selectedItem, setSelectedItem] = useState<string | null>(null);
-    const combobox = useCombobox({
-        onDropdownClose: () => {
-            combobox.resetSelectedOption();
-            combobox.focusTarget();
-            setSearch("");
-        },
-
-        onDropdownOpen: () => {
-            combobox.focusSearchInput();
-        },
-    });
-
-    const parsedData = getParsedComboboxData(data);
-
-    const shouldFilter = true;
-    const filteredData = shouldFilter
-        ? (filter || defaultOptionsFilter)({
-              options: parsedData,
-              search,
-              limit: Infinity,
-          })
-        : data;
-
-    const options = filteredData.map((item: any) => (
-        <Option
-            data={item}
-            key={isOptionsGroup(item) ? item.group : item.value}
-            value={selectedItem}
-        />
-    ));
-    return (
-        <Combobox
-            store={combobox}
-            width={250}
-            position="bottom-start"
-            withArrow
-            onOptionSubmit={(val) => {
-                setSelectedItem(val);
-                combobox.closeDropdown();
-            }}
-        >
-            <Combobox.Target withAriaAttributes={false}>
-                <Button
-                    variant="subtle"
-                    onClick={() => combobox.toggleDropdown()}
-                >
-                    {selectedItem}
-                </Button>
-            </Combobox.Target>
-
-            <Combobox.Dropdown>
-                <Combobox.Search
-                    value={search}
-                    onChange={(event) => setSearch(event.currentTarget.value)}
-                    placeholder="Search groceries"
-                />
-                <Combobox.Options>{options}</Combobox.Options>
-            </Combobox.Dropdown>
-        </Combobox>
     );
 }

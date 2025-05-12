@@ -1,25 +1,39 @@
-import { Editor, NodeViewWrapper } from '@tiptap/react'
-import { useCallback } from 'react'
+import { Editor, NodeViewWrapper } from "@tiptap/react";
+import { useCallback } from "react";
 
-import { ImageUploader } from './ImageUploader'
+import { ImageUploader } from "./ImageUploader";
+import { Modal } from "@mantine/core";
 
-export const ImageUpload = ({ getPos, editor }: { getPos: () => number; editor: Editor }) => {
-  const onUpload = useCallback(
-    (url: string) => {
-      if (url) {
-        editor.chain().setImageBlock({ src: url }).deleteRange({ from: getPos(), to: getPos() }).focus().run()
-      }
-    },
-    [getPos, editor],
-  )
+export const ImageUpload = ({
+    getPos,
+    editor,
+}: {
+    getPos: () => number;
+    editor: Editor;
+}) => {
+    const onUpload = useCallback(
+        (url: string) => {
+            if (url) {
+                editor
+                    .chain()
+                    .setImageBlock({ src: url })
+                    .deleteRange({ from: getPos(), to: getPos() })
+                    .focus()
+                    .run();
+            }
+        },
+        [getPos, editor],
+    );
 
-  return (
-    <NodeViewWrapper>
-      <div className="p-0 m-0" data-drag-handle>
-        <ImageUploader onUpload={onUpload} />
-      </div>
-    </NodeViewWrapper>
-  )
-}
+    return (
+        <NodeViewWrapper>
+            <Modal opened={true} onClose={close} title="Authentication">
+                <div className="p-0 m-0" data-drag-handle>
+                    <ImageUploader onUpload={onUpload} />
+                </div>
+            </Modal>
+        </NodeViewWrapper>
+    );
+};
 
-export default ImageUpload
+export default ImageUpload;

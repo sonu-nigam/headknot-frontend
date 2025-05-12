@@ -20,6 +20,21 @@ export function useGetDocumentListSuspenseQuery() {
     return useSuspenseQuery(options);
 }
 
+export async function getDocumentTree() {
+    const { data } = await axios.get("/document/tree");
+    return data;
+}
+
+export const useGetDocumentTreeSuspenseQueryOptions = () => ({
+    queryKey: ["document-tree"],
+    queryFn: getDocumentTree,
+});
+
+export function useGetDocumentTreeSuspenseQuery() {
+    const options = useGetDocumentTreeSuspenseQueryOptions();
+    return useSuspenseQuery(options);
+}
+
 export type GetDocument = {
     id: string;
 };
@@ -29,22 +44,26 @@ export async function getDocument({ id }: GetDocument) {
     return data;
 }
 
-export const useGetDocumentSuspenseQueryOptions = ({ id }: GetDocument) => ({
+export const getDocumentSuspenseQueryOptions = ({ id }: GetDocument) => ({
     queryKey: ["document", id],
     queryFn: () => getDocument({ id }),
 });
 
 export function useGetDocumentSuspenseQuery({ id }: GetDocument) {
-    const options = useGetDocumentSuspenseQueryOptions({ id });
+    const options = getDocumentSuspenseQueryOptions({ id });
     return useSuspenseQuery(options);
 }
 
 type CreateDocumentProps = {
     parent?: null | string;
+    title?: null | string;
 };
 
-export async function createDocument({ parent = null }: CreateDocumentProps) {
-    return axios.post("/document", { parent });
+export async function createDocument({
+    parent = null,
+    title,
+}: CreateDocumentProps) {
+    return axios.post("/document", { parent, title });
 }
 
 export function useAddDocumentMutation() {
@@ -53,7 +72,7 @@ export function useAddDocumentMutation() {
     return useMutation({
         mutationFn: createDocument,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["document"] });
+            queryClient.invalidateQueries({ queryKey: ["document-tree"] });
         },
     });
 }

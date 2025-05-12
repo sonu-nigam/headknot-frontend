@@ -1,16 +1,16 @@
 import axios from "./http";
 
 type RegisterUserProps = {
-    name: string;
+    fullName: string;
     email: string;
     password: string;
 };
 export async function registerUser({
-    name,
+    fullName,
     email,
     password,
 }: RegisterUserProps) {
-    return axios.post("/auth/register", { name, email, password });
+    return axios.post("/auth/register", { fullName, email, password });
 }
 
 type LoginUserProps = {

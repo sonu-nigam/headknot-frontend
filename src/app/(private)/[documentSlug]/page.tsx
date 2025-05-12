@@ -1,8 +1,16 @@
-import { useGetDocumentSuspenseQueryOptions } from "@/services/document";
-import { Paper } from "@mantine/core";
+import { getDocumentSuspenseQueryOptions } from "@/services/document";
+import {
+    Box,
+    Paper,
+    Container,
+    BackgroundImage,
+    Group,
+    Button,
+} from "@mantine/core";
 import { dehydrate, QueryClient } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 import DocumentContent from "./documentContent";
+import EditorTitle from "./editorTitle";
 
 export default async function DocumentPage({
     params,
@@ -16,17 +24,27 @@ export default async function DocumentPage({
 
     try {
         const queryClient = new QueryClient();
-        await queryClient.fetchQuery(
-            useGetDocumentSuspenseQueryOptions({ id }),
-        );
+        const queryOptions = getDocumentSuspenseQueryOptions({ id })
+        await queryClient.fetchQuery(queryOptions);
     } catch (error) {
         notFound();
     }
 
     return (
-        <Paper p="sm" pt="xl" radius="md" flex={1}>
-            <DocumentContent id={id} />
-        </Paper>
+        <>
+            <BackgroundImage
+                src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-6.png"
+                radius="sm"
+                h={400}
+            />
+            <Paper>
+                <Container>
+                    <Paper w="100%">
+                        <DocumentContent id={id} />
+                    </Paper>
+                </Container>
+            </Paper>
+        </>
     );
 }
 
