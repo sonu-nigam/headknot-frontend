@@ -4,23 +4,22 @@ import { insertInlineEquation } from "@udecode/plate-math";
 import { useEditorRef, withRef } from "@udecode/plate/react";
 import { RadicalIcon } from "lucide-react";
 
-import { ToolbarButton } from "./toolbar";
+import { Button } from "@mantine/core";
 
-export const InlineEquationToolbarButton = withRef<typeof ToolbarButton>(
+export const InlineEquationToolbarButton = withRef<typeof Button>(
     (props, ref) => {
         const editor = useEditorRef();
 
         return (
-            <ToolbarButton
+            <Button
                 ref={ref}
-                tooltip="Mark as equation"
                 {...props}
                 onClick={() => {
                     insertInlineEquation(editor);
                 }}
             >
                 <RadicalIcon />
-            </ToolbarButton>
+            </Button>
         );
     },
 );

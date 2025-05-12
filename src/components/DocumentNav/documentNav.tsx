@@ -3,14 +3,14 @@
 import React, { ReactNode, useEffect } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import FileTree from "../FileTree/fileTree";
-import { useGetDocumentTreeSuspenseQueryOptions } from "@/services/document";
+import { getDocumentTreeSuspenseQueryOptions } from "@/services/document";
 
 export type Props = {
     fileMenu?: ({ children, id }: { children: any; id: string }) => ReactNode;
 };
 
 function DocumentNav({ fileMenu }: Props) {
-    const { data } = useSuspenseQuery(useGetDocumentTreeSuspenseQueryOptions());
+    const { data } = useSuspenseQuery(getDocumentTreeSuspenseQueryOptions());
 
     return <FileTree data={data} fileMenu={fileMenu} />;
 }

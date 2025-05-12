@@ -10,7 +10,6 @@ import {
 import { dehydrate, QueryClient } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 import DocumentContent from "./documentContent";
-import EditorTitle from "./editorTitle";
 
 export default async function DocumentPage({
     params,

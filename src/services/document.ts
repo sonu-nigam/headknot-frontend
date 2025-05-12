@@ -10,13 +10,13 @@ export async function getDocumentList() {
     return data;
 }
 
-export const useGetDocumentListSuspenseQueryOptions = () => ({
+export const getDocumentListSuspenseQueryOptions = () => ({
     queryKey: ["document"],
     queryFn: getDocumentList,
 });
 
 export function useGetDocumentListSuspenseQuery() {
-    const options = useGetDocumentListSuspenseQueryOptions();
+    const options = getDocumentListSuspenseQueryOptions();
     return useSuspenseQuery(options);
 }
 
@@ -25,13 +25,13 @@ export async function getDocumentTree() {
     return data;
 }
 
-export const useGetDocumentTreeSuspenseQueryOptions = () => ({
+export const getDocumentTreeSuspenseQueryOptions = () => ({
     queryKey: ["document-tree"],
     queryFn: getDocumentTree,
 });
 
 export function useGetDocumentTreeSuspenseQuery() {
-    const options = useGetDocumentTreeSuspenseQueryOptions();
+    const options = getDocumentTreeSuspenseQueryOptions();
     return useSuspenseQuery(options);
 }
 

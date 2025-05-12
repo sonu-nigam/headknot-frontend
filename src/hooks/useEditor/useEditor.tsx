@@ -46,8 +46,6 @@ import { LinkElement } from "@/components/Editor/editor-ui/link-element";
 import { ToggleElement } from "@/components/Editor/editor-ui/toggle-element";
 import { TogglePlugin } from "@udecode/plate-toggle/react";
 import { SlashInputElement } from '@/components/Editor/editor-ui/slash-input-element';
-// import { SlashInputElement } from '@/components/Editor/editor-ui/slash-element';
-import { CustomSlashElement } from '@/components/Editor/editor-ui/custom-slash-element';
 import { SlashInputPlugin } from "@udecode/plate-slash-command/react"
 
 export const viewComponents = {

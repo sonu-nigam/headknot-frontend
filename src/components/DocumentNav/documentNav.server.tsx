@@ -4,12 +4,12 @@ import {
     HydrationBoundary,
     QueryClient,
 } from "@tanstack/react-query";
-import { useGetDocumentTreeSuspenseQueryOptions } from "@/services/document";
+import { getDocumentTreeSuspenseQueryOptions } from "@/services/document";
 import DocumentNav, { Props } from "./documentNav";
 
 async function DocumentNavServerComponent({ fileMenu }: Props) {
     const queryClient = new QueryClient();
-    await queryClient.prefetchQuery(useGetDocumentTreeSuspenseQueryOptions());
+    await queryClient.prefetchQuery(getDocumentTreeSuspenseQueryOptions());
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>

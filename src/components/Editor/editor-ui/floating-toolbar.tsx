@@ -14,10 +14,9 @@ import {
     useEventEditorValue,
     usePluginOption,
 } from "@udecode/plate/react";
-import { Toolbar } from "./toolbar";
 import { Box } from "@mantine/core";
 export const FloatingToolbar = withRef<
-    typeof Toolbar,
+    any,
     {
         state?: FloatingToolbarState;
     }

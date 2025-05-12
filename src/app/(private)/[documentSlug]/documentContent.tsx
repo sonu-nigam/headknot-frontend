@@ -1,6 +1,5 @@
 "use client";
 import { PlateEditor } from "@/components/Editor/editor";
-import Editor from "@/components/RichTextEditor/richTextEditor";
 import { editorComponents, viewComponents } from "@/hooks/useEditor/useEditor";
 import {
     useGetDocumentSuspenseQuery,
@@ -33,7 +32,6 @@ function DocumentContent({ id }: Props) {
     console.log(content)
 
     return <PlateEditor content={content} onUpdate={onUpdate} />;
-    // return <Editor content={content} onUpdate={onUpdate} />;
 }
 
 export default DocumentContent;

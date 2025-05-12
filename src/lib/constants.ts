@@ -1,4 +1,6 @@
-import { AiToneOption, LanguageOption } from "../components/BlockEditor/types";
+// import { AiToneOption, LanguageOption } from "../components/BlockEditor/types";
+
+type LanguageOption = any
 
 export const languages: LanguageOption[] = [
     { name: "arabic", label: "Arabic", value: "ar" as LanguageOption["value"] },
@@ -48,7 +50,7 @@ export const languages: LanguageOption[] = [
     },
 ];
 
-export const tones: AiToneOption[] = [
+export const tones: any[] = [
     { name: "academic", label: "Academic", value: "academic" },
     { name: "business", label: "Business", value: "business" },
     { name: "casual", label: "Casual", value: "casual" },

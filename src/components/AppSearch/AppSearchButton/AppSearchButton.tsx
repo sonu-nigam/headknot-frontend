@@ -1,8 +1,6 @@
 "use client";
 
-import SearchBox from "@/components/SearchBox/SearchBox";
 import { NavLink } from "@mantine/core";
-// import { spotlight } from "@mantine/spotlight";
 import { IconSearch } from "@tabler/icons-react";
 import React from "react";
 
@@ -12,7 +10,6 @@ function AppSearchButton({}: Props) {
     const onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.stopPropagation();
         event.preventDefault();
-        // spotlight.open();
     };
 
     return (
@@ -24,7 +21,6 @@ function AppSearchButton({}: Props) {
                 component="button"
                 onClick={onClick}
             />
-            {/* <SearchBox /> */}
         </>
     );
 }
