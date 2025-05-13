@@ -9,11 +9,11 @@ services:
         networks:
             - dokploy-network
         labels:
-            - traefik.enable=true
-            - traefik.http.routers.next-app.rule=Host(`headknot.app`)
-            - traefik.http.routers.next-app.entrypoints=web
-            - traefik.http.routers.next-app.tls.certResolver=letsencrypt
-            - traefik.http.services.next-app.loadbalancer.server.port=3000
+            - "traefik.enable=true"
+            - "traefik.http.routers.frontend-app.rule=Host(`headknot.app`)"
+            - "traefik.http.routers.frontend-app.entrypoints=websecure"
+            - "traefik.http.routers.frontend-app.tls.certResolver=letsencrypt"
+            - "traefik.http.services.frontend-app.loadbalancer.server.port=3000"
   # Add more containers below (nginx, postgres, etc.)
 # Define a network, which allows containers to communicate
 # with each other, by using their container name as a hostname
