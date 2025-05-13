@@ -11,7 +11,7 @@ services:
         labels:
             - traefik.enable=true
             - traefik.http.routers.next-app.rule=Host(`headknot.app`)
-            - traefik.http.routers.next-app.entrypoints=websecure
+            - traefik.http.routers.next-app.entrypoints=web
             - traefik.http.routers.next-app.tls.certResolver=letsencrypt
             - traefik.http.services.next-app.loadbalancer.server.port=3000
   # Add more containers below (nginx, postgres, etc.)
