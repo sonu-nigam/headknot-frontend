@@ -4,14 +4,13 @@ services:
         build: .
         ports:
             - 3000
-            - 80
         environment:
             - NODE_ENV=development
         networks:
             - dokploy-network
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.frontend-app.rule=Host(`thenoteapp.com`)"
+            - "traefik.http.routers.frontend-app.rule=Host(`headknot.app`)"
             - "traefik.http.routers.frontend-app.entrypoints=websecure"
             - "traefik.http.routers.frontend-app.tls.certResolver=letsencrypt"
             - "traefik.http.services.frontend-app.loadbalancer.server.port=3000"
