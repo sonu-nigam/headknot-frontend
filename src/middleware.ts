@@ -2,7 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 
 export async function middleware(req: any) {
-    const session = await getToken({ req, secret: process.env.AUTH_SECRET });
+    const session = await getToken({ req, secret: process.env.NEXT_PUBLIC_AUTH_SECRET });
     const { pathname } = req.nextUrl;
 
     const publicPaths = [
