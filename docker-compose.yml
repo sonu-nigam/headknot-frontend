@@ -5,9 +5,11 @@ services:
         ports:
             - 3000
         environment:
-            - NODE_ENV=production
+            - NODE_ENV="production"
             - AUTH_SECRET="1g98XqyDZP1wmdjomIliz3hqbEhArF0sv4a/NtkcAfY="
             - AUTH_TRUST_HOST=true
+            - AUTH_URL="https://headknot.app"
+            - AUTH_REDIRECT_PROXY_URL="https://headknot.app/api/auth"
         networks:
             - dokploy-network
         labels:
