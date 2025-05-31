@@ -33,10 +33,9 @@ function RegisterForm({}: Props) {
                 email: values.email,
                 password: values.password,
             });
-            console.log(data, status);
             if (status === 200) {
                 signIn("credentials", {
-                    redirectTo: "/home",
+                    redirectTo: "/",
                     email: values.email,
                     password: values.password,
                 });

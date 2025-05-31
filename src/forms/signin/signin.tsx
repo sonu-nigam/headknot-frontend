@@ -27,7 +27,7 @@ function SigninForm({}: Props) {
 
     const onSubmit = (values: typeof form.values) => {
         signIn("credentials", {
-            redirectTo: "/home",
+            redirectTo: "/",
             ...values,
         });
     };

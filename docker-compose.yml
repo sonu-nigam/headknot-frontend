@@ -7,7 +7,7 @@ services:
         environment:
             - NODE_ENV=production
             - AUTH_SECRET="1g98XqyDZP1wmdjomIliz3hqbEhArF0sv4a/NtkcAfY="
-            - AUTH_TRUST_HOST=https://headknot.app"
+            - AUTH_TRUST_HOST=true
         networks:
             - dokploy-network
         labels:
