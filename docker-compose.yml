@@ -6,6 +6,7 @@ services:
             - 3000
         environment:
             - NODE_ENV=production
+            - AUTH_SECRET="1g98XqyDZP1wmdjomIliz3hqbEhArF0sv4a/NtkcAfY="
         networks:
             - dokploy-network
         labels:
