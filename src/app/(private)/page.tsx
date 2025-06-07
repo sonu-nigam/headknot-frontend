@@ -1,7 +1,8 @@
+import { Paper } from "@mantine/core";
 import React from "react";
 
 type Props = {};
 
 export default function Root({}: Props) {
-    return <div>Root Page{process.env.AUTH_SECRET}</div>;
+    return <Paper radius={0}>kdjkd</Paper>;
 }

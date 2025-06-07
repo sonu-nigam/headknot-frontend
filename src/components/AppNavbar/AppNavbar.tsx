@@ -34,7 +34,7 @@ export default function AppNavbar() {
                 <NavLink
                     leftSection={<IconHome size={16} stroke={2} />}
                     label="Home"
-                    href="/home"
+                    href="/"
                     py={4}
                     component={Link}
                     rightSection={

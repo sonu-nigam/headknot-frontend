@@ -1,39 +1,27 @@
-import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
+import { auth } from "./auth";
 
-export async function middleware(req: any) {
-    const session = await getToken({
-        req,
-    });
+export default auth((req: any) => {
+    console.log("Middleware triggered for request:", req.auth);
     const { pathname } = req.nextUrl;
+    const isAuthenticated = !!req.auth;
 
-    const publicPaths = [
-        "/auth/signin",
-        "/auth/register",
-        "/api/auth",
-        "/_next/static",
-        "/_next/image",
-    ];
+    const isAuthRoute = pathname.startsWith("/auth");
 
-    const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
-
-    if (!isPublicPath && !session) {
-        const loginUrl = new URL("/auth/signin", req.url);
-        loginUrl.searchParams.set("callbackUrl", req.url);
-        return NextResponse.redirect(loginUrl);
+    if (isAuthRoute && isAuthenticated) {
+        const newUrl = new URL("/", req.url);
+        return NextResponse.redirect(newUrl);
     }
 
-    const unauthPaths = ["/auth/signin", "/auth/register"];
-
-    const isUnAuthPath = unauthPaths.some((path) => pathname.startsWith(path));
-
-    if (isUnAuthPath && session) {
-        return NextResponse.redirect(new URL("/", req.url));
+    if (!isAuthRoute && !isAuthenticated) {
+        const newUrl = new URL("/auth/signin", req.url);
+        newUrl.searchParams.set("callbackUrl", req.url);
+        return NextResponse.redirect(newUrl);
     }
 
     return NextResponse.next();
-}
+})
 
 export const config = {
-    matcher: ["/terms", "/contact", "/auth/signin", "/auth/register"],
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

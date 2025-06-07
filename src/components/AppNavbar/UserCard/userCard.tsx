@@ -27,7 +27,6 @@ import React, { ReactNode, useState } from "react";
 type Props = {};
 
 function getInitials(name: string) {
-    console.log(name);
     const nameParts: Array<string> = name.split(" ");
     return nameParts[0][0] + nameParts?.at(-1)?.[0];
 }
@@ -39,7 +38,6 @@ function UserCard({}: Props) {
         userId: session.data?.user?.id as string,
     });
 
-    console.log(data);
     const initials = getInitials(data.fullName);
 
     return (
