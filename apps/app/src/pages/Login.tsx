@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@workspace/ui/components/button';
+import { LoginForm } from '@/forms/login-form';
 
 export default function Login() {
     const [sp] = useSearchParams();
@@ -27,13 +28,7 @@ export default function Login() {
 
     return (
         <div className="min-h-screen grid place-items-center">
-            <form onSubmit={onSubmit} className="w-full max-w-sm rounded-lg border bg-white p-6 space-y-4">
-                <h1 className="text-xl font-semibold">Sign in</h1>
-                {err && <div className="text-red-600 text-sm">{err}</div>}
-                <input name="email" type="email" placeholder="you@example.com" className="w-full border rounded px-3 py-2" required />
-                <input name="password" type="password" placeholder="••••••••" className="w-full border rounded px-3 py-2" required />
-                <Button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</Button>
-            </form>
+            <LoginForm className="w-full max-w-sm" />
         </div>
     );
 }

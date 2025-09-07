@@ -8,11 +8,11 @@
         "baseUrl": ".",
         "paths": {
             "@/*": [
-                "./*"
+                "src/*"
             ],
             "@workspace/ui/*": [
                 "../../packages/ui/src/*"
-            ] // 👈 shadcn looks for this
+            ]
         }
     },
     "include": [
