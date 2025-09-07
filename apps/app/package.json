@@ -6,11 +6,11 @@
         "build": "vite build"
     },
     "dependencies": {
+        "@radix-ui/react-slot": "^1.2.3",
+        "@tanstack/react-query": "^5.56.2",
         "@workspace/api-client": "file:../../packages/api-client",
         "@workspace/types": "file:../../packages/types",
         "@workspace/ui": "file:../../packages/ui",
-        "@radix-ui/react-slot": "^1.2.3",
-        "@tanstack/react-query": "^5.56.2",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-router-dom": "^6.26.2"
@@ -19,6 +19,7 @@
         "@types/react": "^18.3.5",
         "@types/react-dom": "^18.3.0",
         "@vitejs/plugin-react": "^4.3.1",
+        "@workspace/eslint-config": "workspace:^",
         "@workspace/typescript-config": "workspace:*",
         "typescript": "^5.5.4",
         "vite": "^5.4.8"
