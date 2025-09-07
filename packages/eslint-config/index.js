@@ -1,4 +1,5 @@
 module.exports = {
+    indent: ["error", 4],
     env: {
         node: true,
     },
@@ -15,5 +16,13 @@ module.exports = {
     },
     rules: {
         "@typescript-eslint/no-non-null-assertion": "off",
+        "prettier/prettier": [
+            "error",
+            {
+                tabWidth: 4,
+                useTabs: false,
+                endOfLine: "lf"
+            }
+        ],
     },
 };
