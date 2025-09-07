@@ -1,0 +1,9 @@
+{
+    "name": "@workspace/api-client",
+    "private": true,
+    "type": "module",
+    "exports": { ".": "./src/index.ts" },
+    "dependencies": {
+        "openapi-fetch": "^0.10.0"
+    }
+}

@@ -1,0 +1,88 @@
+# ---- Node / Monorepo basics ----
+node_modules/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+*.log
+
+# Keep pnpm lockfile (do NOT ignore)
+# pnpm-lock.yaml
+
+# Ignore other lockfiles just in case
+package-lock.json
+yarn.lock
+
+# ---- Build output ----
+dist/
+build/
+.out/
+out/
+.storybook-out/
+storybook-static/
+
+# Framework-specific
+.next/
+.next/cache/
+.svelte-kit/
+.redwood/
+
+# Vite cache (usually in node_modules, but catch any)
+.vite/
+**/.vite/
+
+# Turbo repo cache
+.turbo/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Coverage / reports
+coverage/
+coverage-final.json
+reports/
+junit.xml
+
+# Playwright / Cypress / Vitest
+playwright-report/
+test-results/
+.playwright/
+.cypress/
+cypress/videos/
+cypress/screenshots/
+vitest-report/
+.vitest/
+
+# ESLint / Stylelint caches
+.eslintcache
+.stylelintcache
+
+# Env & secrets (keep examples!)
+.env*
+!.env.example
+!.env*.example
+!.env.template
+!.env.*.example
+!.env.local.example
+
+# OS / Editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.swn
+*.swm
+.idea/
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Misc tooling
+.parcel-cache/
+.cache/
+.temp/
+tmp/
+temp/
+
+# Docker / local
