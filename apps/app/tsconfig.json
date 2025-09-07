@@ -2,12 +2,21 @@
     "extends": "@workspace/typescript-config/base.json",
     "compilerOptions": {
         "jsx": "react-jsx",
-        "types": ["vite/client"],
+        "types": [
+            "vite/client"
+        ],
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./*"],
-            "@workspace/ui/*": ["../../packages/ui/src/*"]         // 👈 shadcn looks for this
+            "@/*": [
+                "./*"
+            ],
+            "@workspace/ui/*": [
+                "../../packages/ui/src/*"
+            ] // 👈 shadcn looks for this
         }
     },
-    "include": ["src", "vite-env.d.ts"]
+    "include": [
+        "src",
+        "vite-env.d.ts"
+    ]
 }

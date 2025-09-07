@@ -1,9 +1,9 @@
 {
     "name": "@workspace/eslint-config",
     "version": "0.0.0",
-    "exports": "./eslint.config.js",
+    "exports": "./eslint.config.mjs",
     "files": [
-        "eslint.config.js"
+        "eslint.config.mjs"
     ],
     "license": "MIT",
     "dependencies": {

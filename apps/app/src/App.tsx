@@ -7,16 +7,16 @@ export default function App() {
     const loc = useLocation();
     return (
         <Routes location={loc}>
-        <Route path="/login" element={<Login />} />
-        <Route
-            path="/"
-            element={
-            <ProtectedRoute>
-                <Dashboard />
-            </ProtectedRoute>
-            }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+                path="/"
+                element={
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
 }
