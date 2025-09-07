@@ -11,9 +11,9 @@ export default function App() {
             <Route
                 path="/"
                 element={
-                    <ProtectedRoute>
-                        <Dashboard />
-                    </ProtectedRoute>
+                    // <ProtectedRoute>
+                    <Dashboard />
+                    // </ProtectedRoute>
                 }
             />
             <Route path="*" element={<Navigate to="/" replace />} />

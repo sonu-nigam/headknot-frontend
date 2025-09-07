@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { Button } from '@workspace/ui/components/button';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@workspace/ui/components/sidebar';
+import { AppSidebar } from '@/components/app-sidebar';
+import { Separator } from '@workspace/ui/components/separator';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@workspace/ui/components/breadcrumb';
 
 type Memory = { id: string; title: string; updatedAt: string };
 
@@ -30,24 +34,43 @@ export default function Dashboard() {
         onSettled: () => qc.invalidateQueries({ queryKey: ['memories'] }),
     });
 
-    if (isLoading) return <div className="p-6">Loading…</div>;
+    // if (isLoading) return <div className="p-6">Loading…</div>;
 
     return (
-        <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold">Memories</h1>
-                <Button onClick={() => createMemory.mutate('New memory')}>+ New</Button>
-            </div>
-
-            <ul className="space-y-2">
-                {memories?.map(m => (
-                    <li key={m.id} className="rounded border bg-white p-3">
-                        <div className="font-medium">{m.title}</div>
-                        <div className="text-xs text-gray-500">Updated {new Date(m.updatedAt).toLocaleString()}</div>
-                    </li>
-                ))}
-                {!memories?.length && <div className="text-gray-500">No memories yet.</div>}
-            </ul>
-        </div>
+        <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+                    <div className="flex items-center gap-2 px-4">
+                        <SidebarTrigger className="-ml-1" />
+                        <Separator
+                            orientation="vertical"
+                            className="mr-2 data-[orientation=vertical]:h-4"
+                        />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem className="hidden md:block">
+                                    <BreadcrumbLink href="#">
+                                        Building Your Application
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator className="hidden md:block" />
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
+                    </div>
+                </header>
+                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                    <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+                        <div className="bg-muted/50 aspect-video rounded-xl" />
+                        <div className="bg-muted/50 aspect-video rounded-xl" />
+                        <div className="bg-muted/50 aspect-video rounded-xl" />
+                    </div>
+                    <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }
