@@ -11,6 +11,9 @@ export default [
     js.configs.recommended,
     ...tseslint.configs.recommended,
 
+    // ⬇️ Add plugin's recommended config: runs Prettier as a rule AND turns off conflicting rules
+    prettier.configs.recommended,
+
     {
         files: ["**/*.{ts,tsx,js,jsx}"],
         languageOptions: {
@@ -21,10 +24,24 @@ export default [
         },
         plugins: { prettier },
         rules: {
-            // your rules
-            indent: ["error", 4],
-            "@typescript-eslint/no-non-null-assertion": "off",
-            "prettier/prettier": ["error", { tabWidth: 4, useTabs: false, endOfLine: "lf" }],
+            // Let Prettier config be the single source → don't pass options here
+            "prettier/prettier": "error",
+
+            // Avoid stylistic conflicts—Prettier controls indentation/format.
+            // Remove this unless you have a very specific reason:
+            // "indent": ["error", 4],
+
+            // Keeping max-len is fine if you want extra enforcement beyond Prettier:
+            "max-len": [
+                "error",
+                {
+                    code: 80,
+                    tabWidth: 4,
+                    ignoreUrls: true,
+                    ignoreStrings: true,
+                    ignoreTemplateLiterals: true
+                }
+            ],
         },
     },
 ];
