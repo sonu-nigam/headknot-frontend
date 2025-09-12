@@ -1,160 +1,135 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 import {
+    Archive,
     AudioWaveform,
     BookOpen,
     Bot,
     Command,
     Frame,
     GalleryVerticalEnd,
+    History,
+    LayoutDashboard,
     Map,
     PieChart,
+    Pin,
+    Plus,
+    Search,
     Settings2,
     SquareTerminal,
-} from "lucide-react"
+    Trash,
+} from 'lucide-react';
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from '@/components/nav-main';
+import { NavProjects } from '@/components/nav-projects';
+import { NavUser } from '@/components/nav-user';
+import { TeamSwitcher } from '@/components/team-switcher';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
     SidebarRail,
-} from "@workspace/ui/components/sidebar"
+} from '@workspace/ui/components/sidebar';
+import { Button } from '@workspace/ui/components/button';
 
 // This is sample data.
 const data = {
     user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
+        name: 'shadcn',
+        email: 'm@example.com',
+        avatar: '/avatars/shadcn.jpg',
     },
     teams: [
         {
-            name: "Acme Inc",
+            name: 'Acme Inc',
             logo: GalleryVerticalEnd,
-            plan: "Enterprise",
+            plan: 'Enterprise',
         },
         {
-            name: "Acme Corp.",
+            name: 'Acme Corp.',
             logo: AudioWaveform,
-            plan: "Startup",
+            plan: 'Startup',
         },
         {
-            name: "Evil Corp.",
+            name: 'Evil Corp.',
             logo: Command,
-            plan: "Free",
+            plan: 'Free',
         },
     ],
     navMain: [
         {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: "History",
-                    url: "#",
-                },
-                {
-                    title: "Starred",
-                    url: "#",
-                },
-                {
-                    title: "Settings",
-                    url: "#",
-                },
-            ],
+            title: 'Dashboard',
+            url: '#',
+            icon: LayoutDashboard,
         },
         {
-            title: "Models",
-            url: "#",
-            icon: Bot,
-            items: [
-                {
-                    title: "Genesis",
-                    url: "#",
-                },
-                {
-                    title: "Explorer",
-                    url: "#",
-                },
-                {
-                    title: "Quantum",
-                    url: "#",
-                },
-            ],
+            title: 'Inbox',
+            url: '#',
+            icon: Pin,
         },
         {
-            title: "Documentation",
-            url: "#",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "Introduction",
-                    url: "#",
-                },
-                {
-                    title: "Get Started",
-                    url: "#",
-                },
-                {
-                    title: "Tutorials",
-                    url: "#",
-                },
-                {
-                    title: "Changelog",
-                    url: "#",
-                },
-            ],
+            title: 'Tasks',
+            url: '#',
+            icon: History,
         },
         {
-            title: "Settings",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "General",
-                    url: "#",
-                },
-                {
-                    title: "Team",
-                    url: "#",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
-                },
-            ],
+            title: 'Files',
+            url: '#',
+            icon: Archive,
+        },
+        {
+            title: 'Timeline',
+            url: '#',
+            icon: Trash,
+        },
+        {
+            title: 'Automations',
+            url: '#',
+            icon: Trash,
+        },
+        {
+            title: 'Agents',
+            url: '#',
+            icon: Trash,
         },
     ],
     projects: [
         {
-            name: "Design Engineering",
-            url: "#",
+            name: 'Design Engineering',
+            url: '#',
             icon: Frame,
+            items: [
+                {
+                    title: 'Design Engineering',
+                    url: '#',
+                    icon: Frame,
+                },
+                {
+                    title: 'Sales & Marketing',
+                    url: '#',
+                    icon: PieChart,
+                },
+                {
+                    title: 'Travel',
+                    url: '#',
+                    icon: Map,
+                },
+            ],
         },
         {
-            name: "Sales & Marketing",
-            url: "#",
+            name: 'Sales & Marketing',
+            url: '#',
             icon: PieChart,
         },
         {
-            name: "Travel",
-            url: "#",
+            name: 'Travel',
+            url: '#',
             icon: Map,
         },
     ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
@@ -163,6 +138,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <TeamSwitcher teams={data.teams} />
             </SidebarHeader>
             <SidebarContent>
+                <div className="px-4 mt-4"></div>
+                <Button className="mx-4">
+                    <Plus />
+                    New Memory
+                    <span className="ml-auto">⌘K</span>
+                </Button>
+                <Button className="mx-4" size="sm" variant="ghost">
+                    <Search />
+                    Search
+                    <span className="ml-auto">⌘K</span>
+                </Button>
                 <NavMain items={data.navMain} />
                 <NavProjects projects={data.projects} />
             </SidebarContent>
@@ -171,5 +157,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
-    )
+    );
 }
