@@ -33,6 +33,7 @@ import {
     SidebarRail,
 } from '@workspace/ui/components/sidebar';
 import { Button } from '@workspace/ui/components/button';
+import { QuickCaptureModal } from './QuickCaptureModal';
 
 // This is sample data.
 const data = {
@@ -139,11 +140,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarHeader>
             <SidebarContent>
                 <div className="px-4 mt-4"></div>
-                <Button className="mx-4">
-                    <Plus />
-                    New Memory
-                    <span className="ml-auto">⌘K</span>
-                </Button>
+                <QuickCaptureModal>
+                    <Button className="mx-4">
+                        <Plus />
+                        New Memory
+                        <span className="ml-auto">⌘K</span>
+                    </Button>
+                </QuickCaptureModal>
                 <Button className="mx-4" size="sm" variant="ghost">
                     <Search />
                     Search

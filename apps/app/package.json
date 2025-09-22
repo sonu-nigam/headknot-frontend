@@ -6,6 +6,7 @@
         "build": "vite build"
     },
     "dependencies": {
+        "@hookform/resolvers": "^5.2.2",
         "@tanstack/react-query": "^5.56.2",
         "@workspace/api-client": "workspace:*",
         "@workspace/types": "workspace:*",
@@ -13,7 +14,9 @@
         "lucide-react": "^0.475.0",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
-        "react-router-dom": "^6.26.2"
+        "react-hook-form": "^7.62.0",
+        "react-router-dom": "^6.26.2",
+        "zod": "^3.25.76"
     },
     "devDependencies": {
         "@types/react": "^19.1.12",

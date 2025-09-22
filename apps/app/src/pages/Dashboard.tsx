@@ -17,14 +17,15 @@ import { Chatbox } from '@/components/chatbox';
 import { AppHeader } from '@/components/app-header';
 import { CompactMemoryCard } from '@/components/MemoryCard';
 import ProjectsInFocus from '@/components/ProjectsInFocus';
+import { MemoryType } from '@workspace/types';
 
 export default function Dashboard() {
-    // const qc = useQueryClient();
+    const qc = useQueryClient();
 
-    // const { data: memories, isLoading } = useQuery({
-    //     queryKey: ['memories'],
-    //     queryFn: () => api<Memory[]>('/bff/memories'),
-    // });
+    const { data: memories, isLoading } = useQuery({
+        queryKey: ['memories'],
+        queryFn: () => api<MemoryType[]>('/api/memories'),
+    });
 
     // const createMemory = useMutation({
     //     mutationFn: async (title: string) =>
