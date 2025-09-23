@@ -3,6 +3,7 @@ import {
     SubmitButton,
 } from '@/forms/QuickCaptureForm/QuickCaptureForm';
 import {
+    quickCaptureFormResolver,
     quickCaptureFormSchema,
     QuickCaptureFormValues,
 } from '@/validations/form/QuickCaptureForm';
@@ -29,15 +30,22 @@ import { useForm } from 'react-hook-form';
 
 export function QuickCaptureModal({ children }: PropsWithChildren) {
     const form = useForm<QuickCaptureFormValues>({
-        resolver: zodResolver(quickCaptureFormSchema),
+        resolver: quickCaptureFormResolver,
         mode: 'onChange', // live validity for footer button disable
         defaultValues: { title: '' },
     });
 
     function onSubmit(values: QuickCaptureFormValues) {
+        debugger;
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
         console.log(values);
+    }
+
+    function onInvalid() {
+        // Do something with the form values.
+        // ✅ This will be type-safe and validated.
+        debugger;
     }
 
     return (
@@ -77,7 +85,7 @@ export function QuickCaptureModal({ children }: PropsWithChildren) {
                     {/* FORM BODY */}
                     <QuickCaptureForm
                         onSubmit={onSubmit}
-                        formId="QuickCaptureForm"
+                        onInvalid={onInvalid}
                     />
 
                     <DialogFooter>
@@ -86,7 +94,7 @@ export function QuickCaptureModal({ children }: PropsWithChildren) {
                                 Cancel
                             </Button>
                         </DialogClose>
-                        <SubmitButton />
+                        <SubmitButton onSubmit={onSubmit} />
                     </DialogFooter>
                 </Form>
             </DialogContent>

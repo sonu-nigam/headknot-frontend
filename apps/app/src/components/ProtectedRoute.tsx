@@ -11,11 +11,17 @@ export default function ProtectedRoute({ children }: Props) {
     // Fast user check; Spring should read cookie and return user or 401
     const { data: user, isLoading } = useQuery({
         queryKey: ['me'],
-        queryFn: () => api<{ id: string; email: string }>('/bff/auth/me'),
+        queryFn: () => api<{ id: string; email: string }>('/api/auth/me'),
     });
 
     if (isLoading) return <div className="p-6">Checking session…</div>;
-    if (!user) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname)}`} replace />;
+    if (!user)
+        return (
+            <Navigate
+                to={`/login?next=${encodeURIComponent(loc.pathname)}`}
+                replace
+            />
+        );
 
     return <>{children}</>;
 }

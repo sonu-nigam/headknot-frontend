@@ -6,6 +6,7 @@ import {
     AudioWaveform,
     BookOpen,
     Bot,
+    BoxIcon,
     Command,
     Frame,
     GalleryVerticalEnd,
@@ -24,7 +25,7 @@ import {
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@/components/team-switcher';
+import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 import {
     Sidebar,
     SidebarContent,
@@ -34,6 +35,8 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { Button } from '@workspace/ui/components/button';
 import { QuickCaptureModal } from './QuickCaptureModal';
+import { api } from '@workspace/api-client';
+import { useQuery } from '@tanstack/react-query';
 
 // This is sample data.
 const data = {
@@ -42,19 +45,19 @@ const data = {
         email: 'm@example.com',
         avatar: '/avatars/shadcn.jpg',
     },
-    teams: [
+    workspaces: [
         {
-            name: 'Acme Inc',
+            name: 'Private',
             logo: GalleryVerticalEnd,
             plan: 'Enterprise',
         },
         {
-            name: 'Acme Corp.',
+            name: 'Docusign',
             logo: AudioWaveform,
             plan: 'Startup',
         },
         {
-            name: 'Evil Corp.',
+            name: 'Grappus',
             logo: Command,
             plan: 'Free',
         },
@@ -136,10 +139,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <TeamSwitcher teams={data.teams} />
+                <WorkspaceSwitcher />
             </SidebarHeader>
             <SidebarContent>
-                <div className="px-4 mt-4"></div>
                 <QuickCaptureModal>
                     <Button className="mx-4">
                         <Plus />

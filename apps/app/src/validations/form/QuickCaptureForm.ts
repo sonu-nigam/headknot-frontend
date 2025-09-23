@@ -1,4 +1,6 @@
-import { MemoryType } from '@workspace/types';
+import { MEMORY_TYPES, VISIBILITY_TYPES } from '@/constants/common';
+import { zodResolver } from '@hookform/resolvers/zod/src/zod.js';
+// import { MemoryType, VisibilityType } from '@workspace/types';
 import z from 'zod';
 
 export const blockValidation = z.discriminatedUnion('kind', [
@@ -67,10 +69,18 @@ export const blockValidation = z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('divider'), data: z.object({}) }),
 ]);
 
+export type MemoryType = (typeof MEMORY_TYPES)[number];
+
+export type VisibilityType = (typeof VISIBILITY_TYPES)[number];
+
 export const quickCaptureFormSchema = z.object({
-    title: z.string().min(1),
-    type: z.custom<MemoryType>(),
-    content: z.array(blockValidation),
+    title: z.string().trim().min(1),
+    type: z.enum(MEMORY_TYPES),
+    visibility: z.enum(VISIBILITY_TYPES),
+    description: z.string().trim().min(1),
+    // content: z.array(blockValidation),
 });
+
+export const quickCaptureFormResolver = zodResolver(quickCaptureFormSchema);
 
 export type QuickCaptureFormValues = z.infer<typeof quickCaptureFormSchema>;

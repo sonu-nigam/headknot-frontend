@@ -49,29 +49,31 @@ export const contentPolicy: ContentPolicyType = {
 export function QuickCaptureForm({
     onSubmit,
     onInvalid,
-    formId,
 }: {
     onSubmit: (data: QuickCaptureFormValues) => void | Promise<void>;
     onInvalid?: () => void;
-    formId: string;
 }) {
-    const { register, handleSubmit, control } =
-        useFormContext<QuickCaptureFormValues>();
+    const { handleSubmit, control } = useFormContext<QuickCaptureFormValues>();
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form
+            onSubmit={handleSubmit(onSubmit, onInvalid)}
+            className="space-y-8"
+        >
             <div className="grid gap-4 py-2">
                 {/* Type & Visibility */}
                 <div className="flex gap-4">
                     <FormField
                         control={control}
-                        name="title"
-                        render={({ field }) => <TypeSelector />}
+                        name="type"
+                        render={({ field }) => <TypeSelector {...field} />}
                     />
                     <FormField
                         control={control}
-                        name="title"
-                        render={({ field }) => <VisibilitySelector />}
+                        name="visibility"
+                        render={({ field }) => (
+                            <VisibilitySelector {...field} />
+                        )}
                     />
                 </div>
 
@@ -80,56 +82,55 @@ export function QuickCaptureForm({
                     <FormField
                         control={control}
                         name="title"
-                        render={({ field }) => <Title />}
+                        render={({ field }) => <Title {...field} />}
                     />
                 </div>
 
                 {/* Tags */}
                 <div className="grid gap-2">
                     {/*<Label>Tags</Label>*/}
-                    <FormField
-                        control={control}
-                        name="title"
-                        render={({ field }) => <Tags />}
-                    />
+                    <Tags />
                 </div>
 
                 {/* Content with inline blocks */}
                 <div className="grid gap-2">
                     <FormField
                         control={control}
-                        name="title"
-                        render={({ field }) => <Description />}
+                        name="description"
+                        render={({ field }) => <Description {...field} />}
                     />
                 </div>
 
                 <div className="flex gap-2">
-                    <FormField
+                    <PartOf />
+                    <References />
+                    {/*<FormField
                         control={control}
                         name="title"
                         render={({ field }) => <PartOf />}
-                    />
-                    <FormField
+                    />*/}
+                    {/*<FormField
                         control={control}
                         name="title"
                         render={({ field }) => <References />}
-                    />
+                    />*/}
                 </div>
             </div>
         </form>
     );
 }
 
-export function SubmitButton() {
+export function SubmitButton({
+    onSubmit,
+}: {
+    onSubmit: (data: QuickCaptureFormValues) => void | Promise<void>;
+}) {
     const { handleSubmit, formState } =
         useFormContext<QuickCaptureFormValues>();
-    const onValid = (data: QuickCaptureFormValues) => {
-        // submit logic…
-    };
 
     return (
         <Button
-            onClick={handleSubmit(onValid)}
+            onClick={handleSubmit(onSubmit)}
             disabled={formState.isSubmitting}
         >
             {formState.isSubmitting ? 'Saving…' : 'Save'}

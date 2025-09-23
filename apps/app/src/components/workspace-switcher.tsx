@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronsUpDown, Plus } from 'lucide-react';
+import { BoxIcon, ChevronsUpDown, LockIcon, Plus } from 'lucide-react';
 
 import {
     DropdownMenu,
@@ -18,22 +18,23 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@workspace/ui/components/sidebar';
+import { api } from '@workspace/api-client';
+import { useQuery } from '@tanstack/react-query';
 
-export function TeamSwitcher({
-    teams,
-}: {
-    teams: {
-        name: string;
-        logo: React.ElementType;
-        plan: string;
-    }[];
-}) {
+export function WorkspaceSwitcher() {
     const { isMobile } = useSidebar();
-    const [activeTeam, setActiveTeam] = React.useState(teams[0]);
+    const { data: workspaces } = useQuery({
+        queryKey: ['workspace'],
+        queryFn: async () => {
+            const { error, data } = await api.GET('/workspaces/my-workspaces');
+            if (error) throw error;
+            return data;
+        },
+    });
 
-    if (!activeTeam) {
-        return null;
-    }
+    const activeWorkspace = workspaces?.find((workspace) => workspace.active);
+
+    if (!activeWorkspace) return null;
 
     return (
         <SidebarMenu>
@@ -45,11 +46,15 @@ export function TeamSwitcher({
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                                <activeTeam.logo className="size-4" />
+                                <BoxIcon className="size-4" />
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{activeTeam.name}</span>
-                                <span className="truncate text-xs">{activeTeam.plan}</span>
+                                <span className="truncate font-medium">
+                                    {activeWorkspace.name}
+                                </span>
+                                {/*<span className="truncate text-xs">
+                                    {activeWorkspace.plan}
+                                </span>*/}
                             </div>
                             <ChevronsUpDown className="ml-auto" />
                         </SidebarMenuButton>
@@ -61,19 +66,21 @@ export function TeamSwitcher({
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
-                            Teams
+                            Workspaces
                         </DropdownMenuLabel>
-                        {teams.map((team, index) => (
+                        {workspaces?.map((workspace, index) => (
                             <DropdownMenuItem
-                                key={team.name}
-                                onClick={() => setActiveTeam(team)}
+                                key={workspace.name}
+                                // onClick={() => setActiveWorkspace(workspace)}
                                 className="gap-2 p-2"
                             >
                                 <div className="flex size-6 items-center justify-center rounded-md border">
-                                    <team.logo className="size-3.5 shrink-0" />
+                                    <LockIcon className="size-3.5 shrink-0" />
                                 </div>
-                                {team.name}
-                                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                                {workspace.name}
+                                <DropdownMenuShortcut>
+                                    ⌘{index + 1}
+                                </DropdownMenuShortcut>
                             </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
@@ -81,7 +88,9 @@ export function TeamSwitcher({
                             <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                                 <Plus className="size-4" />
                             </div>
-                            <div className="text-muted-foreground font-medium">Add team</div>
+                            <div className="text-muted-foreground font-medium">
+                                Add Workspace
+                            </div>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

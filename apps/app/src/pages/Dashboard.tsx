@@ -22,10 +22,10 @@ import { MemoryType } from '@workspace/types';
 export default function Dashboard() {
     const qc = useQueryClient();
 
-    const { data: memories, isLoading } = useQuery({
-        queryKey: ['memories'],
-        queryFn: () => api<MemoryType[]>('/api/memories'),
-    });
+    // const { data: memories, isLoading } = useQuery({
+    //     queryKey: ['memories'],
+    //     queryFn: () => api<MemoryType[]>('/api/memories'),
+    // });
 
     // const createMemory = useMutation({
     //     mutationFn: async (title: string) =>

@@ -1,5 +1,14 @@
+import { VISIBILITY_TYPES } from '@/constants/common';
+import { MEMORY_TYPES } from '@/constants/Memory';
+import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
+import {
+    FormControl,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
 import {
@@ -16,64 +25,83 @@ import {
     TooltipTrigger,
 } from '@workspace/ui/components/tooltip';
 import { BookCopyIcon, CombineIcon, PlusIcon } from 'lucide-react';
+import { ControllerRenderProps } from 'react-hook-form';
 
-export function TypeSelector() {
+export function TypeSelector({ ...field }: ControllerRenderProps) {
     return (
-        <Select>
-            <SelectTrigger size="sm">
-                <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-                {'Note,Meeting,Task,Decision,File'.split(',').map((v) => (
-                    <SelectItem key={v} value={v}>
-                        {v}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
+        <FormItem>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                    <SelectTrigger size="sm">
+                        <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    {MEMORY_TYPES.map((v) => (
+                        <SelectItem key={v} value={v}>
+                            {v}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <FormMessage />
+        </FormItem>
     );
 }
 
-export function VisibilitySelector() {
+export function VisibilitySelector({ ...field }: ControllerRenderProps) {
     return (
-        <Select>
-            <SelectTrigger size="sm">
-                <SelectValue placeholder="Select visibility" />
-            </SelectTrigger>
-            <SelectContent>
-                {'Public,Private'.split(',').map((v) => (
-                    <SelectItem key={v} value={v}>
-                        {v}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
+        <FormItem>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                    <SelectTrigger size="sm">
+                        <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                    {VISIBILITY_TYPES.map((v) => (
+                        <SelectItem key={v} value={v}>
+                            {v}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <FormMessage />
+        </FormItem>
     );
 }
 
-export function Title() {
+export function Title({ ...field }: ControllerRenderProps) {
     return (
-        <>
-            <Label htmlFor="title">Title</Label>
-            <Input
-                id="title"
-                autoFocus
-                placeholder="e.g., Outbox pattern notes"
-            />
-        </>
+        <FormItem>
+            <FormLabel htmlFor="title">Title</FormLabel>
+            <FormControl>
+                <Input
+                    id="title"
+                    autoFocus
+                    placeholder="e.g., Outbox pattern notes"
+                    {...field}
+                />
+            </FormControl>
+            <FormMessage />
+        </FormItem>
     );
 }
 
-export function Description() {
+export function Description({ ...field }: ControllerRenderProps) {
     return (
-        <>
-            <Label htmlFor="content">Description</Label>
-            <Textarea
-                id="content"
-                placeholder="Write here. Use / for blocks; uploads become inline blocks."
-                className="min-h-[160px]"
-            />
-        </>
+        <FormItem>
+            <FormLabel htmlFor="description">Description</FormLabel>
+            <FormControl>
+                <Textarea
+                    id="description"
+                    placeholder="Write here. Use / for blocks; uploads become inline blocks."
+                    className="min-h-[160px]"
+                    {...field}
+                />
+            </FormControl>
+            <FormMessage />
+        </FormItem>
     );
 }
 
