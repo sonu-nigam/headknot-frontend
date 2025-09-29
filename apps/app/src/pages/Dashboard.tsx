@@ -18,6 +18,7 @@ import { AppHeader } from '@/components/app-header';
 import { CompactMemoryCard } from '@/components/MemoryCard';
 import ProjectsInFocus from '@/components/ProjectsInFocus';
 import { MemoryType } from '@workspace/types';
+import { QuickCapture } from '@/components/QuickCapture';
 
 export default function Dashboard() {
     const qc = useQueryClient();
@@ -52,6 +53,7 @@ export default function Dashboard() {
             <AppSidebar />
             <SidebarInset className="overflow-hidden">
                 <AppHeader />
+                <QuickCapture />
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
                     <div className="max-w-3xl mx-auto h-full max-h-1/2 w-full">
                         <Chatbox className="mt-20" />

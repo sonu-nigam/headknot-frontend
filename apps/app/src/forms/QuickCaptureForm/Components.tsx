@@ -1,5 +1,8 @@
-import { VISIBILITY_TYPES } from '@/constants/common';
-import { MEMORY_TYPES } from '@/constants/Memory';
+import { BookCopyIcon, CombineIcon, PlusIcon } from 'lucide-react';
+import { ControllerRenderProps } from 'react-hook-form';
+import { Plate, usePlateEditor } from 'platejs/react';
+
+import { MEMORY_TYPES, VISIBILITY_TYPES } from '@/constants/common';
 import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -24,8 +27,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@workspace/ui/components/tooltip';
-import { BookCopyIcon, CombineIcon, PlusIcon } from 'lucide-react';
-import { ControllerRenderProps } from 'react-hook-form';
+import { Editor, EditorContainer } from '@workspace/ui/components/editor';
 
 export function TypeSelector({ ...field }: ControllerRenderProps) {
     return (
@@ -89,16 +91,25 @@ export function Title({ ...field }: ControllerRenderProps) {
 }
 
 export function Description({ ...field }: ControllerRenderProps) {
+    const editor = usePlateEditor();
     return (
         <FormItem>
-            <FormLabel htmlFor="description">Description</FormLabel>
+            <FormLabel>Description</FormLabel>
             <FormControl>
-                <Textarea
+                {/*<Textarea
                     id="description"
                     placeholder="Write here. Use / for blocks; uploads become inline blocks."
                     className="min-h-[160px]"
                     {...field}
-                />
+                />*/}
+                <Plate editor={editor}>
+                    <EditorContainer>
+                        <Editor
+                            placeholder="Describe your content here..."
+                            className="px-4 sm:px-4 border rounded-md"
+                        />
+                    </EditorContainer>
+                </Plate>
             </FormControl>
             <FormMessage />
         </FormItem>

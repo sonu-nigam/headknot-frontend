@@ -52,7 +52,7 @@ export function QuickCaptureModal({ children }: PropsWithChildren) {
         <Dialog>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent
-                className="max-w-3xl pt-4"
+                className="max-w-5xl pt-4 sm:max-w-2xl"
                 showCloseButton={false}
                 aria-describedby="qc-desc"
             >

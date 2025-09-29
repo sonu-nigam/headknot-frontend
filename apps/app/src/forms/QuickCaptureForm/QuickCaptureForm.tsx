@@ -1,8 +1,11 @@
 import { ContentPolicyType } from '@workspace/types';
-import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
+import {
+    quickCaptureFormResolver,
+    QuickCaptureFormValues,
+} from '@/validations/form/QuickCaptureForm';
 import { Button } from '@workspace/ui/components/button';
-import { useFormContext } from 'react-hook-form';
-import { FormField } from '@workspace/ui/components/form';
+import { useForm, useFormContext } from 'react-hook-form';
+import { Form, FormField } from '@workspace/ui/components/form';
 import {
     Description,
     PartOf,
@@ -53,21 +56,61 @@ export function QuickCaptureForm({
     onSubmit: (data: QuickCaptureFormValues) => void | Promise<void>;
     onInvalid?: () => void;
 }) {
-    const { handleSubmit, control } = useFormContext<QuickCaptureFormValues>();
+    const form = useForm<QuickCaptureFormValues>({
+        resolver: quickCaptureFormResolver,
+        mode: 'onChange', // live validity for footer button disable
+        defaultValues: { title: '' },
+    });
+
+    const { control, handleSubmit } = form;
 
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit, onInvalid)}
-            className="space-y-8"
-        >
-            <div className="grid gap-4 py-2">
-                {/* Type & Visibility */}
-                <div className="flex gap-4">
-                    <FormField
-                        control={control}
-                        name="type"
-                        render={({ field }) => <TypeSelector {...field} />}
-                    />
+        <Form {...form}>
+            <form
+                onSubmit={handleSubmit(onSubmit, onInvalid)}
+                className="space-y-8"
+            >
+                <div className="grid gap-4 py-2">
+                    {/* Title */}
+                    <div className="grid gap-2">
+                        <FormField
+                            control={control}
+                            name="title"
+                            render={({ field }) => <Title {...field} />}
+                        />
+                    </div>
+
+                    {/* Content with inline blocks */}
+                    <div className="grid gap-2">
+                        <FormField
+                            control={control}
+                            name="description"
+                            render={({ field }) => <Description {...field} />}
+                        />
+                    </div>
+
+                    {/* Tags */}
+                    <div className="grid gap-2">
+                        {/*<Label>Tags</Label>*/}
+                        <Tags />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <PartOf />
+                        <References />
+                        {/*<FormField
+                            control={control}
+                            name="title"
+                            render={({ field }) => <PartOf />}
+                        />*/}
+                        {/*<FormField
+                            control={control}
+                            name="title"
+                            render={({ field }) => <References />}
+                        />*/}
+                    </div>
+                </div>
+                <div className="flex gap-3 items-center justify-between">
                     <FormField
                         control={control}
                         name="visibility"
@@ -75,48 +118,13 @@ export function QuickCaptureForm({
                             <VisibilitySelector {...field} />
                         )}
                     />
+                    <Button type="reset" className="ml-auto">
+                        Reset
+                    </Button>
+                    <Button type="submit">Save</Button>
                 </div>
-
-                {/* Title */}
-                <div className="grid gap-2">
-                    <FormField
-                        control={control}
-                        name="title"
-                        render={({ field }) => <Title {...field} />}
-                    />
-                </div>
-
-                {/* Tags */}
-                <div className="grid gap-2">
-                    {/*<Label>Tags</Label>*/}
-                    <Tags />
-                </div>
-
-                {/* Content with inline blocks */}
-                <div className="grid gap-2">
-                    <FormField
-                        control={control}
-                        name="description"
-                        render={({ field }) => <Description {...field} />}
-                    />
-                </div>
-
-                <div className="flex gap-2">
-                    <PartOf />
-                    <References />
-                    {/*<FormField
-                        control={control}
-                        name="title"
-                        render={({ field }) => <PartOf />}
-                    />*/}
-                    {/*<FormField
-                        control={control}
-                        name="title"
-                        render={({ field }) => <References />}
-                    />*/}
-                </div>
-            </div>
-        </form>
+            </form>
+        </Form>
     );
 }
 
