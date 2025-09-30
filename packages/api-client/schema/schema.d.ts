@@ -28,6 +28,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/memory/{id}/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replace blocks
+         * @description Replace the full block list (optimistic-locked via If-Match)
+         */
+        put: operations["replaceBlocks"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces": {
         parameters: {
             query?: never;
@@ -102,6 +122,46 @@ export interface paths {
          * @description Activate a workspace
          */
         post: operations["activateWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create memory
+         * @description Create a new memory (note/task/decision/...) in a workspace
+         */
+        post: operations["createMemory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/memory/{id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert type
+         * @description Convert a memory to another type (e.g., note → task)
+         */
+        post: operations["convertType"];
         delete?: never;
         options?: never;
         head?: never;
@@ -268,6 +328,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/memory/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get memory
+         * @description Fetch a memory with its blocks
+         */
+        get: operations["getMemory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activity/list": {
         parameters: {
             query?: never;
@@ -316,29 +396,75 @@ export interface components {
             name?: string;
             description?: string;
         };
+        UserId: {
+            /** Format: uuid */
+            value?: string;
+        };
         WorkspaceResponse: {
             /** Format: uuid */
             id?: string;
             name?: string;
             description?: string;
-            /** Format: uuid */
-            ownerId?: string;
-            memberIds?: string[];
+            ownerId?: components["schemas"]["UserId"];
+            memberIds?: components["schemas"]["UserId"][];
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
             active?: boolean;
         };
+        BlockDto: {
+            id?: components["schemas"]["BlockId"];
+            parentId?: components["schemas"]["BlockId"];
+            /** Format: int32 */
+            idx?: number;
+            kind?: string;
+            data?: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        BlockId: {
+            /** Format: uuid */
+            value?: string;
+        };
+        UpdateMemoryRequest: {
+            blocks?: components["schemas"]["BlockDto"][];
+        };
+        MemoryResponse: {
+            /** Format: uuid */
+            id?: string;
+            type?: string;
+            workspaceId?: string;
+            title?: string;
+            primaryAtomic?: string;
+            atomicBlocks?: string[];
+            atomicSignals?: string[];
+            /** Format: int32 */
+            version?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            blocks?: components["schemas"]["BlockDto"][];
+        };
         CreateWorkspaceRequest: {
             name: string;
             description?: string;
         };
         AddWorkspaceMemberRequest: {
-            username: string;
+            /** Format: uuid */
+            memberId: string;
+        };
+        CreateMemoryRequest: {
+            type?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            title?: string;
+            blocks?: components["schemas"]["BlockDto"][];
         };
         SignupRequest: {
             username: string;
+            fullName: string;
             password: string;
         };
         TokenPairResponse: {
@@ -427,6 +553,32 @@ export interface operations {
             };
         };
     };
+    replaceBlocks: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMemoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryResponse"];
+                };
+            };
+        };
+    };
     createWorkspace: {
         parameters: {
             query?: never;
@@ -506,6 +658,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    createMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMemoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryResponse"];
+                };
+            };
+        };
+    };
+    convertType: {
+        parameters: {
+            query: {
+                arg1: string;
+            };
+            header?: {
+                "If-Match"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryResponse"];
+                };
             };
         };
     };
@@ -685,6 +885,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkspaceResponse"][];
+                };
+            };
+        };
+    };
+    getMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryResponse"];
                 };
             };
         };
