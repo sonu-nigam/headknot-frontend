@@ -113,6 +113,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: 'Archived',
             url: '#',
             icon: Archive,
+            isActive: false,
         },
     ];
     return (

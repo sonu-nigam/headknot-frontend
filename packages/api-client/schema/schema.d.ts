@@ -848,7 +848,10 @@ export interface components {
             picture?: string;
             accessToken?: string;
             /** Format: date-time */
-            expiresAt?: string;
+            accessExpiresAt?: string;
+            refreshToken?: string;
+            /** Format: date-time */
+            refreshExpiresAt?: string;
         };
         OAuthAuthorizeResponse: {
             authorizationUrl?: string;

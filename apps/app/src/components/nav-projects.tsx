@@ -46,12 +46,12 @@ export function NavProjects({
         title: string;
         url: string;
         icon?: LucideIcon;
-        isActive?: boolean;
+        isActive: boolean;
         items?: {
             id: string;
             title: string;
             url: string;
-            icon: LucideIcon;
+            icon?: LucideIcon;
         }[];
     }[];
 }) {
