@@ -87,6 +87,7 @@ export function SignupForm({
                                             <FormControl>
                                                 <Input
                                                     placeholder="John Doe"
+                                                    autoComplete="name"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -105,6 +106,7 @@ export function SignupForm({
                                             <FormControl>
                                                 <Input
                                                     placeholder="m@example.com"
+                                                    autoComplete="username"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -124,6 +126,7 @@ export function SignupForm({
                                                 <Input
                                                     placeholder="********"
                                                     type="password"
+                                                    autoComplete="new-password"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -156,7 +159,7 @@ export function SignupForm({
                                         fill="currentColor"
                                     />
                                 </svg>
-                                Continue with Apple
+                                Continue with Github
                             </Button>
                             <Button
                                 variant="outline"

@@ -29,8 +29,8 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@workspace/ui/components/sidebar';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { api, storage } from '@workspace/api-client';
 
 export function NavUser() {
     const { isMobile } = useSidebar();
@@ -43,6 +43,34 @@ export function NavUser() {
         },
         staleTime: Infinity,
     });
+
+    const logout = useMutation({
+        mutationFn: async (data: { refreshToken: string }) => {
+            const { error } = await api.POST('/auth/logout', {
+                body: data,
+                params: { header: {} as any },
+            });
+            if (error) throw error;
+        },
+    });
+
+    const onLogout = () => {
+        logout.mutate(
+            {
+                refreshToken: storage.refresh as string,
+            },
+            {
+                onSuccess: () => {
+                    storage.clear();
+                    window.location.href = '/auth/login';
+                },
+                onError: () => {
+                    storage.clear();
+                    window.location.href = '/auth/login';
+                },
+            },
+        );
+    };
 
     return (
         <SidebarMenu>
@@ -125,7 +153,7 @@ export function NavUser() {
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={onLogout}>
                             <LogOut />
                             Log out
                         </DropdownMenuItem>
