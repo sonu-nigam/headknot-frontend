@@ -7,17 +7,24 @@
     },
     "dependencies": {
         "@hookform/resolvers": "^5.2.2",
+        "@platejs/basic-nodes": "^49.0.0",
+        "@react-oauth/google": "^0.12.2",
         "@tanstack/react-query": "^5.56.2",
+        "@types/lodash": "^4.17.20",
         "@workspace/api-client": "workspace:*",
         "@workspace/types": "workspace:*",
         "@workspace/ui": "workspace:*",
+        "ahooks": "^3.9.5",
+        "lodash": "^4.17.21",
         "lucide-react": "^0.475.0",
         "platejs": "^49.2.21",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
+        "react-error-boundary": "^6.0.0",
         "react-hook-form": "^7.62.0",
         "react-router-dom": "^6.26.2",
-        "zod": "^3.25.76"
+        "zod": "^3.25.76",
+        "zustand": "^5.0.8"
     },
     "devDependencies": {
         "@types/react": "^19.1.12",

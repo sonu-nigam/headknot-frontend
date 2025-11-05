@@ -1,0 +1,112 @@
+import AppLayout from '@/components/AppLayout';
+import { Content } from '@/forms/QuickCaptureForm/Content';
+import { Title } from '@/forms/QuickCaptureForm/Title';
+import { blocksToEditor, TextBlock } from '@/lib/editorValueTransformer';
+import { getMemoryById } from '@/query/options/memory';
+import {
+    useQueryErrorResetBoundary,
+    useSuspenseQuery,
+} from '@tanstack/react-query';
+import { Skeleton } from '@workspace/ui/components/skeleton';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useNavigate, useParams } from 'react-router-dom';
+
+export default function MemoryPage() {
+    const { reset } = useQueryErrorResetBoundary();
+    const navigate = useNavigate();
+
+    return (
+        <AppLayout>
+            <div className="max-w-4xl mx-auto px-3">
+                <ErrorBoundary
+                    onReset={reset}
+                    fallbackRender={({ resetErrorBoundary, error }) => {
+                        resetErrorBoundary();
+                        console.log(error);
+                        // navigate('/not-found', { replace: true });
+
+                        return null;
+                    }}
+                >
+                    <Suspense fallback={<MemoryLoading />}>
+                        <Memory />
+                    </Suspense>
+                </ErrorBoundary>
+            </div>
+        </AppLayout>
+    );
+}
+
+const initialEditorValue = [
+    {
+        type: 'h1',
+        children: [{ text: 'Temporary Heading' }],
+    },
+    {
+        type: 'p',
+        children: [{ text: 'Another block.' }],
+    },
+];
+
+function Memory() {
+    const params = useParams();
+    const memoryId = extractMemoryIdFromSlug(params.memorySlug || null);
+
+    const { data } = useSuspenseQuery({
+        ...getMemoryById(memoryId || ''),
+        retry: 0,
+    });
+
+    return (
+        <div className="p-4 pt-0">
+            <div className="mt-20">
+                <Title
+                    initialValue={data.title as string}
+                    memoryId={memoryId}
+                />
+            </div>
+            <div className="mt-10">
+                <Content initialValue={data.blocks || []} memoryId={memoryId} />
+            </div>
+        </div>
+    );
+}
+
+function MemoryLoading() {
+    return (
+        <div className="p-4 pt-0">
+            <div className="mt-20">
+                <Skeleton className="w-full h-14" />
+            </div>
+            <div className="mt-10">
+                <div className="space-y-3">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <Skeleton
+                            key={i}
+                            className={`h-4 ${i % 3 === 0 ? 'w-3/4' : 'w-full'} rounded-md`}
+                        />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function extractMemoryIdFromSlug(slug: string | null): string {
+    if (!slug) throw Error('Invalid memory ID');
+
+    const slugParts = slug.split('--');
+    const uuid = slugParts.at(-1) as string;
+
+    if (!/^[0-9a-fA-F]{32}$/.test(uuid)) {
+        throw Error('Invalid memory ID');
+    }
+    return [
+        uuid.slice(0, 8),
+        uuid.slice(8, 12),
+        uuid.slice(12, 16),
+        uuid.slice(16, 20),
+        uuid.slice(20, 32),
+    ].join('-');
+}

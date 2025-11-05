@@ -4,19 +4,14 @@
         "dev": {
             "cache": false,
             "persistent": true,
-            "dependsOn": [
-                "^dev"
-            ]
+            "dependsOn": ["^dev"]
+        },
+        "build:schema": {
+            "outputs": []
         },
         "build": {
-            "dependsOn": [
-                "^build"
-            ],
-            "outputs": [
-                ".next/**",
-                "dist/**",
-                "build/**"
-            ]
+            "dependsOn": ["^build"],
+            "outputs": [".next/**", "dist/**", "build/**"]
         },
         "lint": {
             "outputs": []

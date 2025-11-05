@@ -1,102 +1,56 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
-import {
-    SidebarInset,
-    SidebarProvider,
-} from '@workspace/ui/components/sidebar';
-import { AppSidebar } from '@/components/app-sidebar';
 import { Separator } from '@workspace/ui/components/separator';
-import {
-    HistoryIcon,
-    PinIcon,
-    RocketIcon,
-    WandSparklesIcon,
-} from 'lucide-react';
+import { HistoryIcon, PinIcon, WandSparklesIcon } from 'lucide-react';
 import { Fragment } from 'react/jsx-runtime';
 import { Chatbox } from '@/components/chatbox';
-import { AppHeader } from '@/components/app-header';
 import { CompactMemoryCard } from '@/components/MemoryCard';
 import ProjectsInFocus from '@/components/ProjectsInFocus';
-import { MemoryType } from '@workspace/types';
-import { QuickCapture } from '@/components/QuickCapture';
+import AppLayout from '@/components/AppLayout';
 
 export default function Dashboard() {
-    const qc = useQueryClient();
-
-    // const { data: memories, isLoading } = useQuery({
-    //     queryKey: ['memories'],
-    //     queryFn: () => api<MemoryType[]>('/api/memories'),
-    // });
-
-    // const createMemory = useMutation({
-    //     mutationFn: async (title: string) =>
-    //         api<Memory>('/bff/memories', {
-    //             method: 'POST',
-    //             headers: { 'content-type': 'application/json' },
-    //             body: JSON.stringify({ title }),
-    //         }),
-    //     onMutate: async (title) => {
-    //         await qc.cancelQueries({ queryKey: ['memories'] });
-    //         const prev = qc.getQueryData<Memory[]>(['memories']) || [];
-    //         const temp: Memory = { id: 'temp-' + Date.now(), title, updatedAt: new Date().toISOString() };
-    //         qc.setQueryData<Memory[]>(['memories'], [temp, ...prev]);
-    //         return { prev };
-    //     },
-    //     onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(['memories'], ctx.prev),
-    //     onSettled: () => qc.invalidateQueries({ queryKey: ['memories'] }),
-    // });
-
-    // if (isLoading) return <div className="p-6">Loading…</div>;
-
     return (
-        <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="overflow-hidden">
-                <AppHeader />
-                <QuickCapture />
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                    <div className="max-w-3xl mx-auto h-full max-h-1/2 w-full">
-                        <Chatbox className="mt-20" />
-                        <DailySuggestion />
-                    </div>
-                    <div className="mt-40">
-                        <ProjectsInFocus />
-                    </div>
-                    <div className="flex gap-4 w-full">
-                        <div className="flex-3">
-                            <div>
-                                <div className="mb-2 flex gap-2">
-                                    <PinIcon />
-                                    <div className="text-lg font-semibold">
-                                        Pinned Memory
-                                    </div>
-                                </div>
-                                <div className="bg-muted/50 rounded-xl">
-                                    {data.map((item, idx) => (
-                                        <Fragment key={item.id}>
-                                            <CompactMemoryCard item={item} />
-                                            {idx !== data.length - 1 && (
-                                                <Separator />
-                                            )}
-                                        </Fragment>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex-2">
-                            <div className="mb-2 flex gap-2">
-                                <HistoryIcon />
-                                <div className="text-lg font-semibold">
-                                    Recent Activity
-                                </div>
-                            </div>
-                            <div className="bg-muted/50 aspect-video rounded-xl"></div>
-                        </div>
-                    </div>
-                    {/*<div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />*/}
+        <AppLayout>
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full overflow-auto">
+                <div className="max-w-3xl mx-auto h-full min-h-2/3 w-full">
+                    <Chatbox className="mt-20" />
+                    <DailySuggestion />
                 </div>
-            </SidebarInset>
-        </SidebarProvider>
+                {/*<div className="">
+                    <ProjectsInFocus />
+                </div>*/}
+                <div className="flex gap-4 w-full">
+                    <div className="flex-3">
+                        <div>
+                            <div className="mb-2 flex gap-2">
+                                <PinIcon />
+                                <div className="text-lg font-semibold">
+                                    Pinned Memory
+                                </div>
+                            </div>
+                            <div className="bg-muted/50 rounded-xl">
+                                {data.map((item, idx) => (
+                                    <Fragment key={item.id}>
+                                        <CompactMemoryCard item={item} />
+                                        {idx !== data.length - 1 && (
+                                            <Separator />
+                                        )}
+                                    </Fragment>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex-2">
+                        <div className="mb-2 flex gap-2">
+                            <HistoryIcon />
+                            <div className="text-lg font-semibold">
+                                Recent Activity
+                            </div>
+                        </div>
+                        <div className="bg-muted/50 aspect-video rounded-xl"></div>
+                    </div>
+                </div>
+                {/*<div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />*/}
+            </div>
+        </AppLayout>
     );
 }
 

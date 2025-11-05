@@ -82,3 +82,27 @@ export const api = createClient<paths>({
 });
 
 api.use(authMiddleware);
+
+// Helper for Google OAuth (endpoint not yet in OpenAPI schema)
+// TODO: Update OpenAPI schema to include /auth/google endpoint
+export async function googleAuth(accessToken: string) {
+    const response = await baseFetch(`${baseUrl}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken }),
+    });
+
+    if (!response.ok) {
+        const error = await response
+            .json()
+            .catch(() => ({ message: 'Google authentication failed' }));
+        throw new Error(error.message || 'Google authentication failed');
+    }
+
+    const data = (await response.json()) as {
+        accessToken: string;
+        refreshToken: string;
+    };
+
+    return data;
+}

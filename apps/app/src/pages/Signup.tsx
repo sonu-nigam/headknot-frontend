@@ -1,8 +1,9 @@
 import { useSearchParams } from 'react-router-dom';
 import { SignupForm } from '@/forms/AuthForm/SignupForm';
 import { SignupFormValues } from '@/validations/form/authForm';
-import { api, storage } from '@workspace/api-client';
+import { api, storage, googleAuth } from '@workspace/api-client';
 import { useMutation } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 export default function Signup() {
     const [sp] = useSearchParams();
@@ -18,6 +19,12 @@ export default function Signup() {
             });
             if (error) throw error;
             return data;
+        },
+    });
+
+    const googleSignup = useMutation({
+        mutationFn: async (accessToken: string) => {
+            return await googleAuth(accessToken);
         },
     });
 
@@ -41,9 +48,29 @@ export default function Signup() {
         );
     }
 
+    const handleGoogleSignup = useCallback(
+        (accessToken: string) => {
+            googleSignup.mutate(accessToken, {
+                onSuccess: (data) => {
+                    storage.access = data.accessToken;
+                    storage.refresh = data.refreshToken;
+                    window.location.href = next;
+                },
+                onError: (error) => {
+                    console.error('Google signup failed:', error);
+                },
+            });
+        },
+        [googleSignup, next],
+    );
+
     return (
         <div className="min-h-screen grid place-items-center">
-            <SignupForm className="w-full max-w-sm" onSubmit={onSubmit} />
+            <SignupForm
+                className="w-full max-w-sm"
+                onSubmit={onSubmit}
+                onGoogleLogin={handleGoogleSignup}
+            />
         </div>
     );
 }

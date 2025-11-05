@@ -16,17 +16,35 @@ import {
     FormLabel,
     FormMessage,
 } from '@workspace/ui/components/form';
+import { useGoogleLogin } from '@react-oauth/google';
 
 type LoginFormProps = Omit<React.ComponentProps<'div'>, 'onSubmit'> & {
     onSubmit: SubmitHandler<LoginFormValues>;
+    onGoogleLogin?: (credential: string) => void;
 };
 
-export function LoginForm({ className, onSubmit, ...props }: LoginFormProps) {
+export function LoginForm({
+    className,
+    onSubmit,
+    onGoogleLogin,
+    ...props
+}: LoginFormProps) {
     const form = useForm<LoginFormValues>({
         resolver: loginResolver,
         defaultValues: {
             username: '',
             password: '',
+        },
+    });
+
+    const googleLogin = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            if (onGoogleLogin) {
+                onGoogleLogin(tokenResponse.access_token);
+            }
+        },
+        onError: (error) => {
+            console.error('Google login failed:', error);
         },
     });
 
@@ -68,6 +86,7 @@ export function LoginForm({ className, onSubmit, ...props }: LoginFormProps) {
                                         <FormControl>
                                             <Input
                                                 placeholder="m@example.com"
+                                                autoComplete="username"
                                                 {...field}
                                             />
                                         </FormControl>
@@ -85,6 +104,7 @@ export function LoginForm({ className, onSubmit, ...props }: LoginFormProps) {
                                             <Input
                                                 placeholder="********"
                                                 type="password"
+                                                autoComplete="current-password"
                                                 {...field}
                                             />
                                         </FormControl>
@@ -122,6 +142,7 @@ export function LoginForm({ className, onSubmit, ...props }: LoginFormProps) {
                                 variant="outline"
                                 type="button"
                                 className="w-full"
+                                onClick={() => googleLogin()}
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"

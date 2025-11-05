@@ -75,9 +75,9 @@ export type VisibilityType = (typeof VISIBILITY_TYPES)[number];
 
 export const quickCaptureFormSchema = z.object({
     title: z.string().trim().min(1),
-    type: z.enum(MEMORY_TYPES),
-    visibility: z.enum(VISIBILITY_TYPES),
-    description: z.string().trim().min(1),
+    // type: z.enum(MEMORY_TYPES),
+    // visibility: z.enum(VISIBILITY_TYPES),
+    description: z.any(),
     // content: z.array(blockValidation),
 });
 

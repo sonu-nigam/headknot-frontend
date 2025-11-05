@@ -1,25 +1,12 @@
-'use client';
-
 import * as React from 'react';
 import {
     Archive,
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    BoxIcon,
-    Command,
     Frame,
-    GalleryVerticalEnd,
-    History,
     LayoutDashboard,
     Map,
     PieChart,
-    Pin,
     Plus,
     Search,
-    Settings2,
-    SquareTerminal,
-    Trash,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -34,93 +21,48 @@ import {
     SidebarRail,
 } from '@workspace/ui/components/sidebar';
 import { Button } from '@workspace/ui/components/button';
-import { QuickCaptureModal } from './QuickCaptureModal';
-import { api } from '@workspace/api-client';
+import { useAppStore } from '@/state/store';
 import { useQuery } from '@tanstack/react-query';
+import {
+    getMemoryListByWorkspaceId,
+    getMyWorkspaces,
+} from '@/query/options/memory';
 
 // This is sample data.
 const data = {
-    user: {
-        name: 'shadcn',
-        email: 'm@example.com',
-        avatar: '/avatars/shadcn.jpg',
-    },
-    workspaces: [
-        {
-            name: 'Private',
-            logo: GalleryVerticalEnd,
-            plan: 'Enterprise',
-        },
-        {
-            name: 'Docusign',
-            logo: AudioWaveform,
-            plan: 'Startup',
-        },
-        {
-            name: 'Grappus',
-            logo: Command,
-            plan: 'Free',
-        },
-    ],
     navMain: [
         {
             title: 'Dashboard',
-            url: '#',
+            url: '/',
             icon: LayoutDashboard,
         },
-        {
-            title: 'Inbox',
-            url: '#',
-            icon: Pin,
-        },
-        {
-            title: 'Tasks',
-            url: '#',
-            icon: History,
-        },
-        {
-            title: 'Files',
-            url: '#',
-            icon: Archive,
-        },
-        {
-            title: 'Timeline',
-            url: '#',
-            icon: Trash,
-        },
-        {
-            title: 'Automations',
-            url: '#',
-            icon: Trash,
-        },
-        {
-            title: 'Agents',
-            url: '#',
-            icon: Trash,
-        },
+        // {
+        //     title: 'Inbox',
+        //     url: '#',
+        //     icon: Pin,
+        // },
+        // {
+        //     title: 'Tasks',
+        //     url: '#',
+        //     icon: History,
+        // },
+        // {
+        //     title: 'Files',
+        //     url: '#',
+        //     icon: Archive,
+        // },
+        // {
+        //     title: 'Agents',
+        //     url: '#',
+        //     icon: Trash,
+        // },
     ],
     projects: [
         {
-            name: 'Design Engineering',
+            name: 'Unassigned',
             url: '#',
             icon: Frame,
-            items: [
-                {
-                    title: 'Design Engineering',
-                    url: '#',
-                    icon: Frame,
-                },
-                {
-                    title: 'Sales & Marketing',
-                    url: '#',
-                    icon: PieChart,
-                },
-                {
-                    title: 'Travel',
-                    url: '#',
-                    icon: Map,
-                },
-            ],
+            items: [],
         },
         {
             name: 'Sales & Marketing',
@@ -136,29 +78,64 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { displayCaptureMemoryForm } = useAppStore();
+
+    const { data: activeWorkspace, isLoading: workspaceLoading } = useQuery({
+        ...getMyWorkspaces(),
+        select: (data) => data?.find((workspace) => workspace.active),
+    });
+
+    const { data: memoryList, isLoading: memoryListLoading } = useQuery({
+        ...getMemoryListByWorkspaceId(activeWorkspace?.id as string),
+        select: (data) =>
+            data?.map((memory) => ({
+                id: memory.id as string,
+                title: memory.title as string,
+                url: ('/' +
+                    memory.title?.split(' ').join('_') +
+                    '--' +
+                    memory.id?.split('-').join('')) as string,
+            })),
+        enabled: !!activeWorkspace,
+    });
+
+    const projects = [
+        {
+            id: 'UNASSIGNED',
+            title: 'Unassigned',
+            url: '#',
+            icon: Frame,
+            items: memoryList,
+            isActive: true,
+        },
+        {
+            id: 'ARCHIVED',
+            title: 'Archived',
+            url: '#',
+            icon: Archive,
+        },
+    ];
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
                 <WorkspaceSwitcher />
             </SidebarHeader>
             <SidebarContent>
-                <QuickCaptureModal>
-                    <Button className="mx-4">
-                        <Plus />
-                        New Memory
-                        <span className="ml-auto">⌘K</span>
-                    </Button>
-                </QuickCaptureModal>
+                <Button className="mx-4" onClick={displayCaptureMemoryForm}>
+                    <Plus />
+                    New Memory
+                    <span className="ml-auto">⌘K</span>
+                </Button>
                 <Button className="mx-4" size="sm" variant="ghost">
                     <Search />
                     Search
                     <span className="ml-auto">⌘K</span>
                 </Button>
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
+                {memoryList && <NavProjects projects={projects} />}
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <NavUser />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

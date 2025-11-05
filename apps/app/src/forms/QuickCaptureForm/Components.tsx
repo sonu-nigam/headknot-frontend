@@ -1,6 +1,21 @@
 import { BookCopyIcon, CombineIcon, PlusIcon } from 'lucide-react';
 import { ControllerRenderProps } from 'react-hook-form';
-import { Plate, usePlateEditor } from 'platejs/react';
+import {
+    Plate,
+    PlateCorePlugin,
+    TPlateEditor,
+    usePlateEditor,
+} from 'platejs/react';
+
+import {
+    BlockquotePlugin,
+    BoldPlugin,
+    H1Plugin,
+    H2Plugin,
+    H3Plugin,
+    ItalicPlugin,
+    UnderlinePlugin,
+} from '@platejs/basic-nodes/react';
 
 import { MEMORY_TYPES, VISIBILITY_TYPES } from '@/constants/common';
 import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
@@ -28,6 +43,16 @@ import {
     TooltipTrigger,
 } from '@workspace/ui/components/tooltip';
 import { Editor, EditorContainer } from '@workspace/ui/components/editor';
+import { Value } from 'platejs';
+import { editorToBlocks } from '@/lib/editorValueTransformer';
+import { FixedToolbar } from '@workspace/ui/components/fixed-toolbar';
+import { MarkToolbarButton } from '@workspace/ui/components/mark-toolbar-button';
+import {
+    H1Element,
+    H2Element,
+    H3Element,
+} from '@workspace/ui/components/heading-node';
+import { BlockquoteElement } from '@workspace/ui/components/blockquote-node';
 
 export function TypeSelector({ ...field }: ControllerRenderProps) {
     return (
@@ -76,7 +101,7 @@ export function VisibilitySelector({ ...field }: ControllerRenderProps) {
 export function Title({ ...field }: ControllerRenderProps) {
     return (
         <FormItem>
-            <FormLabel htmlFor="title">Title</FormLabel>
+            {/*<FormLabel htmlFor="title">Title</FormLabel>*/}
             <FormControl>
                 <Input
                     id="title"
@@ -91,22 +116,55 @@ export function Title({ ...field }: ControllerRenderProps) {
 }
 
 export function Description({ ...field }: ControllerRenderProps) {
-    const editor = usePlateEditor();
+    const editor = usePlateEditor({
+        value: field.value as Value,
+        plugins: [
+            BoldPlugin,
+            ItalicPlugin,
+            UnderlinePlugin,
+            H1Plugin.withComponent(H1Element),
+            H2Plugin.withComponent(H2Element),
+            H3Plugin.withComponent(H3Element),
+            BlockquotePlugin.withComponent(BlockquoteElement),
+        ],
+    });
+
+    const handleChange = ({
+        value,
+    }: {
+        editor: TPlateEditor<Value, PlateCorePlugin>;
+        value: Value;
+    }) => {
+        const formattedValue = editorToBlocks(value);
+        field.onChange(formattedValue);
+    };
+
     return (
         <FormItem>
-            <FormLabel>Description</FormLabel>
+            {/*<FormLabel>Description</FormLabel>*/}
             <FormControl>
-                {/*<Textarea
-                    id="description"
-                    placeholder="Write here. Use / for blocks; uploads become inline blocks."
-                    className="min-h-[160px]"
-                    {...field}
-                />*/}
-                <Plate editor={editor}>
+                <Plate editor={editor} onChange={handleChange}>
+                    <FixedToolbar className="justify-start rounded-t-lg">
+                        <MarkToolbarButton nodeType="bold" tooltip="Bold (⌘+B)">
+                            B
+                        </MarkToolbarButton>
+                        <MarkToolbarButton
+                            nodeType="italic"
+                            tooltip="Italic (⌘+I)"
+                        >
+                            I
+                        </MarkToolbarButton>
+                        <MarkToolbarButton
+                            nodeType="underline"
+                            tooltip="Underline (⌘+U)"
+                        >
+                            U
+                        </MarkToolbarButton>
+                    </FixedToolbar>
                     <EditorContainer>
                         <Editor
                             placeholder="Describe your content here..."
-                            className="px-4 sm:px-4 border rounded-md"
+                            className="p-0 sm:p-0"
                         />
                     </EditorContainer>
                 </Plate>

@@ -36,18 +36,22 @@ import {
     CollapsibleTrigger,
 } from '@workspace/ui/components/collapsible';
 import { Button } from '@workspace/ui/components/button';
+import { Link } from 'react-router-dom';
 
 export function NavProjects({
     projects,
 }: {
     projects: {
-        name: string;
+        id: string;
+        title: string;
         url: string;
-        icon: LucideIcon;
+        icon?: LucideIcon;
         isActive?: boolean;
         items?: {
+            id: string;
             title: string;
             url: string;
+            icon: LucideIcon;
         }[];
     }[];
 }) {
@@ -56,80 +60,98 @@ export function NavProjects({
     return (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="flex justify-between">
-                Projects
+                Collections
                 <Button size="icon" variant="secondary" className="size-6">
                     <Plus />
                 </Button>
             </SidebarGroupLabel>
             <SidebarMenu>
-                {projects.map((item) => (
-                    <Collapsible
-                        key={item.name}
-                        asChild
-                        defaultOpen={item.isActive}
-                        className="group/collapsible"
-                    >
-                        <SidebarMenuItem key={item.name}>
-                            <CollapsibleTrigger asChild>
+                {projects.map((item) => {
+                    const Icon = item.icon;
+                    if (!item.items)
+                        return (
+                            <SidebarMenuItem key={item.id}>
                                 <SidebarMenuButton asChild>
-                                    <a href={item.url}>
-                                        <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                                        <item.icon />
-                                        <span>{item.name}</span>
-                                    </a>
+                                    <Link to={item.url}>
+                                        {!!Icon && <Icon />}
+                                        <span>{item.title}</span>
+                                    </Link>
                                 </SidebarMenuButton>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                                <SidebarMenuSub>
-                                    {item.items?.map((subItem) => (
-                                        <SidebarMenuSubItem key={subItem.title}>
-                                            <SidebarMenuSubButton asChild>
-                                                <a href={subItem.url}>
-                                                    <span>{subItem.title}</span>
-                                                </a>
-                                            </SidebarMenuSubButton>
-                                        </SidebarMenuSubItem>
-                                    ))}
-                                </SidebarMenuSub>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <SidebarMenuAction showOnHover>
-                                            <MoreHorizontal />
-                                            <span className="sr-only">
-                                                More
-                                            </span>
-                                        </SidebarMenuAction>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        className="w-48 rounded-lg"
-                                        side={isMobile ? 'bottom' : 'right'}
-                                        align={isMobile ? 'end' : 'start'}
-                                    >
-                                        <DropdownMenuItem>
-                                            <Folder className="text-muted-foreground" />
-                                            <span>View Project</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <Forward className="text-muted-foreground" />
-                                            <span>Share Project</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
-                                            <Trash2 className="text-muted-foreground" />
-                                            <span>Delete Project</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </CollapsibleContent>
-                        </SidebarMenuItem>
-                    </Collapsible>
-                ))}
-                {/*<SidebarMenuItem>
-                    <SidebarMenuButton className="text-sidebar-foreground/70">
-                        <MoreHorizontal className="text-sidebar-foreground/70" />
-                        <span>More</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>*/}
+                            </SidebarMenuItem>
+                        );
+
+                    return (
+                        <Collapsible
+                            key={item.id}
+                            asChild
+                            className="group/collapsible"
+                            defaultOpen={item.isActive}
+                        >
+                            <SidebarMenuItem key={item.id}>
+                                <CollapsibleTrigger asChild>
+                                    <SidebarMenuButton asChild>
+                                        <Link
+                                            to={item.url}
+                                            className="group/item"
+                                        >
+                                            <ChevronRight className="hidden group-hover/item:block transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                            {!!Icon && (
+                                                <Icon className="block group-hover/item:hidden" />
+                                            )}
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                    <SidebarMenuSub>
+                                        {item.items?.map((subItem) => (
+                                            <SidebarMenuSubItem
+                                                key={subItem.title}
+                                            >
+                                                <SidebarMenuSubButton asChild>
+                                                    <Link to={subItem.url}>
+                                                        <span>
+                                                            {subItem.title}
+                                                        </span>
+                                                    </Link>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        ))}
+                                    </SidebarMenuSub>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <SidebarMenuAction showOnHover>
+                                                <MoreHorizontal />
+                                                <span className="sr-only">
+                                                    More
+                                                </span>
+                                            </SidebarMenuAction>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            className="w-48 rounded-lg"
+                                            side={isMobile ? 'bottom' : 'right'}
+                                            align={isMobile ? 'end' : 'start'}
+                                        >
+                                            <DropdownMenuItem>
+                                                <Folder className="text-muted-foreground" />
+                                                <span>View Project</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <Forward className="text-muted-foreground" />
+                                                <span>Share Project</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem>
+                                                <Trash2 className="text-muted-foreground" />
+                                                <span>Delete Project</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </CollapsibleContent>
+                            </SidebarMenuItem>
+                        </Collapsible>
+                    );
+                })}
             </SidebarMenu>
         </SidebarGroup>
     );
