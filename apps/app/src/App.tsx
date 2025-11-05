@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import MemoryPage from './pages/Memory/MemoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import MemoryListPage from './pages/Memory/MemoryListPage';
+import GoogleCallback from './pages/GoogleCallback';
 
 export default function App() {
     const loc = useLocation();
@@ -13,6 +14,7 @@ export default function App() {
         <Routes location={loc}>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
             <Route
                 path="/"
                 element={

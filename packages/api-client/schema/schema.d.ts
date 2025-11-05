@@ -299,6 +299,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/oauth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Google OAuth Login (Legacy)
+         * @deprecated
+         * @description DEPRECATED: Legacy endpoint without PKCE. Use /google/initiate and /google/callback instead. Authenticate with Google OAuth. Exchange authorization code for access token and user info. The authorization code should be obtained from Google OAuth consent screen.
+         */
+        post: operations["googleLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/oauth/google/initiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate Google OAuth Flow (PKCE)
+         * @description Initiates the Google OAuth authorization flow with PKCE (Proof Key for Code Exchange). Returns an authorization URL that the client should redirect the user to. The client must store the returned state parameter and send it back in the callback. This is the recommended secure method for OAuth authentication.
+         */
+        post: operations["initiateGoogleOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/oauth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Handle Google OAuth Callback (PKCE)
+         * @description Completes the Google OAuth flow by exchanging the authorization code for tokens. The state parameter must match the one returned from the initiate endpoint. This endpoint verifies the PKCE code_verifier and authenticates the user. Returns user information and a JWT access token.
+         */
+        post: operations["handleGoogleOAuthCallback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/logout": {
         parameters: {
             query?: never;
@@ -775,6 +836,27 @@ export interface components {
         };
         RefreshRequest: {
             refreshToken: string;
+        };
+        GoogleOAuthRequest: {
+            code: string;
+        };
+        GoogleOAuthResponse: {
+            userId?: string;
+            email?: string;
+            givenName?: string;
+            familyName?: string;
+            picture?: string;
+            accessToken?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        OAuthAuthorizeResponse: {
+            authorizationUrl?: string;
+            state?: string;
+        };
+        OAuthCallbackRequest: {
+            code: string;
+            state: string;
         };
         LogoutRequest: {
             refreshToken: string;
@@ -1446,6 +1528,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenPairResponse"];
+                };
+            };
+        };
+    };
+    googleLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleOAuthRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleOAuthResponse"];
+                };
+            };
+        };
+    };
+    initiateGoogleOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthAuthorizeResponse"];
+                };
+            };
+        };
+    };
+    handleGoogleOAuthCallback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OAuthCallbackRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleOAuthResponse"];
                 };
             };
         };

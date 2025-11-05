@@ -83,13 +83,13 @@ export const api = createClient<paths>({
 
 api.use(authMiddleware);
 
-// Helper for Google OAuth (endpoint not yet in OpenAPI schema)
-// TODO: Update OpenAPI schema to include /auth/google endpoint
-export async function googleAuth(accessToken: string) {
-    const response = await baseFetch(`${baseUrl}/auth/google`, {
+// Helper for Google OAuth (Legacy - Deprecated)
+// @deprecated Use initiateGoogleOAuth and handleGoogleOAuthCallback instead
+export async function googleAuth(code: string) {
+    const response = await baseFetch(`${baseUrl}/auth/oauth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken }),
+        body: JSON.stringify({ code }),
     });
 
     if (!response.ok) {
@@ -103,6 +103,30 @@ export async function googleAuth(accessToken: string) {
         accessToken: string;
         refreshToken: string;
     };
+
+    return data;
+}
+
+// Helper for Google OAuth PKCE - Initiate flow
+export async function initiateGoogleOAuth() {
+    const { data, error } = await api.POST('/auth/oauth/google/initiate');
+
+    if (error) {
+        throw new Error('Failed to initiate Google OAuth');
+    }
+
+    return data;
+}
+
+// Helper for Google OAuth PKCE - Handle callback
+export async function handleGoogleOAuthCallback(code: string, state: string) {
+    const { data, error } = await api.POST('/auth/oauth/google/callback', {
+        body: { code, state },
+    });
+
+    if (error) {
+        throw new Error('Failed to complete Google OAuth');
+    }
 
     return data;
 }

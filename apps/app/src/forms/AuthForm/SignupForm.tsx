@@ -15,11 +15,9 @@ import {
     FormLabel,
     FormMessage,
 } from '@workspace/ui/components/form';
-import { useGoogleLogin } from '@react-oauth/google';
-
 type LoginFormProps = Omit<React.ComponentProps<'div'>, 'onSubmit'> & {
     onSubmit: SubmitHandler<SignupFormValues>;
-    onGoogleLogin?: (credential: string) => void;
+    onGoogleLogin?: () => void;
 };
 
 export function SignupForm({
@@ -37,16 +35,11 @@ export function SignupForm({
         },
     });
 
-    const googleLogin = useGoogleLogin({
-        onSuccess: async (tokenResponse) => {
-            if (onGoogleLogin) {
-                onGoogleLogin(tokenResponse.access_token);
-            }
-        },
-        onError: (error) => {
-            console.error('Google signup failed:', error);
-        },
-    });
+    const handleGoogleLogin = () => {
+        if (onGoogleLogin) {
+            onGoogleLogin();
+        }
+    };
 
     return (
         <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -165,7 +158,7 @@ export function SignupForm({
                                 variant="outline"
                                 type="button"
                                 className="w-full"
-                                onClick={() => googleLogin()}
+                                onClick={handleGoogleLogin}
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"

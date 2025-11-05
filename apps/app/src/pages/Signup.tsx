@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { SignupForm } from '@/forms/AuthForm/SignupForm';
 import { SignupFormValues } from '@/validations/form/authForm';
-import { api, storage, googleAuth } from '@workspace/api-client';
+import { api, storage, initiateGoogleOAuth } from '@workspace/api-client';
 import { useMutation } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
@@ -19,12 +19,6 @@ export default function Signup() {
             });
             if (error) throw error;
             return data;
-        },
-    });
-
-    const googleSignup = useMutation({
-        mutationFn: async (accessToken: string) => {
-            return await googleAuth(accessToken);
         },
     });
 
@@ -48,21 +42,26 @@ export default function Signup() {
         );
     }
 
-    const handleGoogleSignup = useCallback(
-        (accessToken: string) => {
-            googleSignup.mutate(accessToken, {
-                onSuccess: (data) => {
-                    storage.access = data.accessToken;
-                    storage.refresh = data.refreshToken;
-                    window.location.href = next;
-                },
-                onError: (error) => {
-                    console.error('Google signup failed:', error);
-                },
-            });
-        },
-        [googleSignup, next],
-    );
+    const handleGoogleSignup = useCallback(async () => {
+        try {
+            // Call backend to initiate PKCE OAuth flow
+            const response = await initiateGoogleOAuth();
+
+            if (!response?.authorizationUrl || !response?.state) {
+                console.error('Invalid response from OAuth initiate endpoint');
+                return;
+            }
+
+            // Store the state and next path for callback verification
+            sessionStorage.setItem('oauth_state', response.state);
+            sessionStorage.setItem('oauth_next', next);
+
+            // Redirect to Google authorization URL
+            window.location.href = response.authorizationUrl;
+        } catch (error) {
+            console.error('Failed to initiate Google OAuth:', error);
+        }
+    }, [next]);
 
     return (
         <div className="min-h-screen grid place-items-center">

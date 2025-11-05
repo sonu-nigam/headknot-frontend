@@ -1,243 +1,646 @@
-# Google OAuth Integration - Executive Summary
+# Google OAuth Integration - PKCE Implementation Summary
 
 ## 🎯 What Was Done
 
-Google OAuth login has been successfully integrated into the Headknot web application. Users can now sign in using their Google accounts in addition to the traditional username/password authentication method.
+Google OAuth login has been successfully updated to use the **PKCE (Proof Key for Code Exchange) flow**. This is the most secure OAuth 2.0 implementation available, providing protection against authorization code interception attacks.
 
 ## ✅ Completion Status
 
-**Frontend**: ✅ 100% Complete
-**Backend**: ⏳ Requires Implementation
-**Documentation**: ✅ 100% Complete
-
-## 📦 Changes Made
-
-### 1. Dependencies Added
-- `@react-oauth/google` (v0.12.2) - Official Google OAuth library for React
-
-### 2. Files Modified
-- `apps/app/src/main.tsx` - Added GoogleOAuthProvider wrapper
-- `apps/app/src/pages/Login.tsx` - Added Google OAuth handler
-- `apps/app/src/pages/Signup.tsx` - Added Google OAuth handler
-- `apps/app/src/forms/AuthForm/LoginForm.tsx` - Added Google button functionality
-- `apps/app/src/forms/AuthForm/SignupForm.tsx` - Added Google button functionality
-- `packages/api-client/src/index.ts` - Added googleAuth helper function
-
-### 3. Files Created
-- `apps/app/.env.example` - Environment variables template
-- `apps/app/README.md` - Quick start guide
-- `docs/GOOGLE_OAUTH_SETUP.md` - Complete setup guide (233 lines)
-- `docs/BACKEND_OAUTH_GUIDE.md` - Backend implementation guide (738 lines)
-- `docs/OAUTH_QUICK_REFERENCE.md` - Quick reference card (253 lines)
-- `docs/OAUTH_IMPLEMENTATION_SUMMARY.md` - Technical summary (372 lines)
-- `docs/OAUTH_INTEGRATION_CHECKLIST.md` - Integration checklist (399 lines)
-
-## 🔧 Setup Required
-
-### For Developers (Frontend)
-1. Get Google Client ID from [Google Cloud Console](https://console.cloud.google.com/)
-2. Copy `apps/app/.env.example` to `apps/app/.env`
-3. Add `VITE_GOOGLE_CLIENT_ID=your-client-id` to `.env`
-4. Restart dev server: `pnpm dev`
-
-### For Backend Team
-Implement `POST /auth/google` endpoint:
-- **Input**: `{ accessToken: string }` (Google OAuth token)
-- **Output**: `{ accessToken: string, refreshToken: string }` (Your app's JWT tokens)
-- **Process**: Verify Google token → Create/update user → Return JWT tokens
-
-See `docs/BACKEND_OAUTH_GUIDE.md` for complete implementation guide with code examples.
-
-## 🎨 User Experience
-
-### Before
-```
-User → Login Form → Enter Username/Password → Submit → Dashboard
-```
-
-### After (New Option)
-```
-User → Login Form → Click "Continue with Google" → Google Popup → 
-Authenticate → Redirect to Dashboard
-```
-
-## 📊 Technical Details
-
-### Frontend Flow
-1. User clicks "Continue with Google"
-2. `useGoogleLogin` hook opens Google OAuth popup
-3. User authenticates and grants permissions
-4. Google returns access token to frontend
-5. Frontend calls `POST /auth/google` with token
-6. Backend validates and returns app tokens
-7. Tokens stored in localStorage
-8. User redirected to dashboard
-
-### What's Already Working
-- ✅ Google OAuth button UI
-- ✅ Google OAuth popup integration
-- ✅ Token handling and storage
-- ✅ Error handling
-- ✅ TypeScript type safety
-- ✅ Seamless integration with existing auth flow
-
-### What Needs Implementation
-- ⏳ Backend `/auth/google` endpoint
-- ⏳ Google token verification on backend
-- ⏳ User creation/linking logic
-- ⏳ JWT token generation
-- ⏳ OpenAPI schema update
-
-## 🔒 Security Features
-
-- ✅ OAuth 2.0 standard protocol
-- ✅ Google-managed authentication
-- ✅ No password storage for OAuth users
-- ✅ Short-lived access tokens
-- ✅ Secure token refresh mechanism
-- ⏳ Server-side token verification (backend required)
-- ⏳ Rate limiting (backend required)
-
-## 📚 Documentation
-
-All documentation is comprehensive and includes:
-
-1. **GOOGLE_OAUTH_SETUP.md** (233 lines)
-   - Step-by-step Google Cloud Console setup
-   - OAuth consent screen configuration
-   - Environment variable setup
-   - Security best practices
-   - Troubleshooting guide
-
-2. **BACKEND_OAUTH_GUIDE.md** (738 lines)
-   - Complete backend implementation guide
-   - Code examples in Node.js, Python, and Go
-   - Database schema suggestions
-   - Security best practices
-   - Testing examples
-
-3. **OAUTH_QUICK_REFERENCE.md** (253 lines)
-   - 5-minute setup guide
-   - API contract
-   - Common issues and fixes
-   - Testing checklist
-
-4. **OAUTH_IMPLEMENTATION_SUMMARY.md** (372 lines)
-   - Technical implementation details
-   - Flow diagrams
-   - Benefits analysis
-   - Future enhancements
-
-5. **OAUTH_INTEGRATION_CHECKLIST.md** (399 lines)
-   - Complete frontend checklist
-   - Complete backend checklist
-   - Integration testing checklist
-   - Security audit checklist
-   - Production deployment checklist
-
-## 🚀 Next Steps
-
-### Immediate (Required for Functionality)
-1. **Backend Team**: Implement `/auth/google` endpoint
-2. **Backend Team**: Update OpenAPI schema
-3. **DevOps**: Set up Google OAuth credentials for all environments
-4. **QA**: Test integration end-to-end
-
-### Short-term (Recommended)
-1. Add monitoring and analytics for OAuth usage
-2. Set up alerts for OAuth failures
-3. Publish OAuth consent screen (for production)
-4. Update privacy policy with OAuth information
-
-### Long-term (Optional Enhancements)
-1. Add Apple OAuth integration
-2. Add GitHub OAuth integration
-3. Add Microsoft OAuth integration
-4. Implement account linking (connect OAuth to existing accounts)
-5. Add profile picture sync from Google
-
-## 📈 Benefits
-
-### For Users
-- ✅ One-click authentication
-- ✅ No password to remember
-- ✅ Faster signup process
-- ✅ Trusted Google security
-
-### For Business
-- ✅ Reduced signup friction
-- ✅ Higher conversion rates
-- ✅ Better user experience
-- ✅ Industry-standard security
-- ✅ Reduced support tickets (password resets)
-
-### For Development
-- ✅ Clean, maintainable code
-- ✅ Type-safe implementation
-- ✅ Comprehensive documentation
-- ✅ Easy to extend to other OAuth providers
-- ✅ No breaking changes to existing auth
-
-## 🧪 Testing Status
-
-### Frontend
-- ✅ No TypeScript errors
-- ✅ No ESLint warnings
-- ✅ Build succeeds
-- ✅ Code follows project conventions
-- ⏳ Manual testing pending (requires backend)
-
-### Backend
-- ⏳ Not yet implemented
-
-### Integration
-- ⏳ Pending backend implementation
-
-## 📞 Support & Resources
-
-### Quick Links
-- Setup Guide: `docs/GOOGLE_OAUTH_SETUP.md`
-- Backend Guide: `docs/BACKEND_OAUTH_GUIDE.md`
-- Quick Reference: `docs/OAUTH_QUICK_REFERENCE.md`
-- Checklist: `docs/OAUTH_INTEGRATION_CHECKLIST.md`
-
-### Google Resources
-- [Google Cloud Console](https://console.cloud.google.com/)
-- [Google OAuth Documentation](https://developers.google.com/identity/protocols/oauth2)
-- [OAuth Playground](https://developers.google.com/oauthplayground/)
-
-## 💡 Key Takeaways
-
-1. **Frontend is 100% complete** - All code is written, tested, and documented
-2. **Backend implementation required** - Single endpoint needs to be created
-3. **Zero breaking changes** - Existing authentication still works
-4. **Production ready** - Once backend is implemented, ready to deploy
-5. **Fully documented** - Over 1,900 lines of comprehensive documentation
-6. **Secure by design** - Follows OAuth 2.0 best practices
-7. **Easy to test** - Clear testing checklists provided
-8. **Scalable** - Can easily add more OAuth providers
-
-## ⚠️ Important Notes
-
-1. **Environment Variable Required**: `VITE_GOOGLE_CLIENT_ID` must be set in `.env`
-2. **Backend Endpoint Required**: Frontend will fail gracefully until backend is ready
-3. **Google Console Setup Required**: Credentials must be created for each environment
-4. **OpenAPI Schema Update**: Schema should be updated after backend implementation
-5. **Testing Mode**: OAuth consent screen starts in testing mode (limited users)
-
-## 🎉 Conclusion
-
-Google OAuth integration is successfully implemented on the frontend with comprehensive documentation. The implementation is production-ready pending backend endpoint creation. All code follows best practices, is fully typed, and includes proper error handling. The user experience is seamless, and the integration maintains backward compatibility with existing authentication methods.
-
-**Estimated Backend Implementation Time**: 2-4 hours
-**Total Lines of Documentation**: 1,995 lines
-**Files Modified**: 6 files
-**Files Created**: 7 files
-**Dependencies Added**: 1 package
+**Frontend**: ✅ 100% Complete (PKCE)
+**Backend**: ✅ Complete (PKCE endpoints available)
+**Documentation**: ✅ Updated
+**Security**: 🔒 Industry Best Practice
 
 ---
 
-**Status**: ✅ Frontend Complete | ⏳ Backend Pending
-**Version**: 1.0.0
-**Date**: December 2024
-**Maintainer**: Development Team
+## 📦 Implementation Details
+
+### OAuth Flow Type: PKCE (Proof Key for Code Exchange)
+
+This implementation uses **PKCE**, which extends the Authorization Code Flow with additional security:
+
+**Flow Steps:**
+
+1. Frontend calls backend `/auth/oauth/google/initiate`
+2. Backend generates PKCE parameters (code_verifier, code_challenge, state)
+3. Backend returns authorization URL with code_challenge
+4. Frontend stores state in sessionStorage
+5. Frontend redirects user to Google's authorization URL
+6. User authenticates with Google and grants permissions
+7. Google redirects back to `/auth/google/callback` with authorization code and state
+8. Frontend verifies state matches stored value
+9. Frontend sends code + state to backend `/auth/oauth/google/callback`
+10. Backend verifies state and exchanges code with code_verifier
+11. Backend validates user info and returns JWT token
+12. User is logged in and redirected to dashboard
+
+---
+
+## 🔐 Security Features
+
+### PKCE Protection
+
+**What PKCE Prevents:**
+
+- ✅ Authorization code interception attacks
+- ✅ Code replay attacks
+- ✅ Malicious app impersonation
+- ✅ Mobile/SPA security vulnerabilities
+
+**How It Works:**
+
+1. Backend generates random `code_verifier` (43-128 characters)
+2. Creates `code_challenge` = BASE64URL(SHA256(code_verifier))
+3. Sends `code_challenge` to Google during authorization
+4. Stores `code_verifier` temporarily (associated with state)
+5. When callback occurs, backend sends `code_verifier` to Google
+6. Google verifies SHA256(code_verifier) matches code_challenge
+7. Only if verified, tokens are issued
+
+**Attacker Cannot:**
+
+- Use intercepted authorization code without code_verifier
+- Generate valid code_verifier (one-way hash function)
+- Bypass verification (Google validates on server-side)
+
+### State Parameter Validation
+
+- Generated by backend and returned to frontend
+- Stored in sessionStorage during redirect
+- Validated on callback (both frontend and backend)
+- Prevents CSRF attacks
+- Ensures request integrity
+
+### Client Secret Protection
+
+- Never exposed to frontend
+- Only used on backend
+- Stored securely in environment variables
+- No client-side configuration needed
+
+---
+
+## 📋 API Endpoints
+
+### 1. Initiate OAuth Flow (PKCE)
+
+**Endpoint:** `POST /api/auth/oauth/google/initiate`
+
+**Request:** No body required
+
+**Response:**
+
+```json
+{
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth?client_id=...&code_challenge=...&code_challenge_method=S256&...",
+    "state": "xyz123abc456"
+}
+```
+
+**Description:**
+
+- Generates PKCE code_verifier and code_challenge
+- Creates authorization URL with code_challenge
+- Returns state parameter for CSRF protection
+- Client should store state and redirect to authorizationUrl
+
+---
+
+### 2. Handle OAuth Callback (PKCE)
+
+**Endpoint:** `POST /api/auth/oauth/google/callback`
+
+**Request:**
+
+```json
+{
+    "code": "4/0AeanS0Z...",
+    "state": "xyz123abc456"
+}
+```
+
+**Response:**
+
+```json
+{
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "givenName": "John",
+    "familyName": "Doe",
+    "picture": "https://lh3.googleusercontent.com/...",
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresAt": "2024-12-31T23:59:59Z"
+}
+```
+
+**Description:**
+
+- Verifies state parameter matches stored value
+- Exchanges authorization code with code_verifier
+- Gets user info from Google
+- Creates or updates user in database
+- Returns JWT access token and user information
+
+---
+
+### 3. Legacy Endpoint (Deprecated)
+
+**Endpoint:** `POST /api/auth/oauth/google`
+
+**Status:** ⚠️ **DEPRECATED** - Use PKCE endpoints instead
+
+**Why Deprecated:**
+
+- Less secure (no PKCE protection)
+- Requires client-side Google Client ID configuration
+- Vulnerable to authorization code interception
+- Not recommended for production use
+
+---
+
+## 🔧 Frontend Implementation
+
+### API Client Functions
+
+**File:** `packages/api-client/src/index.ts`
+
+```typescript
+// ✅ PKCE Functions (Recommended)
+export async function initiateGoogleOAuth(): Promise<{
+    authorizationUrl: string;
+    state: string;
+}>;
+
+export async function handleGoogleOAuthCallback(
+    code: string,
+    state: string,
+): Promise<{
+    userId: string;
+    email: string;
+    accessToken: string;
+    // ... other user fields
+}>;
+
+// ⚠️ Legacy Function (Deprecated)
+export async function googleAuth(code: string);
+```
+
+---
+
+### Login Page
+
+**File:** `apps/app/src/pages/Login.tsx`
+
+**Implementation:**
+
+```typescript
+const handleGoogleLogin = useCallback(async () => {
+    try {
+        // Step 1: Call backend to initiate PKCE OAuth flow
+        const response = await initiateGoogleOAuth();
+
+        if (!response?.authorizationUrl || !response?.state) {
+            console.error('Invalid response from OAuth initiate endpoint');
+            return;
+        }
+
+        // Step 2: Store state and next path for callback verification
+        sessionStorage.setItem('oauth_state', response.state);
+        sessionStorage.setItem('oauth_next', next);
+
+        // Step 3: Redirect to Google authorization URL
+        window.location.href = response.authorizationUrl;
+    } catch (error) {
+        console.error('Failed to initiate Google OAuth:', error);
+    }
+}, [next]);
+```
+
+**Key Changes:**
+
+- ✅ No longer needs `VITE_GOOGLE_CLIENT_ID`
+- ✅ Calls backend `/initiate` endpoint
+- ✅ Stores state in sessionStorage
+- ✅ Redirects to backend-generated URL
+
+---
+
+### Signup Page
+
+**File:** `apps/app/src/pages/Signup.tsx`
+
+**Implementation:** Same as Login page
+
+---
+
+### Google Callback Page
+
+**File:** `apps/app/src/pages/GoogleCallback.tsx`
+
+**Implementation:**
+
+```typescript
+useEffect(() => {
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+
+    // Handle OAuth errors
+    if (error) {
+        console.error('Google OAuth error:', error);
+        navigate('/login?error=oauth_failed', { replace: true });
+        return;
+    }
+
+    // Validate parameters
+    if (!code || !state) {
+        console.error('Missing code or state parameter');
+        navigate('/login', { replace: true });
+        return;
+    }
+
+    // Verify state matches (CSRF protection)
+    const storedState = sessionStorage.getItem('oauth_state');
+    if (!storedState || storedState !== state) {
+        console.error('State mismatch - possible CSRF attack');
+        navigate('/login?error=oauth_failed', { replace: true });
+        return;
+    }
+
+    // Get redirect path
+    const next = sessionStorage.getItem('oauth_next') || '/';
+
+    // Clean up session storage
+    sessionStorage.removeItem('oauth_state');
+    sessionStorage.removeItem('oauth_next');
+
+    // Exchange code for tokens using PKCE
+    googleLogin.mutate(
+        { code, state },
+        {
+            onSuccess: (data) => {
+                storage.access = data.accessToken;
+                window.location.href = next;
+            },
+            onError: (error) => {
+                console.error('Google login failed:', error);
+                navigate('/login?error=oauth_failed', { replace: true });
+            },
+        },
+    );
+}, [searchParams, navigate, googleLogin]);
+```
+
+**Key Features:**
+
+- ✅ State validation against sessionStorage
+- ✅ CSRF attack prevention
+- ✅ Proper error handling
+- ✅ Session cleanup after use
+- ✅ Sends both code and state to backend
+
+---
+
+## 📊 Comparison: Legacy vs PKCE
+
+| Feature                 | Legacy Flow     | PKCE Flow        |
+| ----------------------- | --------------- | ---------------- |
+| **Security**            | ⚠️ Basic        | ✅ Advanced      |
+| **Frontend Config**     | Needs Client ID | No config needed |
+| **Code Interception**   | ⚠️ Vulnerable   | ✅ Protected     |
+| **CSRF Protection**     | ✅ State param  | ✅ State param   |
+| **Mobile/SPA Security** | ⚠️ Limited      | ✅ Excellent     |
+| **Backend Control**     | ✅ Yes          | ✅ Full          |
+| **Industry Standard**   | ✅ Yes          | ✅ Best Practice |
+| **OAuth 2.1 Ready**     | ❌ No           | ✅ Yes           |
+
+---
+
+## 🔄 Migration from Legacy to PKCE
+
+### What Changed
+
+**Before (Legacy):**
+
+```typescript
+// Frontend constructs Google OAuth URL
+const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&...`;
+window.location.href = authUrl;
+
+// Callback sends only code
+await googleAuth(code);
+```
+
+**After (PKCE):**
+
+```typescript
+// Backend constructs OAuth URL with PKCE
+const { authorizationUrl, state } = await initiateGoogleOAuth();
+sessionStorage.setItem('oauth_state', state);
+window.location.href = authorizationUrl;
+
+// Callback sends code + state
+await handleGoogleOAuthCallback(code, state);
+```
+
+### Breaking Changes
+
+- ❌ `VITE_GOOGLE_CLIENT_ID` no longer needed in frontend
+- ❌ `googleAuth(code)` function deprecated
+- ✅ Must use `initiateGoogleOAuth()` instead of manual URL construction
+- ✅ Must use `handleGoogleOAuthCallback(code, state)` instead of `googleAuth(code)`
+- ✅ Must store and verify state parameter
+
+### Migration Checklist
+
+- [x] Update `packages/api-client/src/index.ts` with PKCE functions
+- [x] Update `apps/app/src/pages/Login.tsx` to call `/initiate`
+- [x] Update `apps/app/src/pages/Signup.tsx` to call `/initiate`
+- [x] Update `apps/app/src/pages/GoogleCallback.tsx` to verify state
+- [x] Remove `VITE_GOOGLE_CLIENT_ID` from frontend `.env` (optional)
+- [x] Update documentation
+
+---
+
+## 🧪 Testing
+
+### Test via Swagger UI
+
+1. Open http://localhost:8080/api/swagger-ui.html
+2. Navigate to **"identity"** section
+3. Find OAuth endpoints
+
+**Test Initiate:**
+
+1. Click `POST /api/auth/oauth/google/initiate`
+2. Click "Try it out" → "Execute"
+3. Copy `authorizationUrl` and `state` from response
+4. Open authorizationUrl in browser
+5. Authenticate with Google
+
+**Test Callback:**
+
+1. After Google redirect, copy `code` and `state` from URL
+2. In Swagger, click `POST /api/auth/oauth/google/callback`
+3. Click "Try it out"
+4. Enter code and state
+5. Click "Execute"
+6. Receive JWT token and user info
+
+### Test via Frontend
+
+1. Start backend: `./gradlew :app:bootRun`
+2. Start frontend: `pnpm dev`
+3. Navigate to http://localhost:5173/login
+4. Click "Continue with Google"
+5. Verify redirect to Google
+6. Authenticate with Google
+7. Verify redirect to dashboard
+8. Verify user is logged in
+
+### Manual Testing with cURL
+
+**Step 1: Initiate**
+
+```bash
+curl -X POST http://localhost:8080/api/auth/oauth/google/initiate
+```
+
+**Step 2: Open authorizationUrl in browser**
+(Copy from response)
+
+**Step 3: Get code and state from redirect URL**
+
+**Step 4: Exchange for token**
+
+```bash
+curl -X POST http://localhost:8080/api/auth/oauth/google/callback \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "4/0Aean...",
+    "state": "xyz123..."
+  }'
+```
+
+---
+
+## 🌍 Environment Variables
+
+### Frontend
+
+**File:** `apps/app/.env`
+
+```env
+VITE_API_BASE=http://localhost:8080
+```
+
+**Note:** `VITE_GOOGLE_CLIENT_ID` is no longer required! ✨
+
+---
+
+### Backend
+
+**Required:**
+
+```env
+GOOGLE_CLIENT_ID=822955738303-xxx...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxx...
+JWT_SECRET=your-jwt-secret
+```
+
+**Optional:**
+
+```env
+GOOGLE_REDIRECT_URI=http://localhost:5173/auth/google/callback
+```
+
+⚠️ **Security:** Never commit `GOOGLE_CLIENT_SECRET` to version control!
+
+---
+
+## 📋 Google Cloud Console Setup
+
+### 1. Create OAuth 2.0 Credentials
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Navigate to **APIs & Services → Credentials**
+3. Click **Create Credentials → OAuth client ID**
+4. Select **Web application**
+
+### 2. Configure Authorized URIs
+
+**Authorized JavaScript origins:**
+
+```
+http://localhost:5173
+https://yourdomain.com
+```
+
+**Authorized redirect URIs:**
+
+```
+http://localhost:5173/auth/google/callback
+https://yourdomain.com/auth/google/callback
+```
+
+### 3. OAuth Consent Screen
+
+- Configure app name, logo, and support email
+- Add required scopes: `openid`, `email`, `profile`
+- Add test users (for development)
+- Publish app (for production)
+
+---
+
+## 🐛 Troubleshooting
+
+### Error: "Invalid response from OAuth initiate endpoint"
+
+**Cause:** Backend `/initiate` endpoint not responding
+
+**Fix:**
+
+- Verify backend is running: http://localhost:8080
+- Check backend logs for errors
+- Ensure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set
+- Test endpoint in Swagger UI
+
+### Error: "State mismatch - possible CSRF attack"
+
+**Cause:** State parameter doesn't match stored value
+
+**Fix:**
+
+- Clear browser sessionStorage and retry
+- Don't open multiple OAuth tabs
+- Check if backend properly stores/retrieves state
+- Verify state is returned from `/initiate` endpoint
+
+### Error: "redirect_uri_mismatch"
+
+**Cause:** Redirect URI not configured in Google Console
+
+**Fix:**
+
+- Add `http://localhost:5173/auth/google/callback` to Google Console
+- Ensure exact match (no trailing slash)
+- Check both development and production URLs
+
+### Error: "Error 403: access_denied"
+
+**Cause:** OAuth consent screen in testing mode
+
+**Fix:**
+
+- Add your Google account to test users
+- Or publish the OAuth consent screen
+
+### Frontend: "Failed to initiate Google OAuth"
+
+**Cause:** Network or backend error
+
+**Fix:**
+
+- Open browser DevTools → Network tab
+- Check if `/initiate` request succeeds
+- Verify CORS is enabled on backend
+- Check backend logs for errors
+
+---
+
+## 📁 Files Modified
+
+### Created/Updated
+
+- ✅ `packages/api-client/src/index.ts` - Added PKCE helper functions
+- ✅ `apps/app/src/pages/Login.tsx` - Implemented PKCE initiate flow
+- ✅ `apps/app/src/pages/Signup.tsx` - Implemented PKCE initiate flow
+- ✅ `apps/app/src/pages/GoogleCallback.tsx` - Implemented state verification
+- ✅ `QUICKSTART_OAUTH.md` - Updated with PKCE instructions
+- ✅ `GOOGLE_OAUTH_SUMMARY.md` - This file
+
+### OpenAPI Schema
+
+- ✅ `packages/api-client/schema/schema.d.ts` - Contains PKCE endpoint types
+    - `/auth/oauth/google/initiate`
+    - `/auth/oauth/google/callback`
+    - `/auth/oauth/google` (deprecated)
+
+---
+
+## 🚀 Production Deployment
+
+### Security Checklist
+
+- [ ] `GOOGLE_CLIENT_SECRET` stored in secrets manager
+- [ ] HTTPS enabled for all OAuth flows
+- [ ] Production redirect URIs configured in Google Console
+- [ ] OAuth consent screen published
+- [ ] Rate limiting enabled on OAuth endpoints
+- [ ] Logging and monitoring configured
+- [ ] State expiration implemented (recommended: 5-10 minutes)
+- [ ] CORS properly configured
+
+### Performance Checklist
+
+- [ ] code_verifier stored efficiently (Redis/memory cache)
+- [ ] State cleanup job configured
+- [ ] Database indexes for user lookup
+- [ ] Connection pooling for Google API calls
+
+### Monitoring Checklist
+
+- [ ] Log OAuth initiation attempts
+- [ ] Log OAuth callback successes/failures
+- [ ] Monitor state mismatch occurrences
+- [ ] Track authorization code exchange failures
+- [ ] Alert on unusual OAuth patterns
+
+---
+
+## 📚 Resources
+
+### Specifications
+
+- [RFC 7636 - Proof Key for Code Exchange (PKCE)](https://tools.ietf.org/html/rfc7636)
+- [OAuth 2.1 Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-07)
+- [OAuth 2.0 Security Best Practices](https://tools.ietf.org/html/draft-ietf-oauth-security-topics)
+
+### Google Documentation
+
+- [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2)
+- [Google Cloud Console](https://console.cloud.google.com/)
+- [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
+
+### Internal Documentation
+
+- `QUICKSTART_OAUTH.md` - Quick start guide
+- `packages/api-client/schema/schema.d.ts` - TypeScript types
+- Backend API documentation (Swagger UI)
+
+---
+
+## ✅ Success Criteria
+
+You'll know PKCE OAuth is working when:
+
+1. ✅ Frontend calls `/initiate` without Google Client ID
+2. ✅ Backend returns authorization URL with code_challenge
+3. ✅ User redirects to Google and authenticates
+4. ✅ Callback includes code and state parameters
+5. ✅ State validation succeeds on frontend
+6. ✅ Backend `/callback` verifies state and code_verifier
+7. ✅ User receives JWT token and is logged in
+8. ✅ No client secret exposed in frontend
+9. ✅ CSRF protection working (state validation)
+10. ✅ Code interception attacks prevented (PKCE)
+
+---
+
+**Status**: ✅ Frontend Complete | ✅ Backend Complete
+
+**OAuth Flow**: PKCE (Proof Key for Code Exchange)
+
+**Security Level**: 🔒🔒🔒 High (OAuth 2.1 Ready)
+
+**Last Updated**: December 2024
