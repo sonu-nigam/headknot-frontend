@@ -1,35 +1,41 @@
 import AppLayout from '@/components/AppLayout';
 import { Content } from '@/forms/QuickCaptureForm/Content';
 import { Title } from '@/forms/QuickCaptureForm/Title';
+import { Block } from '@/lib/editorValueTransformer';
 import { memoryByIdQueryOptions } from '@/query/options/memory';
 import {
     useQueryErrorResetBoundary,
     useSuspenseQuery,
 } from '@tanstack/react-query';
 import { Skeleton } from '@workspace/ui/components/skeleton';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function MemoryPage() {
     const { reset } = useQueryErrorResetBoundary();
     const navigate = useNavigate();
+    const [memoryTitle, setMemoryTitle] = useState('Memory Details');
 
     return (
-        <AppLayout>
+        <AppLayout
+            breadcrumbs={[
+                { label: 'Home', href: '/' },
+                { label: 'Memory', href: '/memory' },
+                { label: memoryTitle },
+            ]}
+        >
             <div className="max-w-4xl mx-auto px-3">
                 <ErrorBoundary
                     onReset={reset}
                     fallbackRender={({ resetErrorBoundary, error }) => {
                         resetErrorBoundary();
-                        console.log(error);
-                        // navigate('/not-found', { replace: true });
-
+                        navigate('/not-found', { replace: true });
                         return null;
                     }}
                 >
                     <Suspense fallback={<MemoryLoading />}>
-                        <Memory />
+                        <Memory setMemoryTitle={setMemoryTitle} />
                     </Suspense>
                 </ErrorBoundary>
             </div>
@@ -37,7 +43,11 @@ export default function MemoryPage() {
     );
 }
 
-function Memory() {
+function Memory({
+    setMemoryTitle,
+}: {
+    setMemoryTitle: (title: string) => void;
+}) {
     const params = useParams();
     const memoryId = extractMemoryIdFromSlug(params.memorySlug || null);
 
@@ -45,6 +55,19 @@ function Memory() {
         ...memoryByIdQueryOptions(memoryId || ''),
         retry: 0,
     });
+
+    useEffect(() => {
+        setMemoryTitle(data?.title || '');
+    }, [data.title]);
+
+    const blocks = (data.blocks || []).map((block) => ({
+        ...block,
+        id: block.id || 'placeholder-id', // Ensure `id` is a string
+        kind: block.kind as Block['kind'],
+        data: Array.isArray(block.data) ? block.data : [],
+        index: block.index as number,
+        parentId: block.parentId || null,
+    }));
 
     return (
         <div className="p-4 pt-0">
@@ -55,7 +78,7 @@ function Memory() {
                 />
             </div>
             <div className="mt-10">
-                <Content initialValue={data.blocks || []} memoryId={memoryId} />
+                <Content initialValue={blocks} memoryId={memoryId} />
             </div>
         </div>
     );

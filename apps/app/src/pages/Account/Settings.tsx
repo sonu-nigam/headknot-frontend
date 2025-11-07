@@ -9,6 +9,8 @@ import {
 } from '@workspace/ui/components/card';
 import { Label } from '@workspace/ui/components/label';
 import { Switch } from '@workspace/ui/components/switch';
+import { AppHeader } from '@/components/app-header';
+import AppLayout from '@/components/AppLayout';
 
 export function Settings() {
     return (

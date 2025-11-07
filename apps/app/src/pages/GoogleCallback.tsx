@@ -3,10 +3,16 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { handleGoogleOAuthCallback, storage } from '@workspace/api-client';
 import { useDebounceFn } from 'ahooks';
+import { AppHeader } from '@/components/app-header';
 
 export default function GoogleCallback() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    const breadcrumbs = [
+        { label: 'Home', href: '/' },
+        { label: 'Google Callback' },
+    ];
 
     const googleLogin = useMutation({
         mutationFn: async ({
@@ -88,14 +94,17 @@ export default function GoogleCallback() {
     }, [code, error, state, navigate]);
 
     return (
-        <div className="min-h-screen grid place-items-center">
-            <div className="text-center">
-                {}
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-                <p className="mt-4 text-sm text-muted-foreground">
-                    Completing sign in with Google...
-                </p>
+        <>
+            <AppHeader breadcrumbs={breadcrumbs} />
+            <div className="min-h-screen grid place-items-center">
+                <div className="text-center">
+                    {}
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+                    <p className="mt-4 text-sm text-muted-foreground">
+                        Completing sign in with Google...
+                    </p>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

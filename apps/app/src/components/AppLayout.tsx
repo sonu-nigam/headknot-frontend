@@ -7,7 +7,13 @@ import { AppHeader } from './app-header';
 import { QuickCapture } from './QuickCapture';
 import { useAppStore } from '@/state/store';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({
+    children,
+    breadcrumbs,
+}: {
+    children: React.ReactNode;
+    breadcrumbs?: { label: string; href?: string }[];
+}) {
     const captureMemoryFormVisible = useAppStore(
         (state) => state.captureMemoryFormVisible,
     );
@@ -16,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset className="overflow-hidden">
-                <AppHeader />
+                <AppHeader breadcrumbs={breadcrumbs} />
                 {captureMemoryFormVisible && <QuickCapture />}
                 {children}
             </SidebarInset>

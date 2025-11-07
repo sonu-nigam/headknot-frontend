@@ -36,7 +36,7 @@ export function WorkspaceSwitcher() {
 
     useEffect(() => {
         if (workspaces && !selectedWorkspaceId) {
-            setSelectedWorkspaceId(workspaces[0].id);
+            setSelectedWorkspaceId(workspaces[0].id as string);
         }
     }, [workspaces, setSelectedWorkspaceId]);
 
@@ -73,7 +73,9 @@ export function WorkspaceSwitcher() {
                             <DropdownMenuItem
                                 key={workspace.id}
                                 onClick={() =>
-                                    setSelectedWorkspaceId(workspace.id)
+                                    setSelectedWorkspaceId(
+                                        workspace.id as string,
+                                    )
                                 }
                                 className="gap-2 p-2"
                             >

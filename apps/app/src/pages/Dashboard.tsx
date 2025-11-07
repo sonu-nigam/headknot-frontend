@@ -5,10 +5,13 @@ import { Chatbox } from '@/components/chatbox';
 import { CompactMemoryCard } from '@/components/MemoryCard';
 import ProjectsInFocus from '@/components/ProjectsInFocus';
 import AppLayout from '@/components/AppLayout';
+import { AppHeader } from '@/components/app-header';
 
 export default function Dashboard() {
     return (
-        <AppLayout>
+        <AppLayout
+            breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Dashboard' }]}
+        >
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full overflow-auto">
                 <div className="max-w-3xl mx-auto h-full min-h-2/3 w-full">
                     <Chatbox className="mt-20" />

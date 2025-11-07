@@ -9,12 +9,7 @@ import {
 import { Button } from '@workspace/ui/components/button';
 import { Separator } from '@workspace/ui/components/separator';
 import { SidebarTrigger } from '@workspace/ui/components/sidebar';
-import {
-    BellIcon,
-    Moon,
-    Search,
-    Sun,
-} from 'lucide-react';
+import { BellIcon, Moon, Search, Sun } from 'lucide-react';
 import { useTheme } from './theme-provider';
 import {
     DropdownMenu,
@@ -22,8 +17,18 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu';
+import { Fragment } from 'react/jsx-runtime';
 
-export function AppHeader() {
+type BreadcrumbItem = {
+    label: string;
+    href?: string;
+};
+
+type AppHeaderProps = {
+    breadcrumbs?: BreadcrumbItem[];
+};
+
+export function AppHeader({ breadcrumbs }: AppHeaderProps) {
     const { theme, setTheme, toggleTheme } = useTheme();
 
     return (
@@ -34,19 +39,30 @@ export function AppHeader() {
                     orientation="vertical"
                     className="mr-2 data-[orientation=vertical]:h-4"
                 />
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem className="hidden md:block">
-                            <BreadcrumbLink href="#">
-                                Building Your Application
-                            </BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator className="hidden md:block" />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
+                {breadcrumbs && breadcrumbs.length > 0 && (
+                    <Breadcrumb>
+                        <BreadcrumbList className="max-w-full overflow-x-auto">
+                            {breadcrumbs.map((item, index) => (
+                                <Fragment key={item.label}>
+                                    <BreadcrumbItem>
+                                        {item.href ? (
+                                            <BreadcrumbLink href={item.href}>
+                                                {item.label}
+                                            </BreadcrumbLink>
+                                        ) : (
+                                            <BreadcrumbPage>
+                                                {item.label}
+                                            </BreadcrumbPage>
+                                        )}
+                                    </BreadcrumbItem>
+                                    {index < breadcrumbs.length - 1 && (
+                                        <BreadcrumbSeparator />
+                                    )}
+                                </Fragment>
+                            ))}
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                )}
                 <div className="ml-auto flex items-center gap-2">
                     <Button
                         variant="ghost"

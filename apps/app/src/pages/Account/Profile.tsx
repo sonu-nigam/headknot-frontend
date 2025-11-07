@@ -8,6 +8,8 @@ import {
 import { ProfileForm } from '@/forms/Account/ProfileForm';
 import { useQuery } from '@tanstack/react-query';
 import { profileQueryOptions } from '@/query/options/profile';
+import { AppHeader } from '@/components/app-header';
+import AppLayout from '@/components/AppLayout';
 
 export function Profile() {
     const { data: profile, isLoading } = useQuery(profileQueryOptions);

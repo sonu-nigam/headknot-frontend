@@ -11,8 +11,10 @@ import { Settings } from './Settings';
 
 export function AccountPage() {
     return (
-        <AppLayout>
-            <div className="flex flex-col items-center h-full">
+        <AppLayout
+            breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Settings' }]}
+        >
+            <div className="flex flex-col items-center h-full mt-20">
                 <Tabs defaultValue="profile" className="w-[600px]">
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="profile">Profile</TabsTrigger>

@@ -24,14 +24,14 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
-            <Route
+            {/*<Route
                 path="/memory"
                 element={
                     <ProtectedRoute>
                         <MemoryListPage />
                     </ProtectedRoute>
                 }
-            />
+            />*/}
             <Route
                 path="/:memorySlug"
                 element={
