@@ -1,6 +1,6 @@
 import { QuickCaptureForm } from '@/forms/QuickCaptureForm/QuickCaptureForm';
-import { getDraftByWorkspaceId } from '@/query/options/draft';
-import { getMyWorkspaces } from '@/query/options/memory';
+import { draftByWorkspaceIdQueryOptions } from '@/query/options/draft';
+import { myWorkspacesQueryOptions } from '@/query/options/workspace';
 import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
@@ -15,12 +15,12 @@ import { useMemo, useState } from 'react';
 export function QuickCapture() {
     const [activeTab, setActiveTab] = useState('note');
     const { data: activeWorkspace, isLoading: workspaceLoading } = useQuery({
-        ...getMyWorkspaces(),
+        ...myWorkspacesQueryOptions,
         select: (data) => data?.find((workspace) => workspace.active),
     });
 
     const { data: draft, isLoading: draftLoading } = useQuery({
-        ...getDraftByWorkspaceId(activeWorkspace?.id || ''),
+        ...draftByWorkspaceIdQueryOptions(activeWorkspace?.id || ''),
         enabled: !!activeWorkspace,
     });
 

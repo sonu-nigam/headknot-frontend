@@ -1,19 +1,9 @@
+import { Schemas } from '@/types/api';
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
 
-export function getMyWorkspaces() {
-    return queryOptions({
-        queryKey: ['workspace'],
-        queryFn: async () => {
-            const { error, data } = await api.GET('/workspaces/my-workspaces');
-            if (error) throw error;
-            return data;
-        },
-    });
-}
-
-export function getMemoryListByWorkspaceId(id: string) {
-    return queryOptions({
+export function memoryListByWorkspaceIdQueryOptions(id: string) {
+    return queryOptions<Schemas['MemoryResponse'][]>({
         queryKey: ['memory'],
         queryFn: async () => {
             const { error, data } = await api.GET(
@@ -32,8 +22,8 @@ export function getMemoryListByWorkspaceId(id: string) {
     });
 }
 
-export function getMemoryById(id: string) {
-    return queryOptions({
+export function memoryByIdQueryOptions(id: string) {
+    return queryOptions<Schemas['MemoryResponse']>({
         queryKey: ['memory', id],
         queryFn: async () => {
             const { error, data } = await api.GET('/memory/{id}', {

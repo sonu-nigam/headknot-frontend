@@ -1,13 +1,14 @@
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
+import { Schemas } from '@/types/api';
 
-export function myWorkspaces(id: number) {
-    return queryOptions({
-        queryKey: ['workspace'],
-        queryFn: async () => {
-            const { error, data } = await api.GET('/workspaces/my-workspaces');
-            if (error) throw error;
-            return data;
-        },
-    });
-}
+export const myWorkspacesQueryOptions = queryOptions<
+    Schemas['WorkspaceResponse'][]
+>({
+    queryKey: ['my-workspaces'],
+    queryFn: async () => {
+        const res = await api.GET('/workspaces/my-workspaces');
+        if (res.error) throw new Error('Failed to fetch workspaces');
+        return res.data;
+    },
+});

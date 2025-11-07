@@ -1,8 +1,7 @@
 import AppLayout from '@/components/AppLayout';
 import { Content } from '@/forms/QuickCaptureForm/Content';
 import { Title } from '@/forms/QuickCaptureForm/Title';
-import { blocksToEditor, TextBlock } from '@/lib/editorValueTransformer';
-import { getMemoryById } from '@/query/options/memory';
+import { memoryByIdQueryOptions } from '@/query/options/memory';
 import {
     useQueryErrorResetBoundary,
     useSuspenseQuery,
@@ -38,23 +37,12 @@ export default function MemoryPage() {
     );
 }
 
-const initialEditorValue = [
-    {
-        type: 'h1',
-        children: [{ text: 'Temporary Heading' }],
-    },
-    {
-        type: 'p',
-        children: [{ text: 'Another block.' }],
-    },
-];
-
 function Memory() {
     const params = useParams();
     const memoryId = extractMemoryIdFromSlug(params.memorySlug || null);
 
     const { data } = useSuspenseQuery({
-        ...getMemoryById(memoryId || ''),
+        ...memoryByIdQueryOptions(memoryId || ''),
         retry: 0,
     });
 

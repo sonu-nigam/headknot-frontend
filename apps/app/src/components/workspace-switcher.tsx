@@ -1,7 +1,4 @@
-'use client';
-
-import * as React from 'react';
-import { BoxIcon, ChevronsUpDown, LockIcon, Plus } from 'lucide-react';
+import { BoxIcon, ChevronsUpDown, LockIcon, Plus, Check } from 'lucide-react';
 
 import {
     DropdownMenu,
@@ -19,22 +16,29 @@ import {
     useSidebar,
 } from '@workspace/ui/components/sidebar';
 import { api } from '@workspace/api-client';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { myWorkspacesQueryOptions } from '@/query/options/workspace';
+import { useAppStore } from '@/state/store';
+import { useEffect } from 'react';
 
 export function WorkspaceSwitcher() {
     const { isMobile } = useSidebar();
-    const { data: workspaces } = useQuery({
-        queryKey: ['workspace'],
-        queryFn: async () => {
-            const { error, data } = await api.GET('/workspaces/my-workspaces');
-            if (error) throw error;
-            return data;
-        },
-    });
+    const { data: workspaces, isLoading: workspaceLoading } = useQuery(
+        myWorkspacesQueryOptions,
+    );
 
-    const activeWorkspace = workspaces?.find((workspace) => workspace.active);
+    // Persisted selection from zustand
+    const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
+    const setSelectedWorkspaceId = useAppStore((s) => s.setSelectedWorkspaceId);
+    const selectedWorkspace = workspaces?.find(
+        (w) => w.id === selectedWorkspaceId,
+    );
 
-    if (!activeWorkspace) return null;
+    useEffect(() => {
+        if (workspaces && !selectedWorkspaceId) {
+            setSelectedWorkspaceId(workspaces[0].id);
+        }
+    }, [workspaces, setSelectedWorkspaceId]);
 
     return (
         <SidebarMenu>
@@ -50,11 +54,8 @@ export function WorkspaceSwitcher() {
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-medium">
-                                    {activeWorkspace.name}
+                                    {selectedWorkspace?.name}
                                 </span>
-                                {/*<span className="truncate text-xs">
-                                    {activeWorkspace.plan}
-                                </span>*/}
                             </div>
                             <ChevronsUpDown className="ml-auto" />
                         </SidebarMenuButton>
@@ -70,14 +71,21 @@ export function WorkspaceSwitcher() {
                         </DropdownMenuLabel>
                         {workspaces?.map((workspace, index) => (
                             <DropdownMenuItem
-                                key={workspace.name}
-                                // onClick={() => setActiveWorkspace(workspace)}
+                                key={workspace.id}
+                                onClick={() =>
+                                    setSelectedWorkspaceId(workspace.id)
+                                }
                                 className="gap-2 p-2"
                             >
                                 <div className="flex size-6 items-center justify-center rounded-md border">
                                     <LockIcon className="size-3.5 shrink-0" />
                                 </div>
-                                {workspace.name}
+                                <span className="truncate">
+                                    {workspace.name}
+                                </span>
+                                {selectedWorkspaceId === workspace.id && (
+                                    <Check className="ml-2 size-4 text-muted-foreground" />
+                                )}
                                 <DropdownMenuShortcut>
                                     ⌘{index + 1}
                                 </DropdownMenuShortcut>

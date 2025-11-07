@@ -23,10 +23,8 @@ import {
 import { Button } from '@workspace/ui/components/button';
 import { useAppStore } from '@/state/store';
 import { useQuery } from '@tanstack/react-query';
-import {
-    getMemoryListByWorkspaceId,
-    getMyWorkspaces,
-} from '@/query/options/memory';
+import { memoryListByWorkspaceIdQueryOptions } from '@/query/options/memory';
+import { myWorkspacesQueryOptions } from '@/query/options/workspace';
 
 // This is sample data.
 const data = {
@@ -81,12 +79,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { displayCaptureMemoryForm } = useAppStore();
 
     const { data: activeWorkspace, isLoading: workspaceLoading } = useQuery({
-        ...getMyWorkspaces(),
+        ...myWorkspacesQueryOptions,
         select: (data) => data?.find((workspace) => workspace.active),
     });
 
     const { data: memoryList, isLoading: memoryListLoading } = useQuery({
-        ...getMemoryListByWorkspaceId(activeWorkspace?.id as string),
+        ...memoryListByWorkspaceIdQueryOptions(activeWorkspace?.id as string),
         select: (data) =>
             data?.map((memory) => ({
                 id: memory.id as string,

@@ -31,18 +31,11 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api, storage } from '@workspace/api-client';
+import { profileQueryOptions } from '@/query/options/profile';
 
 export function NavUser() {
     const { isMobile } = useSidebar();
-    const { data: userProfileData } = useQuery({
-        queryKey: ['user'],
-        queryFn: async () => {
-            const { error, data } = await api.GET('/profile/me');
-            if (error) throw error;
-            return data;
-        },
-        staleTime: Infinity,
-    });
+    const { data: userProfileData } = useQuery(profileQueryOptions);
 
     const logout = useMutation({
         mutationFn: async (data: { refreshToken: string }) => {

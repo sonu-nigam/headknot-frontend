@@ -2,7 +2,7 @@ import createClient, {
     type Middleware,
     type ClientMethod,
 } from 'openapi-fetch';
-import type { paths } from '../schema/schema';
+export type { paths, components };
 
 const baseUrl = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE;
 

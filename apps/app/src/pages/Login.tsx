@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { LoginForm } from '@/forms/AuthForm/LoginForm';
 import { LoginFormValues } from '@/validations/form/authForm';
 import { useMutation } from '@tanstack/react-query';
-import { api, storage, initiateGoogleOAuth } from '@workspace/api-client';
+import { api, storage } from '@workspace/api-client';
 import { useCallback } from 'react';
 
 export default function Login() {
@@ -13,6 +13,16 @@ export default function Login() {
             const { error, data } = await api.POST('/auth/login', {
                 body: { username, password },
             });
+            if (error) throw error;
+            return data;
+        },
+    });
+
+    const initiateGoogleOAuth = useMutation({
+        mutationFn: async () => {
+            const { error, data } = await api.POST(
+                '/auth/oauth/google/initiate',
+            );
             if (error) throw error;
             return data;
         },
@@ -40,7 +50,7 @@ export default function Login() {
     const handleGoogleLogin = useCallback(async () => {
         try {
             // Call backend to initiate PKCE OAuth flow
-            const response = await initiateGoogleOAuth();
+            const response = await initiateGoogleOAuth.mutateAsync();
 
             if (!response?.authorizationUrl || !response?.state) {
                 console.error('Invalid response from OAuth initiate endpoint');
