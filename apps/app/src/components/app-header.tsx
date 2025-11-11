@@ -64,7 +64,7 @@ export function AppHeader({ breadcrumbs }: AppHeaderProps) {
                     </Breadcrumb>
                 )}
                 <div className="ml-auto flex items-center gap-2">
-                    <Button
+                    {/*<Button
                         variant="ghost"
                         type="button"
                         className="hidden sm:flex"
@@ -78,7 +78,7 @@ export function AppHeader({ breadcrumbs }: AppHeaderProps) {
                         >
                             Search
                         </a>
-                    </Button>
+                    </Button>*/}
                     <Button variant="ghost">
                         <BellIcon />
                     </Button>

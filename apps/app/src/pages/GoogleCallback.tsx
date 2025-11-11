@@ -1,20 +1,23 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { handleGoogleOAuthCallback, storage } from '@workspace/api-client';
+import { api, storage } from '@workspace/api-client';
 import { useDebounceFn } from 'ahooks';
-import { AppHeader } from '@/components/app-header';
+import { Schemas } from '@/types/api';
 
 export default function GoogleCallback() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    const breadcrumbs = [
-        { label: 'Home', href: '/' },
-        { label: 'Google Callback' },
-    ];
-
-    const googleLogin = useMutation({
+    // What is this error on line
+    const googleLogin = useMutation<
+        Schemas['GoogleOAuthResponse'],
+        Error,
+        {
+            code: string;
+            state: string;
+        }
+    >({
         mutationFn: async ({
             code,
             state,
@@ -22,7 +25,34 @@ export default function GoogleCallback() {
             code: string;
             state: string;
         }) => {
-            return await handleGoogleOAuthCallback(code, state);
+            const { data, error } = await api.POST(
+                '/auth/oauth/google/callback',
+                {
+                    body: { code, state },
+                },
+            );
+
+            if (error) {
+                throw new Error('Failed to complete Google OAuth');
+            }
+
+            return data;
+        },
+        onSuccess: (data) => {
+            const next = sessionStorage.getItem('oauth_next') || '/';
+            sessionStorage.removeItem('oauth_state');
+            sessionStorage.removeItem('oauth_next');
+            if (data.accessToken) {
+                storage.access = data.accessToken;
+                storage.refresh = data.refreshToken;
+            }
+            setTimeout(() => {
+                window.location.href = next;
+            }, 100);
+        },
+        onError: (error) => {
+            console.error('Google login failed:', error);
+            navigate('/login?error=oauth_failed', { replace: true });
         },
     });
 
@@ -32,28 +62,8 @@ export default function GoogleCallback() {
     const state = searchParams.get('state');
 
     const handleGoogleLogin = () => {
-        const next = sessionStorage.getItem('oauth_next') || '/';
         if (!code || !state) return;
-        googleLogin.mutate(
-            { code, state },
-            {
-                onSuccess: (data) => {
-                    sessionStorage.removeItem('oauth_state');
-                    sessionStorage.removeItem('oauth_next');
-                    if (data.accessToken) {
-                        storage.access = data.accessToken;
-                        storage.refresh = data.refreshToken;
-                    }
-                    setTimeout(() => {
-                        window.location.href = next;
-                    }, 100);
-                },
-                onError: (error) => {
-                    console.error('Google login failed:', error);
-                    navigate('/login?error=oauth_failed', { replace: true });
-                },
-            },
-        );
+        googleLogin.mutate({ code, state });
     };
 
     const handleGoogleLoginDebounced = useDebounceFn(handleGoogleLogin, {
@@ -95,7 +105,6 @@ export default function GoogleCallback() {
 
     return (
         <>
-            <AppHeader breadcrumbs={breadcrumbs} />
             <div className="min-h-screen grid place-items-center">
                 <div className="text-center">
                     {}

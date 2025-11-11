@@ -35,39 +35,23 @@ type Actions = {
  * Note: we only persist the `selectedWorkspaceId` slice via `partialize` to avoid
  * accidentally persisting other UI state.
  */
-export const useAppStore = create<State & Actions>()(
-    persist(
-        (set) => ({
-            // UI state (not persisted)
-            captureMemoryFormVisible: false,
+export const useAppStore = create<State & Actions>()((set) => ({
+    // UI state (not persisted)
+    captureMemoryFormVisible: false,
 
-            // Persisted state
-            selectedWorkspaceId: null,
+    // Persisted state
+    selectedWorkspaceId: null,
 
-            // Actions for capture memory form
-            displayCaptureMemoryForm: () =>
-                set({ captureMemoryFormVisible: true }),
-            hideCaptureMemoryForm: () =>
-                set({ captureMemoryFormVisible: false }),
-            toggleCaptureMemoryForm: () =>
-                set((state) => ({
-                    captureMemoryFormVisible: !state.captureMemoryFormVisible,
-                })),
+    // Actions for capture memory form
+    displayCaptureMemoryForm: () => set({ captureMemoryFormVisible: true }),
+    hideCaptureMemoryForm: () => set({ captureMemoryFormVisible: false }),
+    toggleCaptureMemoryForm: () =>
+        set((state) => ({
+            captureMemoryFormVisible: !state.captureMemoryFormVisible,
+        })),
 
-            // Actions for selected workspace
-            setSelectedWorkspaceId: (id: string | null) =>
-                set({ selectedWorkspaceId: id }),
-            clearSelectedWorkspaceId: () => set({ selectedWorkspaceId: null }),
-        }),
-        {
-            name: 'app-store', // key in localStorage
-            /**
-             * Persist only the selectedWorkspaceId field.
-             * This avoids persisting ephemeral UI flags like modals.
-             */
-            partialize: (state) => ({
-                selectedWorkspaceId: state.selectedWorkspaceId,
-            }),
-        },
-    ),
-);
+    // Actions for selected workspace
+    setSelectedWorkspaceId: (id: string | null) =>
+        set({ selectedWorkspaceId: id }),
+    clearSelectedWorkspaceId: () => set({ selectedWorkspaceId: null }),
+}));

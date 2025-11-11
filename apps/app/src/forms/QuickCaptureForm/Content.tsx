@@ -86,7 +86,7 @@ export function Content({
                     className="px-4 sm:px-4 pt-0 pb-96 [&>*:first-child]:mt-0"
                 />
             </EditorContainer>
-            <FixedToolbar className="justify-center rounded-lg bg-accent mb-4 border-0 w-min mx-auto">
+            <FixedToolbar className="justify-center rounded-lg bg-accent mb-4 border-0 w-min mx-auto fixed bottom-20 top-auto left-1/2 -translate-x-1/2">
                 <ToolbarButton onClick={() => editor.tf.h1.toggle()}>
                     H1
                 </ToolbarButton>

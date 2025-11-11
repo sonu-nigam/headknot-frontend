@@ -100,10 +100,10 @@ export function QuickCaptureFormComponent({
     return (
         <>
             <div className="mt-20">
-                <Title initialValue={initialTitle} memoryId={memoryId} />
+                <Title initialValue={''} memoryId={memoryId} />
             </div>
             <div className="mt-10">
-                <Content initialValue={initialContent} memoryId={memoryId} />
+                <Content initialValue={[]} memoryId={memoryId} />
             </div>
         </>
     );

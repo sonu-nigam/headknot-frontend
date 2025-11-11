@@ -1,6 +1,7 @@
 import { QuickCaptureForm } from '@/forms/QuickCaptureForm/QuickCaptureForm';
-import { draftByWorkspaceIdQueryOptions } from '@/query/options/draft';
+import { draftQueryOptions } from '@/query/options/draft';
 import { myWorkspacesQueryOptions } from '@/query/options/workspace';
+import { useAppStore } from '@/state/store';
 import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
@@ -14,14 +15,13 @@ import { useMemo, useState } from 'react';
 
 export function QuickCapture() {
     const [activeTab, setActiveTab] = useState('note');
-    const { data: activeWorkspace, isLoading: workspaceLoading } = useQuery({
-        ...myWorkspacesQueryOptions,
-        select: (data) => data?.find((workspace) => workspace.active),
-    });
+    const { selectedWorkspaceId } = useAppStore();
 
     const { data: draft, isLoading: draftLoading } = useQuery({
-        ...draftByWorkspaceIdQueryOptions(activeWorkspace?.id || ''),
-        enabled: !!activeWorkspace,
+        ...draftQueryOptions({
+            workspaceId: selectedWorkspaceId as string,
+        }),
+        enabled: !!selectedWorkspaceId,
     });
 
     const memoryId = draft?.id;
@@ -32,7 +32,8 @@ export function QuickCapture() {
                 body: {
                     type: activeTab,
                     title,
-                    workspaceId: activeWorkspace?.id || '',
+                    workspaceId: selectedWorkspaceId as string,
+
                     blocks: [],
                 },
             });
@@ -47,11 +48,11 @@ export function QuickCapture() {
 
     return (
         <div className="min-h-96 mt-20">
-            <div className="max-w-4xl mx-auto px-3">
+            <div className="max-w-4xl mx-auto px-3 w-full">
                 {/*<h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
                     Quick Capture
                 </h1>*/}
-                <Tabs
+                {/*<Tabs
                     defaultValue="note"
                     className="mt-10"
                     onValueChange={(value) => setActiveTab(value)}
@@ -65,7 +66,7 @@ export function QuickCapture() {
                         <TabsTrigger value="timeline">Timeline</TabsTrigger>
                         <TabsTrigger value="artifact">Artifact</TabsTrigger>
                     </TabsList>
-                </Tabs>
+                </Tabs>*/}
                 <QuickCaptureForm
                     onSubmit={onSubmit}
                     memoryId={memoryId as string}

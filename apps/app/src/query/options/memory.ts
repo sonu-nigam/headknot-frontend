@@ -2,20 +2,27 @@ import { Schemas } from '@/types/api';
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
 
-export function memoryListByWorkspaceIdQueryOptions(id: string) {
+export function memoryListQueryOptions({
+    workspaceId,
+    clusterId,
+    status,
+}: {
+    workspaceId?: string;
+    clusterId?: string;
+    status?: string;
+}) {
     return queryOptions<Schemas['MemoryResponse'][]>({
-        queryKey: ['memory'],
+        queryKey: ['memory', workspaceId, clusterId],
         queryFn: async () => {
-            const { error, data } = await api.GET(
-                '/memory/workspace/{workspaceId}',
-                {
-                    params: {
-                        path: {
-                            workspaceId: id,
-                        },
+            const { error, data } = await api.GET('/memory', {
+                params: {
+                    query: {
+                        clusterId,
+                        workspaceId,
+                        status,
                     },
                 },
-            );
+            });
             if (error) throw error;
             return data;
         },
@@ -38,3 +45,37 @@ export function memoryByIdQueryOptions(id: string) {
         },
     });
 }
+
+export function deleteMemoryQueryOptions(id: string) {
+    return queryOptions<Schemas['MemoryResponse']>({
+        queryKey: ['memory', id],
+        queryFn: async () => {
+            debugger;
+            const { error, data } = await api.DELETE('/memory/{id}', {
+                params: {
+                    path: {
+                        id,
+                    },
+                },
+            });
+            if (error) throw error;
+            return data;
+        },
+    });
+}
+
+// export function memoryCreateQueryOptions() {
+//     return queryOptions<Schemas['MemoryResponse']>({
+//         queryKey: ['memory', 'create'],
+//         queryFn: async () => {
+//             const { error, data } = await api.POST('/memory', {
+//                 body: {
+//                     title,
+//                     content,
+//                 },
+//             });
+//             if (error) throw error;
+//             return data;
+//         },
+//     });
+// }

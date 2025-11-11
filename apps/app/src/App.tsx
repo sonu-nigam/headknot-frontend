@@ -5,7 +5,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Signup from './pages/Signup';
 import MemoryPage from './pages/Memory/MemoryPage';
 import NotFoundPage from './pages/NotFoundPage';
-import MemoryListPage from './pages/Memory/MemoryListPage';
 import GoogleCallback from './pages/GoogleCallback';
 import { AccountPage } from './pages/Account/AccountPage';
 
@@ -49,7 +48,7 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/*<Route path="*" element={<Navigate to="/" replace />} />*/}
         </Routes>
     );
 }

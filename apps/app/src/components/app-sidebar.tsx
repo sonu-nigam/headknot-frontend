@@ -22,9 +22,11 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { Button } from '@workspace/ui/components/button';
 import { useAppStore } from '@/state/store';
-import { useQuery } from '@tanstack/react-query';
-import { memoryListByWorkspaceIdQueryOptions } from '@/query/options/memory';
-import { myWorkspacesQueryOptions } from '@/query/options/workspace';
+import { NavClusters } from './Clusters/NavClusters';
+import { api } from '@workspace/api-client';
+import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
+import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 
 // This is sample data.
 const data = {
@@ -55,72 +57,42 @@ const data = {
         //     icon: Trash,
         // },
     ],
-    projects: [
-        {
-            name: 'Unassigned',
-            url: '#',
-            icon: Frame,
-            items: [],
-        },
-        {
-            name: 'Sales & Marketing',
-            url: '#',
-            icon: PieChart,
-        },
-        {
-            name: 'Travel',
-            url: '#',
-            icon: Map,
-        },
-    ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { displayCaptureMemoryForm } = useAppStore();
+    const navigate = useNavigate();
+    const { selectedWorkspaceId } = useAppStore();
 
-    const { data: activeWorkspace, isLoading: workspaceLoading } = useQuery({
-        ...myWorkspacesQueryOptions,
-        select: (data) => data?.find((workspace) => workspace.active),
+    const createMemory = useMutation({
+        mutationFn: async () => {
+            const { data, error } = await api.POST('/memory', {
+                body: {
+                    type: 'note',
+                    workspaceId: selectedWorkspaceId,
+                },
+            });
+
+            if (error) {
+                throw new Error('Failed to create memory');
+            }
+
+            return data;
+        },
+        onSuccess: (data) => {
+            navigate(`/${convertMemoryIdToSlug(data.id)}`);
+        },
+        onError: (error) => {
+            console.error(error);
+        },
     });
 
-    const { data: memoryList, isLoading: memoryListLoading } = useQuery({
-        ...memoryListByWorkspaceIdQueryOptions(activeWorkspace?.id as string),
-        select: (data) =>
-            data?.map((memory) => ({
-                id: memory.id as string,
-                title: memory.title as string,
-                url: ('/' +
-                    memory.title?.split(' ').join('_') +
-                    '--' +
-                    memory.id?.split('-').join('')) as string,
-            })),
-        enabled: !!activeWorkspace,
-    });
-
-    const projects = [
-        {
-            id: 'UNASSIGNED',
-            title: 'Unassigned',
-            url: '#',
-            icon: Frame,
-            items: memoryList,
-            isActive: true,
-        },
-        {
-            id: 'ARCHIVED',
-            title: 'Archived',
-            url: '#',
-            icon: Archive,
-            isActive: false,
-        },
-    ];
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
                 <WorkspaceSwitcher />
             </SidebarHeader>
             <SidebarContent>
-                <Button className="mx-4" onClick={displayCaptureMemoryForm}>
+                <Button className="mx-4" onClick={() => createMemory.mutate()}>
                     <Plus />
                     New Memory
                     <span className="ml-auto">⌘K</span>
@@ -131,7 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <span className="ml-auto">⌘K</span>
                 </Button>
                 <NavMain items={data.navMain} />
-                {memoryList && <NavProjects projects={projects} />}
+                <NavClusters />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser />

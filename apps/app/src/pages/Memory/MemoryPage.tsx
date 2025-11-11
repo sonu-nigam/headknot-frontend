@@ -2,6 +2,7 @@ import AppLayout from '@/components/AppLayout';
 import { Content } from '@/forms/QuickCaptureForm/Content';
 import { Title } from '@/forms/QuickCaptureForm/Title';
 import { Block } from '@/lib/editorValueTransformer';
+import { extractMemoryIdFromSlug } from '@/lib/memoryUtils';
 import { memoryByIdQueryOptions } from '@/query/options/memory';
 import {
     useQueryErrorResetBoundary,
@@ -15,7 +16,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 export default function MemoryPage() {
     const { reset } = useQueryErrorResetBoundary();
     const navigate = useNavigate();
-    const [memoryTitle, setMemoryTitle] = useState('Memory Details');
+    const [memoryTitle, setMemoryTitle] = useState('New Memory');
 
     return (
         <AppLayout
@@ -25,7 +26,7 @@ export default function MemoryPage() {
                 { label: memoryTitle },
             ]}
         >
-            <div className="max-w-4xl mx-auto px-3">
+            <div className="max-w-4xl mx-auto px-3 w-full">
                 <ErrorBoundary
                     onReset={reset}
                     fallbackRender={({ resetErrorBoundary, error }) => {
@@ -57,7 +58,7 @@ function Memory({
     });
 
     useEffect(() => {
-        setMemoryTitle(data?.title || '');
+        if (data?.title) setMemoryTitle(data.title);
     }, [data.title]);
 
     const blocks = (data.blocks || []).map((block) => ({
@@ -77,7 +78,7 @@ function Memory({
                     memoryId={memoryId}
                 />
             </div>
-            <div className="mt-10">
+            <div className="mt-10 pb-32">
                 <Content initialValue={blocks} memoryId={memoryId} />
             </div>
         </div>
@@ -102,22 +103,4 @@ function MemoryLoading() {
             </div>
         </div>
     );
-}
-
-function extractMemoryIdFromSlug(slug: string | null): string {
-    if (!slug) throw Error('Invalid memory ID');
-
-    const slugParts = slug.split('--');
-    const uuid = slugParts.at(-1) as string;
-
-    if (!/^[0-9a-fA-F]{32}$/.test(uuid)) {
-        throw Error('Invalid memory ID');
-    }
-    return [
-        uuid.slice(0, 8),
-        uuid.slice(8, 12),
-        uuid.slice(12, 16),
-        uuid.slice(16, 20),
-        uuid.slice(20, 32),
-    ].join('-');
 }

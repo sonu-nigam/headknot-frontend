@@ -19,7 +19,7 @@ export function Title({
                     },
                 },
                 body: {
-                    title: title || '',
+                    title: title as string,
                 },
             });
             if (error) throw error;
@@ -28,6 +28,7 @@ export function Title({
     });
 
     const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.value) return;
         await capture.mutateAsync({
             title: e.target.value,
         });
@@ -41,8 +42,8 @@ export function Title({
             autoFocus
             placeholder="New Memory"
             defaultValue={initialValue}
-            onChange={onChangeDebounced.run}
             className="text-5xl sm:text-5xl md:text-5xl px-4 h-14 border-none shadow-none font-bold ring-0 focus:ring-0 focus-visible:ring-0"
+            onBlur={onChangeDebounced.run}
         />
     );
 }
