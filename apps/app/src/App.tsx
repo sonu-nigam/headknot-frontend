@@ -7,6 +7,8 @@ import MemoryPage from './pages/Memory/MemoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GoogleCallback from './pages/GoogleCallback';
 import { AccountPage } from './pages/Account/AccountPage';
+import Archives from './pages/Archives';
+import Trash from './pages/Trash';
 
 export default function App() {
     const loc = useLocation();
@@ -48,7 +50,8 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
-            {/*<Route path="*" element={<Navigate to="/" replace />} />*/}
+            <Route path="/archives" element={<Archives />} />
+            <Route path="/trash" element={<Trash />} />
         </Routes>
     );
 }

@@ -42,6 +42,26 @@ export function NavClusters() {
         isActive: false as boolean,
     }));
 
+    const organizedClusters = clusters?.reduce(
+        (acc, cluster) => {
+            const isArchived = cluster.title
+                .toLowerCase()
+                .startsWith('archived');
+            const isUnassigned = cluster.title
+                .toLowerCase()
+                .startsWith('unassigned');
+
+            if (isArchived) return acc;
+
+            if (isUnassigned) {
+                return [cluster, ...acc];
+            } else {
+                return [...acc, cluster];
+            }
+        },
+        [] as typeof clusters,
+    );
+
     return (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="flex justify-between">
@@ -51,7 +71,7 @@ export function NavClusters() {
                 </Button>
             </SidebarGroupLabel>
             <SidebarMenu>
-                {clusters?.map((item) => {
+                {organizedClusters?.map((item) => {
                     const Icon = item.icon;
                     return (
                         <Collapsible

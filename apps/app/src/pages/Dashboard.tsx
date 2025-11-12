@@ -7,8 +7,12 @@ import ProjectsInFocus from '@/components/ProjectsInFocus';
 import AppLayout from '@/components/AppLayout';
 import { AppHeader } from '@/components/app-header';
 import PromptBox from '@/components/PromptBox';
+import { useQuery } from '@tanstack/react-query';
+import { profileQueryOptions } from '@/query/options/profile';
 
 export default function Dashboard() {
+    const { data: userProfileData } = useQuery(profileQueryOptions);
+
     return (
         <AppLayout
             breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Dashboard' }]}
@@ -16,7 +20,12 @@ export default function Dashboard() {
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full overflow-auto">
                 <div className="max-w-3xl mx-auto h-full min-h-2/3 w-full">
                     {/*<Chatbox className="mt-20" />*/}
-                    <PromptBox className="mt-40" />
+                    <div className="mt-40">
+                        <div className="text-blue-500 text-5xl font-semibold text-center mb-4">
+                            Hello {userProfileData?.firstName}
+                        </div>
+                        <PromptBox placeholder="Search, recall, or capture a new memory — just start typing…" />
+                    </div>
                     {/*<DailySuggestion />*/}
                 </div>
                 {/*<div className="">

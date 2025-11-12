@@ -1,4 +1,5 @@
 import AppLayout from '@/components/AppLayout';
+import PromptBox from '@/components/PromptBox';
 import { Content } from '@/forms/QuickCaptureForm/Content';
 import { Title } from '@/forms/QuickCaptureForm/Title';
 import { Block } from '@/lib/editorValueTransformer';
@@ -26,7 +27,7 @@ export default function MemoryPage() {
                 { label: memoryTitle },
             ]}
         >
-            <div className="max-w-4xl mx-auto px-3 w-full">
+            <div className="max-w-4xl mx-auto px-3 w-full flex-1 flex flex-col pb-8">
                 <ErrorBoundary
                     onReset={reset}
                     fallbackRender={({ resetErrorBoundary, error }) => {
@@ -35,11 +36,16 @@ export default function MemoryPage() {
                         return null;
                     }}
                 >
+                    {/*<MemoryLoading />*/}
                     <Suspense fallback={<MemoryLoading />}>
                         <Memory setMemoryTitle={setMemoryTitle} />
                     </Suspense>
                 </ErrorBoundary>
             </div>
+            <PromptBox
+                className="sticky bottom-0 px-3 pb-4 max-w-4xl mx-auto w-full"
+                placeholder="What would you like to do? (Summarize, Cluster, Capture…)"
+            />
         </AppLayout>
     );
 }
@@ -71,7 +77,7 @@ function Memory({
     }));
 
     return (
-        <div className="p-4 pt-0">
+        <div>
             <div className="mt-20">
                 <Title
                     initialValue={data.title as string}
@@ -87,7 +93,7 @@ function Memory({
 
 function MemoryLoading() {
     return (
-        <div className="p-4 pt-0">
+        <div className="px-4 flex-1">
             <div className="mt-20">
                 <Skeleton className="w-full h-14" />
             </div>

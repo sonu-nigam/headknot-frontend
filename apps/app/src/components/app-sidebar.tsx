@@ -7,6 +7,7 @@ import {
     PieChart,
     Plus,
     Search,
+    Trash,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -46,16 +47,16 @@ const data = {
         //     url: '#',
         //     icon: History,
         // },
-        // {
-        //     title: 'Files',
-        //     url: '#',
-        //     icon: Archive,
-        // },
-        // {
-        //     title: 'Agents',
-        //     url: '#',
-        //     icon: Trash,
-        // },
+        {
+            title: 'Archives',
+            url: '/archives',
+            icon: Archive,
+        },
+        {
+            title: 'Trash',
+            url: '/trash',
+            icon: Trash,
+        },
     ],
 };
 

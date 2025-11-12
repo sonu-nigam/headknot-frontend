@@ -28,7 +28,13 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
-export default function PromptBox({ className }: { className?: string }) {
+export default function PromptBox({
+    className,
+    placeholder,
+}: {
+    className?: string;
+    placeholder?: string;
+}) {
     const [input, setInput] = useState('');
     const [selectedModel, setSelectedModel] = useState('Local');
     const [selectedAgent, setSelectedAgent] = useState('Agent');
@@ -58,7 +64,7 @@ export default function PromptBox({ className }: { className?: string }) {
                         <Textarea
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="Ask anything"
+                            placeholder={placeholder}
                             className="w-full bg-transparent! p-0 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder-muted-foreground resize-none border-none outline-none text-sm min-h-10 max-h-[25vh]"
                             rows={1}
                             onInput={(e) => {
