@@ -49,7 +49,11 @@ export function MemoryList({
                     <span>{memory.title || 'New Memory'}</span>
                 </Link>
             </SidebarMenuSubButton>
-            <MemoryMenu isMobile={isMobile} memoryId={memory.id as string} />
+            <MemoryMenu
+                isMobile={isMobile}
+                memoryId={memory.id as string}
+                clusterId={clusterId}
+            />
         </SidebarMenuSubItem>
     ));
 }

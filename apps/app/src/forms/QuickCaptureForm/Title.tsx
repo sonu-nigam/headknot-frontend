@@ -42,7 +42,7 @@ export function Title({
             autoFocus
             placeholder="New Memory"
             defaultValue={initialValue}
-            className="text-5xl sm:text-5xl md:text-5xl px-4 h-14 border-none shadow-none font-bold ring-0 focus:ring-0 focus-visible:ring-0"
+            className="text-5xl sm:text-5xl md:text-5xl px-4 h-14 border-none shadow-none font-bold ring-0 focus:ring-0 focus-visible:ring-0 dark:bg-transparent"
             onBlur={onChangeDebounced.run}
         />
     );

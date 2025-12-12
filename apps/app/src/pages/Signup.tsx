@@ -67,8 +67,7 @@ export default function Signup() {
 
     return (
         <>
-            <AppHeader breadcrumbs={breadcrumbs} />
-            <div className="min-h-screen grid place-items-center">
+            <div className="min-h-screen grid place-items-center dark:bg-gray-950">
                 <SignupForm
                     className="w-full max-w-sm"
                     onSubmit={onSubmit}

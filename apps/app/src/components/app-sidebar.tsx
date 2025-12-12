@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
-import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 import {
@@ -29,28 +28,12 @@ import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 
-// This is sample data.
 const data = {
     navMain: [
         {
             title: 'Dashboard',
             url: '/',
             icon: LayoutDashboard,
-        },
-        // {
-        //     title: 'Inbox',
-        //     url: '#',
-        //     icon: Pin,
-        // },
-        // {
-        //     title: 'Tasks',
-        //     url: '#',
-        //     icon: History,
-        // },
-        {
-            title: 'Archives',
-            url: '/archives',
-            icon: Archive,
         },
         {
             title: 'Trash',

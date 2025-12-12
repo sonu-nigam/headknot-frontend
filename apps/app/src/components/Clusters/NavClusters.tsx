@@ -21,6 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AddMemory } from './AddMemory';
 import { ProjectMenu } from './ProjectMenu';
 import { MemoryList } from './MemoryList';
+import { AddCluster } from '@/forms/Cluster/AddCluster';
 
 export function NavClusters() {
     const { isMobile } = useSidebar();
@@ -66,9 +67,11 @@ export function NavClusters() {
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="flex justify-between">
                 Clusters
-                <Button size="icon" variant="secondary" className="size-6">
-                    <Plus />
-                </Button>
+                <AddCluster>
+                    <Button size="icon" variant="secondary" className="size-6">
+                        <Plus />
+                    </Button>
+                </AddCluster>
             </SidebarGroupLabel>
             <SidebarMenu>
                 {organizedClusters?.map((item) => {
@@ -99,7 +102,10 @@ export function NavClusters() {
                                                     }
                                                 />
                                             )}
-                                            <ProjectMenu isMobile={isMobile} />
+                                            <ProjectMenu
+                                                isMobile={isMobile}
+                                                clusterId={item.id}
+                                            />
                                         </div>
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>

@@ -9,6 +9,7 @@ import GoogleCallback from './pages/GoogleCallback';
 import { AccountPage } from './pages/Account/AccountPage';
 import Archives from './pages/Archives';
 import Trash from './pages/Trash';
+import { Workspace } from './pages/Account/Workspace';
 
 export default function App() {
     const loc = useLocation();
@@ -47,6 +48,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <AccountPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/workspace"
+                element={
+                    <ProtectedRoute>
+                        <Workspace />
                     </ProtectedRoute>
                 }
             />

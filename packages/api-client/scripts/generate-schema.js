@@ -15,6 +15,12 @@ async function generateSchema() {
 
     const outputPath = path.join(__dirname, '../schema/schema.d.ts');
 
+    // Create the schema directory if it doesn't exist
+    const schemaDir = path.dirname(outputPath);
+    if (!fs.existsSync(schemaDir)) {
+        fs.mkdirSync(schemaDir, { recursive: true });
+    }
+
     // This will overwrite existing file with new content
     fs.writeFileSync(outputPath, contents, { encoding: 'utf8' });
 
