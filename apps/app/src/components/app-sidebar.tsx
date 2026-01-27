@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
     Archive,
     Frame,
+    Hourglass,
     LayoutDashboard,
     Map,
     PieChart,
@@ -40,6 +41,11 @@ const data = {
             url: '/trash',
             icon: Trash,
         },
+        {
+            title: 'Activity',
+            url: '/activity',
+            icon: Hourglass,
+        },
     ],
 };
 
@@ -51,7 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         mutationFn: async () => {
             const { data, error } = await api.POST('/memory', {
                 body: {
-                    type: 'note',
+                    // type: 'note',
                     workspaceId: selectedWorkspaceId,
                 },
             });

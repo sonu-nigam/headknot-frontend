@@ -26,7 +26,6 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
-    useSidebar,
 } from '@workspace/ui/components/sidebar';
 import {
     Collapsible,
@@ -55,7 +54,7 @@ export function AddMemory({
         mutationFn: async () => {
             const { data, error } = await api.POST('/memory', {
                 body: {
-                    type: 'note',
+                    // type: 'note',
                     clusterId,
                     workspaceId,
                 },

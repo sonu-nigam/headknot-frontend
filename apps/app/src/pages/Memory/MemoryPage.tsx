@@ -6,10 +6,14 @@ import { Block } from '@/lib/editorValueTransformer';
 import { extractMemoryIdFromSlug } from '@/lib/memoryUtils';
 import { memoryByIdQueryOptions } from '@/query/options/memory';
 import {
+    useMutation,
     useQueryErrorResetBoundary,
     useSuspenseQuery,
 } from '@tanstack/react-query';
+import { api } from '@workspace/api-client';
+import { Button } from '@workspace/ui/components/button';
 import { Skeleton } from '@workspace/ui/components/skeleton';
+import { Divide } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -76,8 +80,32 @@ function Memory({
         parentId: block.parentId || null,
     }));
 
+    const handleCommit = async () => {
+        await commit.mutateAsync();
+    };
+
+    const commit = useMutation({
+        mutationFn: async () => {
+            const { error, data } = await api.POST(
+                '/memory/{id}/blocks/commit',
+                {
+                    params: {
+                        path: {
+                            id: memoryId || '',
+                        },
+                    },
+                },
+            );
+            if (error) throw error;
+            return data;
+        },
+    });
+
     return (
         <div>
+            <Button className="mb-4" onClick={handleCommit}>
+                save
+            </Button>
             <div className="mt-20">
                 <Title
                     initialValue={data.title as string}
