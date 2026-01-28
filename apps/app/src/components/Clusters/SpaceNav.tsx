@@ -15,66 +15,64 @@ import {
 } from '@workspace/ui/components/collapsible';
 import { Button } from '@workspace/ui/components/button';
 import { Link } from 'react-router-dom';
-import { clusterQueryOptions } from '@/query/options/cluster';
+import { spaceQueryOptions } from '@/query/options/space';
 import { useAppStore } from '@/state/store';
 import { useQuery } from '@tanstack/react-query';
 import { AddMemory } from './AddMemory';
 import { ProjectMenu } from './ProjectMenu';
 import { MemoryList } from './MemoryList';
-import { AddCluster } from '@/forms/Cluster/AddCluster';
+import { AddSpace } from '@/forms/Space/AddSpace';
 
-export function NavClusters() {
+export function SpaceNav() {
     const { isMobile } = useSidebar();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: workspaceClusters } = useQuery({
-        ...clusterQueryOptions({
+    const { data: workspaceSpaces } = useQuery({
+        ...spaceQueryOptions({
             workspaceId: selectedWorkspaceId as string,
             status: 'ACTIVE',
         }),
         enabled: !!selectedWorkspaceId,
     });
 
-    const clusters = workspaceClusters?.map((cluster) => ({
-        id: cluster.id as string,
-        title: cluster.name as string,
-        url: `/clusters/${cluster.id}` as string,
+    const spaces = workspaceSpaces?.map((space) => ({
+        id: space.id as string,
+        title: space.name as string,
+        url: `/space/${space.id}` as string,
         icon: Folder as LucideIcon,
         isActive: false as boolean,
     }));
 
-    const organizedClusters = clusters?.reduce(
-        (acc, cluster) => {
-            const isArchived = cluster.title
-                .toLowerCase()
-                .startsWith('archived');
-            const isUnassigned = cluster.title
+    const organizedspaces = spaces?.reduce(
+        (acc, space) => {
+            const isArchived = space.title.toLowerCase().startsWith('archived');
+            const isUnassigned = space.title
                 .toLowerCase()
                 .startsWith('unassigned');
 
             if (isArchived) return acc;
 
             if (isUnassigned) {
-                return [cluster, ...acc];
+                return [space, ...acc];
             } else {
-                return [...acc, cluster];
+                return [...acc, space];
             }
         },
-        [] as typeof clusters,
+        [] as typeof spaces,
     );
 
     return (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="flex justify-between">
-                Clusters
-                <AddCluster>
+                Spaces
+                <AddSpace>
                     <Button size="icon" variant="secondary" className="size-6">
                         <Plus />
                     </Button>
-                </AddCluster>
+                </AddSpace>
             </SidebarGroupLabel>
             <SidebarMenu>
-                {organizedClusters?.map((item) => {
+                {organizedspaces?.map((item) => {
                     const Icon = item.icon;
                     return (
                         <Collapsible
@@ -96,7 +94,7 @@ export function NavClusters() {
                                             </Link>
                                             {item.title !== 'Archived' && (
                                                 <AddMemory
-                                                    clusterId={item.id}
+                                                    spaceId={item.id}
                                                     workspaceId={
                                                         selectedWorkspaceId as string
                                                     }
@@ -104,7 +102,7 @@ export function NavClusters() {
                                             )}
                                             <ProjectMenu
                                                 isMobile={isMobile}
-                                                clusterId={item.id}
+                                                spaceId={item.id}
                                             />
                                         </div>
                                     </SidebarMenuButton>
@@ -112,7 +110,7 @@ export function NavClusters() {
                                 <CollapsibleContent>
                                     <SidebarMenuSub className="mr-0 pr-0">
                                         <MemoryList
-                                            clusterId={item.id}
+                                            spaceId={item.id}
                                             workspaceId={
                                                 selectedWorkspaceId as string
                                             }

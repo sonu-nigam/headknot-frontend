@@ -1,8 +1,5 @@
 import { useAppStore } from '@/state/store';
-import {
-    ClusterFormValues,
-    clusterResolver,
-} from '@/validations/form/clusterForm';
+import { SpaceFormValues, spaceResolver } from '@/validations/form/spaceForm';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
 import { Button } from '@workspace/ui/components/button';
@@ -26,15 +23,15 @@ import { Input } from '@workspace/ui/components/input';
 import { useState } from 'react';
 import { useForm, UseFormSetError } from 'react-hook-form';
 
-export function AddCluster({ children }: React.PropsWithChildren) {
-    const { isVisible, createCluster, open, isCreating } =
-        useCreateClusterMutation();
+export function AddSpace({ children }: React.PropsWithChildren) {
+    const { isVisible, createSpace, open, isCreating } =
+        useCreateSpaceMutation();
 
     const onSubmit = (
-        values: ClusterFormValues,
-        setError: UseFormSetError<ClusterFormValues>,
+        values: SpaceFormValues,
+        setError: UseFormSetError<SpaceFormValues>,
     ) => {
-        createCluster(values, {
+        createSpace(values, {
             onError: (error: any) => {
                 setError('name', { message: error.message });
             },
@@ -46,29 +43,29 @@ export function AddCluster({ children }: React.PropsWithChildren) {
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create Cluster</DialogTitle>
+                    <DialogTitle>Create Space</DialogTitle>
                     <DialogDescription>
-                        Create a new cluster to share with others.
+                        Create a new space to share with others.
                     </DialogDescription>
                 </DialogHeader>
-                <AddClusterForm onSubmit={onSubmit} isCreating={isCreating} />
+                <AddSpaceForm onSubmit={onSubmit} isCreating={isCreating} />
             </DialogContent>
         </Dialog>
     );
 }
 
-function AddClusterForm({
+function AddSpaceForm({
     onSubmit,
     isCreating,
 }: {
     onSubmit: (
-        values: ClusterFormValues,
-        setError: UseFormSetError<ClusterFormValues>,
+        values: SpaceFormValues,
+        setError: UseFormSetError<SpaceFormValues>,
     ) => void;
     isCreating: boolean;
 }) {
-    const form = useForm<ClusterFormValues>({
-        resolver: clusterResolver,
+    const form = useForm<SpaceFormValues>({
+        resolver: spaceResolver,
         defaultValues: {
             name: '',
         },
@@ -86,9 +83,9 @@ function AddClusterForm({
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Cluster Name</FormLabel>
+                            <FormLabel>Space Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="New Cluster" {...field} />
+                                <Input placeholder="New Space" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -100,7 +97,7 @@ function AddClusterForm({
                         variant="secondary"
                         disabled={isCreating}
                     >
-                        {isCreating ? 'Creating...' : 'Create Cluster'}
+                        {isCreating ? 'Creating...' : 'Create Space'}
                     </Button>
                 </div>
             </form>
@@ -108,14 +105,14 @@ function AddClusterForm({
     );
 }
 
-function useCreateClusterMutation() {
+function useCreateSpaceMutation() {
     const [isVisible, setVisible] = useState(false);
     const queryClient = useQueryClient();
     const workspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { mutate: createCluster, isPending: isCreating } = useMutation({
-        mutationFn: async (values: ClusterFormValues) => {
-            const res = await api.POST('/clusters', {
+    const { mutate: createSpace, isPending: isCreating } = useMutation({
+        mutationFn: async (values: SpaceFormValues) => {
+            const res = await api.POST('/spaces', {
                 body: values,
                 params: {
                     query: {
@@ -125,7 +122,7 @@ function useCreateClusterMutation() {
             });
             if (res.error) {
                 return Promise.reject({
-                    message: res.error.message || 'Failed to create cluster',
+                    message: res.error.message || 'Failed to create space',
                     type: 'server',
                 });
             }
@@ -134,7 +131,7 @@ function useCreateClusterMutation() {
         onSuccess: () => {
             setVisible(false);
             queryClient.invalidateQueries({
-                queryKey: ['clusters', workspaceId],
+                queryKey: ['spaces', workspaceId],
             });
         },
     });
@@ -142,7 +139,7 @@ function useCreateClusterMutation() {
     return {
         isVisible,
         open: setVisible,
-        createCluster,
+        createSpace,
         isCreating,
     };
 }

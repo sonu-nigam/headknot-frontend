@@ -88,40 +88,12 @@ export interface paths {
         };
         get?: never;
         /**
-         * Replace blocks
-         * @description Replace the full block list
+         * Replace memory blocks
+         * @description Replaces the complete block list of a memory
          */
-        put: operations["replaceBlocks"];
+        put: operations["updateBlocks"];
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clusters/{clusterId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get cluster by ID
-         * @description Retrieves a specific cluster with access check
-         */
-        get: operations["getCluster"];
-        /**
-         * Update cluster
-         * @description Updates cluster name and/or description
-         */
-        put: operations["updateCluster"];
-        post?: never;
-        /**
-         * Delete cluster
-         * @description Permanently deletes cluster and all memories
-         */
-        delete: operations["permanentlyDeleteCluster"];
         options?: never;
         head?: never;
         patch?: never;
@@ -260,13 +232,13 @@ export interface paths {
         };
         /**
          * List memories by workspace
-         * @description List memories in a workspace, optionally filtered by cluster and/or status
+         * @description Retrieves memories for a workspace, optionally filtered by space and/or status
          */
         get: operations["listByWorkspace"];
         put?: never;
         /**
          * Create memory
-         * @description Create a new memory (note/task/decision/...) in a workspace
+         * @description Creates a new memory (note/task/decision) within a workspace
          */
         post: operations["createMemory"];
         delete?: never;
@@ -275,7 +247,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/memory/{id}/convert": {
+    "/memory/{id}/blocks/commit": {
         parameters: {
             query?: never;
             header?: never;
@@ -284,35 +256,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Convert type
-         * @description Convert a memory to another type (e.g., note → task)
-         */
-        post: operations["convertType"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clusters": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get clusters by workspace
-         * @description Retrieves clusters for a workspace, optionally filtered by status
-         */
-        get: operations["getClusters"];
-        put?: never;
-        /**
-         * Create cluster
-         * @description Creates a new cluster within a workspace
-         */
-        post: operations["createCluster"];
+        post: operations["commitBlocks"];
         delete?: never;
         options?: never;
         head?: never;
@@ -480,7 +424,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/activity/read": {
+    "/activity/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -493,191 +437,11 @@ export interface paths {
          * Read activity
          * @description Fetch an activity by ID
          */
-        post: operations["read"];
+        post: operations["getActivityLog"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/activity/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create activity
-         * @description Create an activity and emit ActivityCreated event
-         */
-        post: operations["create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/memory/{memoryId}/unarchive": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Unarchive a memory
-         * @description Unarchives a memory, returning it to active status
-         */
-        patch: operations["unarchiveMemory"];
-        trace?: never;
-    };
-    "/memory/{memoryId}/trash": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Trash a memory
-         * @description Moves a memory to trash (recoverable for 30 days)
-         */
-        patch: operations["trashMemory"];
-        trace?: never;
-    };
-    "/memory/{memoryId}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Restore a memory from trash
-         * @description Restores a memory from trash to active status
-         */
-        patch: operations["restoreMemory"];
-        trace?: never;
-    };
-    "/memory/{memoryId}/archive": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Archive a memory
-         * @description Archives a memory
-         */
-        patch: operations["archiveMemory"];
-        trace?: never;
-    };
-    "/memory/{id}/title": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update title
-         * @description Change only the memory title (optimistic-locked via If-Match)
-         */
-        patch: operations["updateTitle"];
-        trace?: never;
-    };
-    "/clusters/{clusterId}/trash": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Trash cluster
-         * @description Moves cluster and memories to trash
-         */
-        patch: operations["trashCluster"];
-        trace?: never;
-    };
-    "/clusters/{clusterId}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Restore cluster
-         * @description Restores cluster and memories from trash
-         */
-        patch: operations["restoreCluster"];
-        trace?: never;
-    };
-    "/clusters/{clusterId}/archive": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Archive cluster
-         * @description Archives cluster and active memories
-         */
-        patch: operations["archiveCluster"];
         trace?: never;
     };
     "/workspaces/my-workspaces": {
@@ -892,8 +656,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get memory
-         * @description Fetch a memory with its blocks
+         * Get memory by ID
+         * @description Retrieves a specific memory with its blocks
          */
         get: operations["getMemory"];
         put?: never;
@@ -904,7 +668,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/activity/list": {
+    "/activity/": {
         parameters: {
             query?: never;
             header?: never;
@@ -915,7 +679,7 @@ export interface paths {
          * List activities
          * @description Returns a page of activities ordered by updatedAt DESC
          */
-        get: operations["list"];
+        get: operations["getActivityLogList"];
         put?: never;
         post?: never;
         delete?: never;
@@ -939,26 +703,6 @@ export interface paths {
          * @description Removes a member from the workspace
          */
         delete: operations["removeMember"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/memory/{memoryId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Permanently delete a memory
-         * @description Permanently deletes a memory. This action is irreversible.
-         */
-        delete: operations["deleteMemory"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1041,6 +785,7 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        /** @description Memory content blocks */
         BlockDto: {
             /** Format: uuid */
             id?: string;
@@ -1051,78 +796,45 @@ export interface components {
             kind?: string;
             data?: Record<string, never>;
         };
-        UpdateMemoryRequest: {
-            blocks?: components["schemas"]["BlockDto"][];
+        /** @description Request to update memory blocks */
+        UpdateMemoryBlocksRequest: {
+            /** @description Memory content blocks */
+            blocks: components["schemas"]["BlockDto"][];
         };
+        /** @description Memory response with content blocks and metadata */
         MemoryResponse: {
-            /** Format: uuid */
-            id?: string;
-            type?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: uuid */
-            clusterId?: string;
-            title?: string;
-            status?: string;
-            /** Format: date-time */
-            trashedAt?: string;
-            primaryAtomic?: string;
-            atomicBlocks?: string[];
-            atomicSignals?: string[];
-            /** Format: int32 */
-            version?: number;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            blocks?: components["schemas"]["BlockDto"][];
-        };
-        /** @description Request to create a new cluster */
-        UpdateClusterRequest: {
-            /**
-             * @description Cluster name
-             * @example New Cluster
-             */
-            name: string;
-            /**
-             * @description Cluster description
-             * @example A cluster for memory collection
-             */
-            description?: string;
-        };
-        /** @description Cluster details response */
-        ClusterResponse: {
             /**
              * Format: uuid
-             * @description Cluster ID
+             * @description Memory unique identifier
+             * @example 123e4567-e89b-12d3-a456-426614174000
              */
             id?: string;
-            /** @description Cluster name */
-            name?: string;
-            /** @description Cluster description */
-            description?: string;
             /**
              * Format: uuid
-             * @description Workspace ID
+             * @description Workspace identifier
+             * @example 123e4567-e89b-12d3-a456-426614174001
              */
             workspaceId?: string;
+            /**
+             * @description Memory status
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status?: "ACTIVE" | "ARCHIVED" | "TRASHED";
             /**
              * Format: date-time
              * @description Creation timestamp
+             * @example 2025-12-15T10:00:00Z
              */
             createdAt?: string;
             /**
              * Format: date-time
              * @description Last update timestamp
+             * @example 2025-12-15T11:30:00Z
              */
             updatedAt?: string;
-            /**
-             * Format: date-time
-             * @description deletedAt timestamp
-             */
-            deletedAt?: string;
-            /** @description Current status of the Cluster */
-            status?: string;
+            /** @description Memory content blocks */
+            blocks?: components["schemas"]["BlockDto"][];
         };
         /** @description Request to create a new workspace */
         CreateWorkspaceRequest: {
@@ -1158,27 +870,27 @@ export interface components {
             sortDirection?: string;
         };
         PageSearchResultDTO: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
             /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            numberOfElements?: number;
+            /** Format: int32 */
             size?: number;
-            content?: components["schemas"]["SearchResultDTO"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            /** Format: int32 */
-            numberOfElements?: number;
+            content?: components["schemas"]["SearchResultDTO"][];
             first?: boolean;
             last?: boolean;
             pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
+            sort?: components["schemas"]["SortObject"][];
             /** Format: int64 */
             offset?: number;
-            sort?: components["schemas"]["SortObject"][];
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
@@ -1223,31 +935,22 @@ export interface components {
             lastName?: string;
             email: string;
         };
+        /** @description Request to create a new memory */
         CreateMemoryRequest: {
-            type?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: uuid */
-            clusterId?: string;
-            title?: string;
-            blocks?: components["schemas"]["BlockDto"][];
-        };
-        MemoryId: {
-            /** Format: uuid */
-            value?: string;
-        };
-        /** @description Request to create a new cluster */
-        CreateClusterRequest: {
             /**
-             * @description Cluster name
-             * @example New Cluster
+             * Format: uuid
+             * @description Workspace identifier
+             * @example 123e4567-e89b-12d3-a456-426614174000
              */
-            name: string;
+            workspaceId: string;
             /**
-             * @description Cluster description
-             * @example A cluster for memory collection
+             * Format: uuid
+             * @description Space identifier (optional, defaults to Unassigned space)
+             * @example 123e4567-e89b-12d3-a456-426614174001
              */
-            description?: string;
+            spaceId?: string | null;
+            /** @description Memory content blocks */
+            blocks: components["schemas"]["BlockDto"][];
         };
         SignupRequest: {
             username: string;
@@ -1296,24 +999,22 @@ export interface components {
             username: string;
             password: string;
         };
-        ReadRequest: {
+        ActivityLogResponse: {
             /** Format: uuid */
             id?: string;
-        };
-        ActivityResponse: {
-            /** Format: uuid */
-            id?: string;
-            title?: string;
+            activityType?: string;
             description?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: uuid */
+            actorId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
             /** Format: date-time */
-            createdAt?: string;
-        };
-        CreateRequest: {
-            title: string;
-            description?: string;
-        };
-        UpdateTitleRequest: {
-            title: string;
+            occurredAt?: string;
         };
     };
     responses: never;
@@ -1686,7 +1387,7 @@ export interface operations {
             };
         };
     };
-    replaceBlocks: {
+    updateBlocks: {
         parameters: {
             query?: never;
             header?: never;
@@ -1697,76 +1398,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateMemoryRequest"];
+                "application/json": components["schemas"]["UpdateMemoryBlocksRequest"];
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Blocks replaced successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    getCluster: {
-        parameters: {
-            query: {
-                workspaceId: string;
-            };
-            header?: never;
-            path: {
-                clusterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cluster found */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ClusterResponse"];
-                };
-            };
-            /** @description Cluster not found or access denied */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateCluster: {
-        parameters: {
-            query: {
-                workspaceId: string;
-            };
-            header?: never;
-            path: {
-                clusterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateClusterRequest"];
-            };
-        };
-        responses: {
-            /** @description Cluster updated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ClusterResponse"];
                 };
             };
             /** @description Invalid request payload */
@@ -1776,48 +1418,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Access denied to update cluster */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cluster not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    permanentlyDeleteCluster: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                clusterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cluster deleted successfully */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Access denied or immutable cluster */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cluster not found */
+            /** @description Memory not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2087,7 +1688,7 @@ export interface operations {
         parameters: {
             query: {
                 workspaceId: string;
-                clusterId?: string;
+                spaceId?: string;
                 status?: string;
             };
             header?: never;
@@ -2096,7 +1697,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Memories retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2104,6 +1705,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MemoryResponse"][];
                 };
+            };
+            /** @description Invalid status parameter */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2120,86 +1728,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    convertType: {
-        parameters: {
-            query: {
-                toType: string;
-            };
-            header?: never;
-            path: {
-                id: components["schemas"]["MemoryId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    getClusters: {
-        parameters: {
-            query: {
-                workspaceId: string;
-                status?: "ACTIVE" | "ARCHIVED" | "TRASHED" | "DELETED";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Clusters retrieved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ClusterResponse"][];
-                };
-            };
-        };
-    };
-    createCluster: {
-        parameters: {
-            query: {
-                workspaceId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateClusterRequest"];
-            };
-        };
-        responses: {
-            /** @description Cluster created successfully */
+            /** @description Memory created successfully */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ClusterResponse"];
+                    "application/json": components["schemas"]["MemoryResponse"];
                 };
             };
             /** @description Invalid request payload */
@@ -2209,12 +1744,34 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Cluster with same name already exists */
-            409: {
+            /** @description Access denied to workspace */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    commitBlocks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
             };
         };
     };
@@ -2402,156 +1959,17 @@ export interface operations {
             };
         };
     };
-    read: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReadRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivityResponse"];
-                };
-            };
-        };
-    };
-    create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivityResponse"];
-                };
-            };
-        };
-    };
-    unarchiveMemory: {
+    getActivityLog: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                memoryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    trashMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                memoryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    restoreMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                memoryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    archiveMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                memoryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-        };
-    };
-    updateTitle: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
+                /** @description Activity ID */
                 id: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTitleRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -2559,118 +1977,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
+                    "application/json": components["schemas"]["ActivityLogResponse"];
                 };
-            };
-        };
-    };
-    trashCluster: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                clusterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cluster trashed successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ClusterResponse"];
-                };
-            };
-            /** @description Access denied or immutable cluster */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cluster not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    restoreCluster: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                clusterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cluster restored successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ClusterResponse"];
-                };
-            };
-            /** @description Access denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cluster not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    archiveCluster: {
-        parameters: {
-            query: {
-                workspaceId: string;
-            };
-            header?: never;
-            path: {
-                clusterId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cluster archived successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ClusterResponse"];
-                };
-            };
-            /** @description Access denied or immutable cluster */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cluster not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -2947,7 +2255,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Memory found */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2956,12 +2264,20 @@ export interface operations {
                     "application/json": components["schemas"]["MemoryResponse"];
                 };
             };
+            /** @description Memory not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
-    list: {
+    getActivityLogList: {
         parameters: {
             query?: {
                 offset?: number;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -2975,7 +2291,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ActivityResponse"][];
+                    "application/json": components["schemas"]["ActivityLogResponse"][];
                 };
             };
         };
@@ -3010,26 +2326,6 @@ export interface operations {
             };
             /** @description Workspace not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                memoryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };

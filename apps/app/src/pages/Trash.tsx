@@ -30,7 +30,7 @@ import {
     ArrowUpDownIcon,
 } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
-import { clusterQueryOptions } from '@/query/options/cluster';
+import { spaceQueryOptions } from '@/query/options/space';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/state/store';
 import { Input } from '@workspace/ui/components/input';
@@ -38,8 +38,8 @@ import { Input } from '@workspace/ui/components/input';
 export default function TrashPage() {
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: trashedClusters } = useQuery({
-        ...clusterQueryOptions({
+    const { data: trashedSpaces } = useQuery({
+        ...spaceQueryOptions({
             workspaceId: selectedWorkspaceId as string,
             status: 'TRASHED',
         }),
@@ -74,11 +74,11 @@ export default function TrashPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                    {trashedClusters?.map((cluster) => (
-                        <Card key={cluster.id}>
+                    {trashedSpaces?.map((space) => (
+                        <Card key={space.id}>
                             <CardHeader>
                                 <CardTitle className="flex justify-between items-center">
-                                    {cluster.name}
+                                    {space.name}
                                 </CardTitle>
                             </CardHeader>
                         </Card>

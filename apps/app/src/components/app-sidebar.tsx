@@ -23,11 +23,11 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { Button } from '@workspace/ui/components/button';
 import { useAppStore } from '@/state/store';
-import { NavClusters } from './Clusters/NavClusters';
 import { api } from '@workspace/api-client';
 import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { SpaceNav } from './Clusters/SpaceNav';
 
 const data = {
     navMain: [
@@ -93,7 +93,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <span className="ml-auto">⌘K</span>
                 </Button>
                 <NavMain items={data.navMain} />
-                <NavClusters />
+                <SpaceNav />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser />
