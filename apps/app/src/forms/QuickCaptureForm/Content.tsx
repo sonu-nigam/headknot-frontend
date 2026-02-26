@@ -1,4 +1,4 @@
-import { Plate, usePlateEditor } from 'platejs/react';
+import { Plate, PlateEditor, usePlateEditor } from 'platejs/react';
 
 import {
     BlockquotePlugin,
@@ -9,6 +9,12 @@ import {
     ItalicPlugin,
     UnderlinePlugin,
 } from '@platejs/basic-nodes/react';
+import {
+    MarkdownPlugin,
+    parseMarkdownBlocks,
+    remarkMdx,
+    serializeMd,
+} from '@platejs/markdown';
 import { Editor, EditorContainer } from '@workspace/ui/components/editor';
 import { Value } from 'platejs';
 import {
@@ -29,6 +35,7 @@ import { Separator } from '@workspace/ui/components/separator';
 import { useThrottleFn } from 'ahooks';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
+import { useEffect } from 'react';
 
 export function Content({
     initialValue,
@@ -51,8 +58,14 @@ export function Content({
         nodeId: { idCreator: () => self.crypto.randomUUID() },
     });
 
-    const handleChange = async ({ value }: { value: Value }) => {
-        const formattedValue = editorToBlocks(value);
+    const handleChange = async ({
+        value,
+        editor,
+    }: {
+        value: Value;
+        editor: PlateEditor;
+    }) => {
+        const formattedValue = editorToBlocks(value, editor);
 
         await capture.mutateAsync({
             blocks: formattedValue,

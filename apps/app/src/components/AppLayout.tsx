@@ -2,8 +2,8 @@ import {
     SidebarInset,
     SidebarProvider,
 } from '@workspace/ui/components/sidebar';
-import { AppSidebar } from './app-sidebar';
-import { AppHeader } from './app-header';
+import { AppSidebar } from './sidebar/AppSidebar';
+import { AppHeader } from './AppHeader';
 
 export default function AppLayout({
     children,

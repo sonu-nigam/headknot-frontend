@@ -9,7 +9,7 @@ import GoogleCallback from './pages/GoogleCallback';
 import { AccountPage } from './pages/Account/AccountPage';
 import Archives from './pages/Archives';
 import Trash from './pages/Trash';
-import { Workspace } from './pages/Account/Workspace';
+import Workspace from './pages/Workspace';
 
 export default function App() {
     const loc = useLocation();

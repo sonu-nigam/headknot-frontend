@@ -1,46 +1,9 @@
-import {
-    ChevronRight,
-    Folder,
-    Forward,
-    MoreHorizontal,
-    Plug,
-    Plus,
-    Trash2,
-    type LucideIcon,
-} from 'lucide-react';
-
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu';
-import {
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuAction,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem,
-} from '@workspace/ui/components/sidebar';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@workspace/ui/components/collapsible';
-import { Button } from '@workspace/ui/components/button';
+import { PlusIcon } from 'lucide-react';
+import { SidebarMenuAction } from '@workspace/ui/components/sidebar';
 import { Spinner } from '@workspace/ui/components/spinner';
-import { Link, useNavigate } from 'react-router-dom';
-import { clusterQueryOptions } from '@/query/options/cluster';
-import { useAppStore } from '@/state/store';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
-import { memoryListQueryOptions } from '@/query/options/memory';
-import { api } from '@workspace/api-client';
+import { useNavigate } from 'react-router-dom';
 import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
+import { useCreateMemory } from '@/hooks/memory/useCreateMemory';
 
 export function AddMemory({
     clusterId,
@@ -50,36 +13,19 @@ export function AddMemory({
     workspaceId: string;
 }) {
     const navigate = useNavigate();
-    const createMemory = useMutation({
-        mutationFn: async () => {
-            const { data, error } = await api.POST('/memory', {
-                body: {
-                    // type: 'note',
-                    clusterId,
-                    workspaceId,
-                },
-            });
-
-            if (error) {
-                throw new Error('Failed to create memory');
-            }
-
-            return data;
-        },
-        onSuccess: (data) => {
-            navigate(`/${convertMemoryIdToSlug(data.id)}`);
-        },
-        onError: (error) => {
-            console.error(error);
-        },
+    const { mutateAsync, isPending } = useCreateMemory({
+        clusterId,
+        workspaceId,
     });
 
     const handleCreateMemory = async (
         e: React.MouseEvent<HTMLButtonElement>,
     ) => {
         e.preventDefault();
+        e.stopPropagation();
         try {
-            await createMemory.mutateAsync();
+            const data = await mutateAsync();
+            navigate(`/${convertMemoryIdToSlug(data.id)}`);
         } catch (error) {
             console.error(error);
         }
@@ -91,7 +37,7 @@ export function AddMemory({
             className="right-8"
             onClick={handleCreateMemory}
         >
-            {createMemory.isPending ? <Spinner /> : <Plus />}
+            {isPending ? <Spinner /> : <PlusIcon />}
         </SidebarMenuAction>
     );
 }

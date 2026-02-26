@@ -112,7 +112,7 @@ function useCreateSpaceMutation() {
 
     const { mutate: createSpace, isPending: isCreating } = useMutation({
         mutationFn: async (values: SpaceFormValues) => {
-            const res = await api.POST('/spaces', {
+            const res = await api.POST('/space', {
                 body: values,
                 params: {
                     query: {

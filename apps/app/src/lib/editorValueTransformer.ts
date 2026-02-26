@@ -1,10 +1,13 @@
-import { TElement, Value } from 'platejs';
+import { serializeMd } from '@platejs/markdown';
+import { TElement, Value, NodeApi } from 'platejs';
+import { PlateEditor } from 'platejs/react';
 
 type BlockBase<K extends string, D> = {
     id: string;
     kind: K;
     data: D[];
     index: number;
+    text: string;
     parentId: string | null;
 };
 
@@ -34,25 +37,7 @@ type TextBlockTypes =
     | 'heading3'
     | 'blockquote';
 
-export type TextBlock = BlockBase<TextBlockTypes, TextData>;
-// export type CodeBlock = BlockBase<'code', CodeData>;
-// export type LinkCardBlock = BlockBase<'link-card', LinkCardData>;
-// export type QuoteBlock = BlockBase<'quote', QuoteData>;
-// export type ChecklistBlock = BlockBase<'checklist', ChecklistData>;
-// export type ImageBlock = BlockBase<'image', ImageData>;
-// export type FileBlock = BlockBase<'file', FileData>;
-// export type AudioBlock = BlockBase<'audio', AudioData>;
-// export type DividerBlock = BlockBase<'divider', DividerData>;
-
-export type Block = TextBlock;
-// | CodeBlock
-// | LinkCardBlock
-// | QuoteBlock
-// | ChecklistBlock
-// | ImageBlock
-// | FileBlock
-// | AudioBlock
-// | DividerBlock;
+export type Block = BlockBase<TextBlockTypes, TextData>;
 
 // --- helpers ---
 function kindToNodeType(kind: TextBlockTypes): TElement['type'] {
@@ -69,6 +54,23 @@ function kindToNodeType(kind: TextBlockTypes): TElement['type'] {
             return 'h3';
         default:
             return 'p';
+    }
+}
+
+function nodeTypeToKind(type: TElement['type']): TextBlockTypes {
+    switch (type) {
+        case 'p':
+            return 'paragraph';
+        case 'blockquote':
+            return 'blockquote';
+        case 'h1':
+            return 'heading1';
+        case 'h2':
+            return 'heading2';
+        case 'h3':
+            return 'heading3';
+        default:
+            return 'paragraph';
     }
 }
 
@@ -105,12 +107,14 @@ function formatToTextBlock(
     node: TElement,
     idx: number,
     kind: TextBlockTypes,
-): TextBlock {
+    text: string,
+): Block {
     return {
         id: node.id as string,
         kind,
         parentId: null,
         index: idx,
+        text,
         data: node.children.map((item) => {
             const marks: Mark[] = [];
             if (item.bold) marks.push('bold' as Mark);
@@ -125,29 +129,16 @@ function formatToTextBlock(
     };
 }
 
-export const editorToBlocks = (value: Value) => {
+export const editorToBlocks = (value: Value, editor: PlateEditor): Block[] => {
     const formattedValue: Block[] = [];
 
     for (let idx = 0; idx < value.length; idx++) {
         const node = value[idx];
+        const text = NodeApi.string(node);
 
-        switch (node.type) {
-            case 'p':
-                formattedValue.push(formatToTextBlock(node, idx, 'paragraph'));
-                break;
-            case 'blockquote':
-                formattedValue.push(formatToTextBlock(node, idx, 'blockquote'));
-                break;
-            case 'h1':
-                formattedValue.push(formatToTextBlock(node, idx, 'heading1'));
-                break;
-            case 'h2':
-                formattedValue.push(formatToTextBlock(node, idx, 'heading2'));
-                break;
-            case 'h3':
-                formattedValue.push(formatToTextBlock(node, idx, 'heading3'));
-                break;
-        }
+        formattedValue.push(
+            formatToTextBlock(node, idx, nodeTypeToKind(node.type), text),
+        );
     }
 
     return formattedValue;

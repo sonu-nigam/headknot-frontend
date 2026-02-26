@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { AppHeader } from '@/components/app-header';
+import { AppHeader } from '@/components/AppHeader';
 import { SignupForm } from '@/forms/AuthForm/SignupForm';
 import { SignupFormValues } from '@/validations/form/authForm';
 import { api, storage, initiateGoogleOAuth } from '@workspace/api-client';
@@ -8,7 +8,6 @@ import { useCallback } from 'react';
 
 export default function Signup() {
     const [sp] = useSearchParams();
-    const breadcrumbs = [{ label: 'Home', href: '/' }, { label: 'Signup' }];
     const next = sp.get('next') || '/';
     const signup = useMutation({
         mutationFn: async ({

@@ -7,7 +7,7 @@ import {
     CardTitle,
 } from '@workspace/ui/components/card';
 import { useNavigate } from 'react-router-dom';
-import { AppHeader } from '@/components/app-header';
+import { AppHeader } from '@/components/AppHeader';
 
 export default function NotFoundPage() {
     const navigate = useNavigate();
