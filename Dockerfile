@@ -31,24 +31,10 @@ RUN echo 'server { \
     root /usr/share/nginx/html; \
     index index.html; \
     \
-    # DNS Resolver for external domains \
-    resolver 8.8.8.8 valid=30s; \
-    \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
     \
-    # API Proxy \
-    location /api/ { \
-        set $backend "https://api.headknot.app"; \
-        proxy_pass $backend/; \
-        proxy_http_version 1.1; \
-        proxy_ssl_server_name on; \
-        proxy_set_header Host api.headknot.app; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
 }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
