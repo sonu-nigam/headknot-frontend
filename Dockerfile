@@ -39,13 +39,19 @@ RUN echo 'server { \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
-    location /api { \
-        proxy_pass https://api.headknot.app; \
+    location /api/ { \
+        # Use resolver if the domain is dynamic, otherwise static IP is fine
+        # The trailing slash here is critical
+        proxy_pass https://api.headknot.app/; \
         proxy_http_version 1.1; \
-        proxy_set_header Upgrade $http_upgrade; \
-        proxy_set_header Connection "upgrade"; \
-        proxy_set_header Host $host; \
-        proxy_cache_bypass $http_upgrade; \
+        proxy_set_header Host api.headknot.app; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto $scheme; \
+        \
+        # Optional: Handle CORS if your API doesn't
+        proxy_hide_header "Access-Control-Allow-Origin"; \
+        add_header "Access-Control-Allow-Origin" "*" always; \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
