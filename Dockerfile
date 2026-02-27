@@ -32,8 +32,8 @@ COPY --from=builder /app/apps/app/dist /usr/share/nginx/html
 
 # Create a simple nginx config for SPA
 RUN echo 'server { \
-    listen 80; \
-    server_name 0.0.0.0; \
+    listen 0.0.0.0:80; \
+    server_name localhost; \
     root /usr/share/nginx/html; \
     index index.html; \
     location / { \
