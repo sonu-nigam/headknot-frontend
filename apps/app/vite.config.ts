@@ -9,7 +9,12 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./src', import.meta.url)),
         },
     },
+    preview: {
+        port: 3000,
+        host: true, // This enables listening on all network interfaces
+    },
     server: {
+        host: true,
         port: 5173,
         proxy: {
             '/api': {
