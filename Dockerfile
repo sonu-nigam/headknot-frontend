@@ -20,45 +20,38 @@ RUN pnpm install --frozen-lockfile
 
 # Build the application
 RUN pnpm build
-
-# Stage 2: Production stage
+# Stage 2: Production stage for App
 FROM nginx:alpine AS app-production
 
-# Copy custom nginx config (optional - you can create this later)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built assets from builder stage
 COPY --from=builder /app/apps/app/dist /usr/share/nginx/html
 
-# Create a simple nginx config for SPA
 RUN echo 'server { \
     listen 80; \
     server_name localhost; \
     root /usr/share/nginx/html; \
     index index.html; \
+    \
+    # DNS Resolver for external domains \
+    resolver 8.8.8.8 valid=30s; \
+    \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
+    \
+    # API Proxy \
     location /api/ { \
-        # Use resolver if the domain is dynamic, otherwise static IP is fine
-        # The trailing slash here is critical
-        proxy_pass https://api.headknot.app/; \
+        set $backend "https://api.headknot.app"; \
+        proxy_pass $backend/; \
         proxy_http_version 1.1; \
+        proxy_ssl_server_name on; \
         proxy_set_header Host api.headknot.app; \
         proxy_set_header X-Real-IP $remote_addr; \
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
         proxy_set_header X-Forwarded-Proto $scheme; \
-        \
-        # Optional: Handle CORS if your API doesn't
-        proxy_hide_header "Access-Control-Allow-Origin"; \
-        add_header "Access-Control-Allow-Origin" "*" always; \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# Expose port 80
 EXPOSE 80
-
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
 
 # Stage 3: Production stage for "Website"
