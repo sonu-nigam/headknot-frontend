@@ -4,7 +4,7 @@ import createClient, {
 } from 'openapi-fetch';
 export type { paths, components } from '../schema/schema';
 
-const baseUrl = import.meta.env.DEV ? '/api' : 'https://api.headknot.app';
+const baseUrl = '/api';
 
 export const storage = {
     get access() {
