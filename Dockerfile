@@ -22,7 +22,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
 # Stage 2: Production stage
-FROM nginx:alpine AS production
+FROM nginx:alpine AS app-production
 
 # Copy custom nginx config (optional - you can create this later)
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -32,7 +32,7 @@ COPY --from=builder /app/apps/app/dist /usr/share/nginx/html
 
 # Create a simple nginx config for SPA
 RUN echo 'server { \
-    listen 0.0.0.0:80; \
+    listen 80; \
     server_name localhost; \
     root /usr/share/nginx/html; \
     index index.html; \
@@ -40,7 +40,7 @@ RUN echo 'server { \
         try_files $uri $uri/ /index.html; \
     } \
     location /api { \
-        proxy_pass http://localhost:8080; \
+        proxy_pass https://api.headknot.app; \
         proxy_http_version 1.1; \
         proxy_set_header Upgrade $http_upgrade; \
         proxy_set_header Connection "upgrade"; \
@@ -53,4 +53,16 @@ RUN echo 'server { \
 EXPOSE 80
 
 # Start nginx
+CMD ["nginx", "-g", "daemon off;"]
+
+# Stage 3: Production stage for "Website"
+FROM nginx:alpine AS website-production
+# Point this to wherever your website build output lives
+COPY --from=builder /app/apps/website/dist /usr/share/nginx/html
+RUN echo 'server { \
+    listen 80; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { try_files $uri $uri/ /index.html; } \
+}' > /etc/nginx/conf.d/default.conf
 CMD ["nginx", "-g", "daemon off;"]
