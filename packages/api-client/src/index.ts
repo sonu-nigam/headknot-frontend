@@ -4,7 +4,7 @@ import createClient, {
 } from 'openapi-fetch';
 export type { paths, components } from '../schema/schema';
 
-const baseUrl = '/api';
+const baseUrl = 'http://localhost:8080/api';
 
 export const storage = {
     get access() {

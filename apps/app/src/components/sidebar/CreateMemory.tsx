@@ -9,7 +9,7 @@ export function CreateMemory({
     clusterId,
     workspaceId,
 }: {
-    clusterId: string;
+    clusterId?: string;
     workspaceId: string;
 }) {
     const navigate = useNavigate();
@@ -36,7 +36,7 @@ export function CreateMemory({
     return (
         <Button
             className="mx-2"
-            size={isExpandedView ? 'default' : 'icon'}
+            size={isExpandedView ? 'sm' : 'icon-sm'}
             onClick={handleCreateMemory}
         >
             <PlusIcon />
