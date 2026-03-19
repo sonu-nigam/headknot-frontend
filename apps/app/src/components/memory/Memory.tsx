@@ -9,8 +9,12 @@ import { useDebounceFn, useThrottleFn } from "ahooks";
 import { useParams } from "react-router-dom";
 import { Separator } from "@workspace/ui/components/separator";
 import { MemoryHeader } from "./MemoryHeader";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar";
+import { MemoryEditor } from "../MemoryEditor/MemoryEditor";
+import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@workspace/ui/components/command";
+import { Button } from "@workspace/ui/components/button";
+import { BellIcon, CalculatorIcon, CalendarIcon, ClipboardPasteIcon, CodeIcon, CopyIcon, CreditCardIcon, FileTextIcon, FolderIcon, FolderPlusIcon, HelpCircleIcon, HomeIcon, ImageIcon, InboxIcon, LayoutGridIcon, ListIcon, PlusIcon, ScissorsIcon, SettingsIcon, TrashIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from "lucide-react";
 
 export function Memory() {
     const params = useParams();
@@ -70,7 +74,11 @@ export function Memory() {
         <>
             <MemoryHeader />
             <Separator className="mb-6" />
-            <MainEditor initialValue={initialBlocks} onChange={onChange} />
+            {/* <MainEditor initialValue={initialBlocks} onChange={onChange} /> */}
+            <MemoryEditor
+                initialEditorState={null}
+                onChange={(json) => console.log(json)}
+            />
         </>
     );
 }

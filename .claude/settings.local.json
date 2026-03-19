@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/sonunigam/Documents/Work/headknot-frontend/apps/app/node_modules/lexical/*.d.ts)",
+      "Bash(grep -n \"setBlocksType\\\\|wrapLeafNodes\\\\|$wrapNodes\" /Users/sonunigam/Documents/Work/headknot-frontend/apps/app/node_modules/lexical/index.d.ts)"
+    ]
+  }
+}
