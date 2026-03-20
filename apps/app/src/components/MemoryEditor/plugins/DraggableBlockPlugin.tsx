@@ -82,6 +82,10 @@ export function DraggableBlockPlugin() {
     const [menuAnchorRect, setMenuAnchorRect] = useState<DOMRect | null>(null);
 
     // Refs so event handlers always read fresh values without re-binding
+    // scrollContainerRef mirrors the state so computePositions can read it
+    // immediately when registerUpdateListener fires (before React processes the
+    // state update), fixing the "handles invisible on initial load" issue.
+    const scrollContainerRef = useRef<HTMLElement | null>(null);
     const blockPositionsRef = useRef<BlockPosition[]>([]);
     const draggedKeyRef = useRef<string | null>(null);
     const dropTargetRef = useRef<DropTarget | null>(null);
@@ -93,6 +97,7 @@ export function DraggableBlockPlugin() {
     useEffect(() => {
         return editor.registerRootListener((rootElement) => {
             if (!rootElement) {
+                scrollContainerRef.current = null;
                 setScrollContainer(null);
                 return;
             }
@@ -103,6 +108,7 @@ export function DraggableBlockPlugin() {
                     (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
                     style.position !== 'static'
                 ) {
+                    scrollContainerRef.current = el;
                     setScrollContainer(el);
                     return;
                 }
@@ -112,9 +118,13 @@ export function DraggableBlockPlugin() {
     }, [editor]);
 
     // ── Compute block positions ───────────────────────────────────────────────
+    // Uses scrollContainerRef (not state) so it works on the very first
+    // registerUpdateListener call, before React has processed the setScrollContainer
+    // state update.
     const computePositions = useCallback(() => {
-        if (!scrollContainer) return;
-        const containerRect = scrollContainer.getBoundingClientRect();
+        const container = scrollContainerRef.current;
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
         const positions: BlockPosition[] = [];
 
         editor.getEditorState().read(() => {
@@ -124,14 +134,14 @@ export function DraggableBlockPlugin() {
                 const rect = el.getBoundingClientRect();
                 positions.push({
                     key: node.getKey(),
-                    top: rect.top - containerRect.top + scrollContainer.scrollTop,
+                    top: rect.top - containerRect.top + container.scrollTop,
                     height: rect.height,
                 });
             }
         });
 
         setBlockPositions(positions);
-    }, [editor, scrollContainer]);
+    }, [editor]); // no longer depends on scrollContainer state
 
     useEffect(
         () => editor.registerUpdateListener(() => requestAnimationFrame(computePositions)),
@@ -141,6 +151,8 @@ export function DraggableBlockPlugin() {
         window.addEventListener('resize', computePositions);
         return () => window.removeEventListener('resize', computePositions);
     }, [computePositions]);
+    // Fallback: recompute when scrollContainer state changes (handles cases where
+    // the initial registerUpdateListener fires before the root is attached).
     useEffect(() => {
         if (scrollContainer) requestAnimationFrame(computePositions);
     }, [scrollContainer, computePositions]);
@@ -333,40 +345,42 @@ export function DraggableBlockPlugin() {
                 <>
                     {/* Per-block handle rows */}
                     {blockPositions.map(({ key, top, height }) => {
-                        const isVisible = hoveredKey === key && draggedKeyRef.current === null;
+                        const showHandle =
+                            (hoveredKey === key && draggedKeyRef.current === null) ||
+                            menuTargetKey === key;
                         return (
-                            <div
-                                key={key}
-                                className="pointer-events-none absolute left-0 flex items-start"
-                                style={{ top, height, width: '48px' }}
-                            >
-                                {/* Single handle: click → open menu, drag → reorder */}
+                            <div key={key}>
+                                {/* Drag / insert handle */}
                                 <div
-                                    className="pointer-events-auto flex h-full w-full cursor-grab items-center justify-center active:cursor-grabbing"
-                                    style={{
-                                        opacity: isVisible || menuTargetKey === key ? 1 : 0,
-                                        transition: 'opacity 150ms',
-                                    }}
-                                    draggable
-                                    onClick={(e) => {
-                                        // Only fires on genuine click, not after a drag
-                                        const rect = (
-                                            e.currentTarget as HTMLElement
-                                        ).getBoundingClientRect();
-                                        setMenuTargetKey(key);
-                                        setMenuAnchorRect(rect);
-                                    }}
-                                    onDragStart={(e) => {
-                                        draggedKeyRef.current = key;
-                                        const ghost = document.createElement('div');
-                                        document.body.appendChild(ghost);
-                                        e.dataTransfer.setDragImage(ghost, 0, 0);
-                                        requestAnimationFrame(() =>
-                                            document.body.removeChild(ghost),
-                                        );
-                                    }}
+                                    className="pointer-events-none absolute left-0 flex items-start"
+                                    style={{ top, height, width: '48px' }}
                                 >
-                                    <BlockHandleIcon className="size-4 text-muted-foreground/40" />
+                                    <div
+                                        className="pointer-events-auto flex h-full w-full cursor-grab items-center justify-center active:cursor-grabbing"
+                                        style={{
+                                            opacity: showHandle ? 1 : 0,
+                                            transition: 'opacity 150ms',
+                                        }}
+                                        draggable
+                                        onClick={(e) => {
+                                            const rect = (
+                                                e.currentTarget as HTMLElement
+                                            ).getBoundingClientRect();
+                                            setMenuTargetKey(key);
+                                            setMenuAnchorRect(rect);
+                                        }}
+                                        onDragStart={(e) => {
+                                            draggedKeyRef.current = key;
+                                            const ghost = document.createElement('div');
+                                            document.body.appendChild(ghost);
+                                            e.dataTransfer.setDragImage(ghost, 0, 0);
+                                            requestAnimationFrame(() =>
+                                                document.body.removeChild(ghost),
+                                            );
+                                        }}
+                                    >
+                                        <BlockHandleIcon className="size-4 text-muted-foreground/40" />
+                                    </div>
                                 </div>
                             </div>
                         );

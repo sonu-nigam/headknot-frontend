@@ -19,7 +19,7 @@ export default function MemoryPage() {
                 { label: 'Memory', href: '/memory' },
             ]}
         >
-            <div className="mt-10 px-3 w-full pb-8 max-w-4xl mx-auto">
+            <div className="mt-10 w-full pb-8 max-w-4xl mx-auto">
                 <ErrorBoundary
                     onReset={reset}
                     fallbackRender={({ resetErrorBoundary, error }) => {

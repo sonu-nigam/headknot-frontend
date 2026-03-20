@@ -5,18 +5,20 @@ import { FileClockIcon, MessageCircleIcon, NetworkIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group";
 import { Badge } from "@workspace/ui/components/badge";
+import { Separator } from "@workspace/ui/components/separator";
 
 export function MemoryHeader() {
 
     return (
-        <>
-            <div className="mb-4 px-4 flex justify-between">
+        <div className="mb-4 px-12">
+            <div className="flex justify-between  items-center">
                 <div className="flex items-center">
                     <MemoryEditedBy />
                 </div>
                 <MemoryActions />
             </div>
-        </>
+            <Separator className="mt-6 px-12" />
+        </div>
     )
 }
 
@@ -40,6 +42,7 @@ function MemoryEditedBy() {
     return (
         <>
             <MemoryEditedByAvatar />
+            &nbsp;&nbsp;
             <MemoryActionOccuredAt />
         </>
     )
@@ -51,7 +54,7 @@ function MemoryEditedByAvatar() {
     const fallback = alt.slice(0, 2).toUpperCase();
 
     return (
-        <Avatar size='sm'>
+        <Avatar size="lg">
             <AvatarImage
                 src={src}
                 alt={alt}
@@ -64,9 +67,8 @@ function MemoryEditedByAvatar() {
 function MemoryActionOccuredAt() {
     return (
         <span className="text-sm text-muted-foreground">
-            &nbsp;created at:&nbsp;
             <time className="text-sm text-muted-foreground">
-                {format(Date.now(), 'dd MMM yyyy')}
+                {format(Date.now(), 'MMM dd, yyyy')}
             </time>
         </span>
     )

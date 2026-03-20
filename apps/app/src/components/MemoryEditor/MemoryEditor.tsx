@@ -60,7 +60,7 @@ function MemoryEditorLayout({
                         />
                     }
                     placeholder={
-                        <div className="pointer-events-none absolute top-6 left-12 text-muted-foreground select-none text-base">
+                        <div className="pointer-events-none absolute top-6 left-12 select-none text-base text-muted-foreground/40">
                             {placeholder}
                         </div>
                     }

@@ -73,7 +73,6 @@ export function Memory() {
     return (
         <>
             <MemoryHeader />
-            <Separator className="mb-6" />
             {/* <MainEditor initialValue={initialBlocks} onChange={onChange} /> */}
             <MemoryEditor
                 initialEditorState={null}
