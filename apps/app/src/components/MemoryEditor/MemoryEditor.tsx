@@ -23,6 +23,8 @@ import { CommentPlugin } from './plugins/CommentPlugin';
 import { ToolbarPlugin } from './plugins/ToolbarPlugin';
 import { SlashMenuPlugin } from './plugins/SlashMenuPlugin';
 import { FloatingCommentPlugin } from './plugins/FloatingCommentPlugin';
+import { BlockActionsPlugin } from './plugins/BlockActionsPlugin';
+import { DraggableBlockPlugin } from './plugins/DraggableBlockPlugin';
 import { CommentSidebar } from './components/CommentSidebar';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -48,29 +50,26 @@ function MemoryEditorLayout({
             {/* Sticky toolbar */}
             {/* <ToolbarPlugin /> */}
 
-            {/* Editor body + comments sidebar */}
-            <div className="flex flex-1 overflow-hidden">
-                {/* Editor content */}
-                <div className="relative flex-1 overflow-y-auto px-12 pt-6 pb-72">
-                    <RichTextPlugin
-                        contentEditable={
-                            <ContentEditable
-                                className="outline-none min-h-[200px] text-base"
-                                aria-label="Memory editor content"
-                            />
-                        }
-                        placeholder={
-                            <div className="pointer-events-none absolute top-6 left-12 text-muted-foreground select-none text-base">
-                                {placeholder}
-                            </div>
-                        }
-                        ErrorBoundary={LexicalErrorBoundary}
-                    />
-                </div>
-
-                {/* Comment sidebar (slides in when a thread is active) */}
-                <CommentSidebar />
+            {/* Editor content */}
+            <div className="relative flex-1 overflow-y-auto px-12 pt-6 pb-72">
+                <RichTextPlugin
+                    contentEditable={
+                        <ContentEditable
+                            className="outline-none min-h-[200px] text-base"
+                            aria-label="Memory editor content"
+                        />
+                    }
+                    placeholder={
+                        <div className="pointer-events-none absolute top-6 left-12 text-muted-foreground select-none text-base">
+                            {placeholder}
+                        </div>
+                    }
+                    ErrorBoundary={LexicalErrorBoundary}
+                />
             </div>
+
+            {/* Comment sidebar — portals to document.body at full screen height */}
+            <CommentSidebar />
 
             {/* Null-returning plugins */}
             <HistoryPlugin />
@@ -82,6 +81,8 @@ function MemoryEditorLayout({
             {onChange && <OnChangePlugin onChange={handleChange} />}
             <SlashMenuPlugin />
             <FloatingCommentPlugin />
+            <BlockActionsPlugin />
+            <DraggableBlockPlugin />
         </div>
     );
 }

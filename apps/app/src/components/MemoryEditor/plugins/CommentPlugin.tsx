@@ -19,6 +19,7 @@ import {
 import { $wrapSelectionInMarkNode, $isMarkNode, MarkNode } from '@lexical/mark';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
+import { contextPanelStore } from '@/state/contextPanelStore';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -106,6 +107,8 @@ function CommentProvider({ children, editor }: CommentProviderProps) {
     const [activeThreadId, setActiveThreadIdState] = useReducer(
         (_: string | null, next: string | null) => {
             activeThreadIdRef.current = next;
+            if (next !== null) contextPanelStore.open('Comments');
+            else contextPanelStore.close();
             return next;
         },
         null,

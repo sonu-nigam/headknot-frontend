@@ -4,6 +4,7 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { AppSidebar } from './sidebar/AppSidebar';
 import { AppHeader } from './AppHeader';
+import { ContextPanel } from './ContextPanel';
 
 export default function AppLayout({
     children,
@@ -19,6 +20,7 @@ export default function AppLayout({
                 <AppHeader breadcrumbs={breadcrumbs} />
                 {children}
             </SidebarInset>
+            <ContextPanel />
         </SidebarProvider>
     );
 }

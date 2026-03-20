@@ -27,6 +27,6 @@ export const MemoryEditorTheme: EditorThemeClasses = {
     },
     code: 'block font-mono text-sm bg-muted rounded-md p-4 my-2 whitespace-pre overflow-x-auto',
     mark: 'bg-yellow-200/60 dark:bg-yellow-500/30 rounded-sm',
-    paragraph: '',
+    paragraph: 'mb-2 leading-7',
     hr: 'border-none border-t border-border my-4',
 };
