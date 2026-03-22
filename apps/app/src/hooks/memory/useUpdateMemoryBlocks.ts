@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
-import { Block } from '@/lib/editorValueTransformer';
+import { type LexicalBlock } from '@/lib/lexicalBlockTransformer';
 
 interface UseUpdateBlocksProps {
     memoryId: string;
@@ -13,7 +13,7 @@ export function useUpdateMemoryBlocks({
     ...rest
 }: UseUpdateBlocksProps) {
     return useMutation({
-        mutationFn: async ({ blocks }: { blocks: Block[] }) => {
+        mutationFn: async ({ blocks }: { blocks: LexicalBlock[] }) => {
             if (!memoryId) throw new Error('Memory ID is required');
 
             const { error, data } = await api.PUT('/memory/{id}/blocks', {

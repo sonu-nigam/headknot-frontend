@@ -7,8 +7,8 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
@@ -16,11 +16,13 @@ import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import { MarkNode } from '@lexical/mark';
 import { TRANSFORMERS } from '@lexical/markdown';
-import type { EditorState } from 'lexical';
+import { $getRoot, type EditorState } from 'lexical';
+import { useCallback, useEffect, useRef } from 'react';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
+import { blocksToLexicalState, editorStateToBlocks, type LexicalBlock } from '@/lib/lexicalBlockTransformer';
 import { MemoryEditorTheme } from './MemoryEditorTheme';
 import { CommentPlugin } from './plugins/CommentPlugin';
-import { ToolbarPlugin } from './plugins/ToolbarPlugin';
 import { SlashMenuPlugin } from './plugins/SlashMenuPlugin';
 import { FloatingCommentPlugin } from './plugins/FloatingCommentPlugin';
 import { BlockActionsPlugin } from './plugins/BlockActionsPlugin';
@@ -30,26 +32,50 @@ import { CommentSidebar } from './components/CommentSidebar';
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface MemoryEditorProps {
-    initialEditorState?: string | null;
-    onChange?: (editorStateJson: string) => void;
+    initialBlocks?: LexicalBlock[];
+    onBlocksChange?: (blocks: LexicalBlock[]) => void;
     placeholder?: string;
 }
 
-// ─── Inner layout (requires both LexicalComposer and CommentPlugin contexts) ─
+// ─── Inner layout ─────────────────────────────────────────────────────────────
 
 function MemoryEditorLayout({
     placeholder,
-    onChange,
-}: Pick<MemoryEditorProps, 'placeholder' | 'onChange'>) {
-    const handleChange = (editorState: EditorState) => {
-        onChange?.(JSON.stringify(editorState.toJSON()));
-    };
+    initialBlocks,
+    onBlocksChange,
+}: Pick<MemoryEditorProps, 'placeholder' | 'initialBlocks' | 'onBlocksChange'>) {
+    const [editor] = useLexicalComposerContext();
+
+    // Stable node-key → UUID map; survives re-renders without triggering them
+    const keyToIdRef = useRef<Map<string, string>>(new Map());
+
+    // Seed UUIDs from initial backend blocks (index-correlated, runs once)
+    useEffect(() => {
+        if (!initialBlocks?.length) return;
+        editor.getEditorState().read(() => {
+            const children = $getRoot().getChildren();
+            initialBlocks.forEach((block, i) => {
+                const node = children[i];
+                if (node) keyToIdRef.current.set(node.getKey(), block.id);
+            });
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // intentionally empty — one-time correlation on mount
+
+    const handleChange = useCallback((editorState: EditorState) => {
+        // Assign stable UUIDs to any new top-level nodes
+        editorState.read(() => {
+            for (const node of $getRoot().getChildren()) {
+                if (!keyToIdRef.current.has(node.getKey())) {
+                    keyToIdRef.current.set(node.getKey(), crypto.randomUUID());
+                }
+            }
+        });
+        onBlocksChange?.(editorStateToBlocks(editorState, keyToIdRef.current));
+    }, [onBlocksChange]);
 
     return (
         <div className="flex flex-col h-full">
-            {/* Sticky toolbar */}
-            {/* <ToolbarPlugin /> */}
-
             {/* Editor content */}
             <div className="relative flex-1 overflow-y-auto px-12 pt-6 pb-72">
                 <RichTextPlugin
@@ -78,11 +104,15 @@ function MemoryEditorLayout({
             <LinkPlugin />
             <HorizontalRulePlugin />
             <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-            {onChange && <OnChangePlugin onChange={handleChange} />}
             <SlashMenuPlugin />
             <FloatingCommentPlugin />
             <BlockActionsPlugin />
             <DraggableBlockPlugin />
+
+            {/* Emit LexicalBlock[] on every content change (selection changes ignored) */}
+            {onBlocksChange && (
+                <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
+            )}
         </div>
     );
 }
@@ -90,8 +120,8 @@ function MemoryEditorLayout({
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export function MemoryEditor({
-    initialEditorState,
-    onChange,
+    initialBlocks,
+    onBlocksChange,
     placeholder = 'Start writing, or press "/" for commands…',
 }: MemoryEditorProps) {
     const initialConfig: InitialConfigType = {
@@ -109,7 +139,7 @@ export function MemoryEditor({
             HorizontalRuleNode,
             MarkNode,
         ],
-        editorState: initialEditorState ?? null,
+        editorState: initialBlocks?.length ? blocksToLexicalState(initialBlocks) : null,
         onError: (error: Error) => {
             console.error('[MemoryEditor]', error);
         },
@@ -117,12 +147,12 @@ export function MemoryEditor({
 
     return (
         <LexicalComposer initialConfig={initialConfig}>
-            {/*
-             * CommentPlugin is a context provider.
-             * Everything inside has access to both Lexical and Comment contexts.
-             */}
             <CommentPlugin>
-                <MemoryEditorLayout placeholder={placeholder} onChange={onChange} />
+                <MemoryEditorLayout
+                    placeholder={placeholder}
+                    initialBlocks={initialBlocks}
+                    onBlocksChange={onBlocksChange}
+                />
             </CommentPlugin>
         </LexicalComposer>
     );
