@@ -10,3 +10,15 @@ export const profileQueryOptions = queryOptions<Schemas['ProfileResponse']>({
         return res.data;
     },
 });
+
+export const profileByIdQueryOptions = (id: string) =>
+    queryOptions<Schemas['ProfileResponse']>({
+        queryKey: ['profile', id],
+        queryFn: async () => {
+            const res = await api.GET('/profile/{id}', {
+                params: { path: { id } },
+            });
+            if (res.error) throw new Error('Failed to fetch profile');
+            return res.data;
+        },
+    });

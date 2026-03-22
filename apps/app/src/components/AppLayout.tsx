@@ -5,6 +5,7 @@ import {
 import { AppSidebar } from './sidebar/AppSidebar';
 import { AppHeader } from './AppHeader';
 import { ContextPanel } from './ContextPanel';
+import { SearchCommandDialog } from './SearchCommandDialog';
 
 export default function AppLayout({
     children,
@@ -21,6 +22,7 @@ export default function AppLayout({
                 {children}
             </SidebarInset>
             <ContextPanel />
+            <SearchCommandDialog />
         </SidebarProvider>
     );
 }

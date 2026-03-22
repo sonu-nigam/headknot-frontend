@@ -10,6 +10,7 @@ import { AccountPage } from './pages/Account/AccountPage';
 import Archives from './pages/Archives';
 import Trash from './pages/Trash';
 import Workspace from './pages/Workspace';
+import Activity from './pages/Activity';
 
 export default function App() {
     const loc = useLocation();
@@ -56,6 +57,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <Workspace />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/activity"
+                element={
+                    <ProtectedRoute>
+                        <Activity />
                     </ProtectedRoute>
                 }
             />

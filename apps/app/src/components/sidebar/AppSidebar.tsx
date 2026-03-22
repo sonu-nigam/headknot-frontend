@@ -10,10 +10,10 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { useAppStore } from '@/state/store';
 import { SpaceNav } from '../Clusters/SpaceNav';
-import { SearchApp } from '../SearchApp';
 import { SidebarUser } from '../SidebarUser';
 import { ComponentProps } from 'react';
 import { CreateMemory } from './CreateMemory';
+import { SearchTrigger } from './SearchTrigger';
 
 const data = {
     navMain: [
@@ -45,7 +45,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             </SidebarHeader>
             <SidebarContent>
                 <CreateMemory workspaceId={selectedWorkspaceId as string} />
-                <SearchApp />
+                <SearchTrigger />
                 <PlatformNav items={data.navMain} />
                 <SpaceNav />
             </SidebarContent>

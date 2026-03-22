@@ -5,8 +5,7 @@ import {
     WorkspaceFormValues,
     workspaceResolver,
 } from '@/validations/form/workspaceForm';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import {
     Dialog,
@@ -30,6 +29,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu';
 
@@ -41,9 +41,17 @@ import {
     Trash2,
     Users,
     Calendar,
+    Power,
+    PowerOff,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, UseFormSetError } from 'react-hook-form';
+import { useCreateWorkspace } from '@/hooks/workspace/useCreateWorkspace';
+import { useUpdateWorkspace } from '@/hooks/workspace/useUpdateWorkspace';
+import { useDeleteWorkspace } from '@/hooks/workspace/useDeleteWorkspace';
+import { useActivateWorkspace } from '@/hooks/workspace/useActivateWorkspace';
+import { useDeactivateWorkspace } from '@/hooks/workspace/useDeactivateWorkspace';
+import { WorkspaceMembers } from '@/components/workspace/WorkspaceMembers';
 
 export default function Workspace() {
     const { data: workspaces, isLoading } = useQuery(myWorkspacesQueryOptions);
@@ -126,14 +134,19 @@ interface WorkspaceCardProps {
 function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
+    const [showMembersDialog, setShowMembersDialog] = useState(false);
     const setSelectedWorkspaceId = useAppStore((s) => s.setSelectedWorkspaceId);
+    const activateWorkspace = useActivateWorkspace();
+    const deactivateWorkspace = useDeactivateWorkspace();
+
+    const isWorkspaceActive = workspace.active !== false;
 
     return (
         <>
             <div
                 className={`bg-card border rounded-lg p-6 transition-all hover:shadow-md ${
                     isActive ? 'ring-2 ring-primary' : ''
-                }`}
+                } ${!isWorkspaceActive ? 'opacity-60' : ''}`}
             >
                 <div className="flex items-start justify-between mb-4">
                     <div className="bg-primary/10 p-3 rounded-lg">
@@ -158,6 +171,35 @@ function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
                                 Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                                onClick={() => setShowMembersDialog(true)}
+                                className="gap-2"
+                            >
+                                <Users className="size-4" />
+                                Members
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {isWorkspaceActive ? (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        deactivateWorkspace.mutate(workspace.id)
+                                    }
+                                    className="gap-2"
+                                >
+                                    <PowerOff className="size-4" />
+                                    Deactivate
+                                </DropdownMenuItem>
+                            ) : (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        activateWorkspace.mutate(workspace.id)
+                                    }
+                                    className="gap-2"
+                                >
+                                    <Power className="size-4" />
+                                    Activate
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
                                 onClick={() => setShowDeleteDialog(true)}
                                 className="gap-2 text-destructive focus:text-destructive"
                             >
@@ -177,6 +219,11 @@ function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
                                     Active
                                 </span>
                             )}
+                            {!isWorkspaceActive && (
+                                <span className="text-muted-foreground text-xs px-2 py-0.5 bg-muted rounded-full">
+                                    Inactive
+                                </span>
+                            )}
                         </h3>
                         {workspace.description && (
                             <p className="text-muted-foreground text-sm line-clamp-2">
@@ -189,8 +236,10 @@ function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
                         <div className="flex items-center gap-1">
                             <Users className="size-3.5" />
                             <span>
-                                {workspace.memberCount || 1} member
-                                {workspace.memberCount !== 1 ? 's' : ''}
+                                {workspace.members?.length || 1} member
+                                {(workspace.members?.length || 1) !== 1
+                                    ? 's'
+                                    : ''}
                             </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -233,6 +282,23 @@ function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
             />
+
+            {/* Members Dialog */}
+            <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Workspace Members</DialogTitle>
+                        <DialogDescription>
+                            Manage members of "{workspace.name}"
+                        </DialogDescription>
+                    </DialogHeader>
+                    <WorkspaceMembers
+                        workspaceId={workspace.id}
+                        members={workspace.members || []}
+                        ownerId={workspace.ownerId?.value}
+                    />
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
@@ -243,33 +309,14 @@ interface CreateWorkspaceDialogProps {
 
 function CreateWorkspaceDialog({ children }: CreateWorkspaceDialogProps) {
     const [open, setOpen] = useState(false);
-    const queryClient = useQueryClient();
-
-    const { mutate: createWorkspace, isPending } = useMutation({
-        mutationFn: async (values: WorkspaceFormValues) => {
-            const res = await api.POST('/workspaces', {
-                body: values,
-            });
-            if (res.error) {
-                return Promise.reject({
-                    message: res.error.message || 'Failed to create workspace',
-                });
-            }
-            return res.data;
-        },
-        onSuccess: () => {
-            setOpen(false);
-            queryClient.invalidateQueries({
-                queryKey: ['my-workspaces'],
-            });
-        },
-    });
+    const createWorkspace = useCreateWorkspace();
 
     const onSubmit = (
         values: WorkspaceFormValues,
         setError: UseFormSetError<WorkspaceFormValues>,
     ) => {
-        createWorkspace(values, {
+        createWorkspace.mutate(values, {
+            onSuccess: () => setOpen(false),
             onError: (error: any) => {
                 setError('name', { message: error.message });
             },
@@ -289,7 +336,7 @@ function CreateWorkspaceDialog({ children }: CreateWorkspaceDialogProps) {
                 </DialogHeader>
                 <WorkspaceForm
                     onSubmit={onSubmit}
-                    isSubmitting={isPending}
+                    isSubmitting={createWorkspace.isPending}
                     submitLabel="Create Workspace"
                 />
             </DialogContent>
@@ -308,38 +355,21 @@ function EditWorkspaceDialog({
     open,
     onOpenChange,
 }: EditWorkspaceDialogProps) {
-    const queryClient = useQueryClient();
-
-    const { mutate: updateWorkspace, isPending } = useMutation({
-        mutationFn: async (values: WorkspaceFormValues) => {
-            const res = await api.PUT('/workspaces/{id}', {
-                params: { path: { id: workspace.id } },
-                body: values,
-            });
-            if (res.error) {
-                return Promise.reject({
-                    message: res.error.message || 'Failed to update workspace',
-                });
-            }
-            return res.data;
-        },
-        onSuccess: () => {
-            onOpenChange(false);
-            queryClient.invalidateQueries({
-                queryKey: ['my-workspaces'],
-            });
-        },
-    });
+    const updateWorkspace = useUpdateWorkspace();
 
     const onSubmit = (
         values: WorkspaceFormValues,
         setError: UseFormSetError<WorkspaceFormValues>,
     ) => {
-        updateWorkspace(values, {
-            onError: (error: any) => {
-                setError('name', { message: error.message });
+        updateWorkspace.mutate(
+            { id: workspace.id, body: values },
+            {
+                onSuccess: () => onOpenChange(false),
+                onError: (error: any) => {
+                    setError('name', { message: error.message });
+                },
             },
-        });
+        );
     };
 
     return (
@@ -353,7 +383,7 @@ function EditWorkspaceDialog({
                 </DialogHeader>
                 <WorkspaceForm
                     onSubmit={onSubmit}
-                    isSubmitting={isPending}
+                    isSubmitting={updateWorkspace.isPending}
                     submitLabel="Save Changes"
                     defaultValues={{
                         name: workspace.name,
@@ -379,38 +409,7 @@ function DeleteWorkspaceDialog({
     const queryClient = useQueryClient();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
     const setSelectedWorkspaceId = useAppStore((s) => s.setSelectedWorkspaceId);
-
-    const { mutate: deleteWorkspace, isPending } = useMutation({
-        mutationFn: async () => {
-            const res = await api.DELETE('/workspaces/{id}', {
-                params: { path: { id: workspace.id } },
-            });
-            if (res.error) {
-                return Promise.reject({
-                    message: res.error.message || 'Failed to delete workspace',
-                });
-            }
-            return res.data;
-        },
-        onSuccess: () => {
-            onOpenChange(false);
-            queryClient.invalidateQueries({
-                queryKey: ['my-workspaces'],
-            });
-            // If deleting the active workspace, switch to another one
-            if (selectedWorkspaceId === workspace.id) {
-                const workspaces = queryClient.getQueryData<any[]>([
-                    'my-workspaces',
-                ]);
-                const nextWorkspace = workspaces?.find(
-                    (w) => w.id !== workspace.id,
-                );
-                if (nextWorkspace) {
-                    setSelectedWorkspaceId(nextWorkspace.id);
-                }
-            }
-        },
-    });
+    const deleteWorkspace = useDeleteWorkspace();
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -427,16 +426,38 @@ function DeleteWorkspaceDialog({
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}
-                        disabled={isPending}
+                        disabled={deleteWorkspace.isPending}
                     >
                         Cancel
                     </Button>
                     <Button
                         variant="destructive"
-                        onClick={() => deleteWorkspace()}
-                        disabled={isPending}
+                        onClick={() =>
+                            deleteWorkspace.mutate(workspace.id, {
+                                onSuccess: () => {
+                                    onOpenChange(false);
+                                    if (
+                                        selectedWorkspaceId === workspace.id
+                                    ) {
+                                        const workspaces =
+                                            queryClient.getQueryData<any[]>([
+                                                'my-workspaces',
+                                            ]);
+                                        const nextWorkspace = workspaces?.find(
+                                            (w) => w.id !== workspace.id,
+                                        );
+                                        if (nextWorkspace) {
+                                            setSelectedWorkspaceId(
+                                                nextWorkspace.id,
+                                            );
+                                        }
+                                    }
+                                },
+                            })
+                        }
+                        disabled={deleteWorkspace.isPending}
                     >
-                        {isPending ? 'Deleting...' : 'Delete'}
+                        {deleteWorkspace.isPending ? 'Deleting...' : 'Delete'}
                     </Button>
                 </div>
             </DialogContent>

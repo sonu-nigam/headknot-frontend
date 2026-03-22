@@ -1,27 +1,14 @@
 import { useSearchParams } from 'react-router-dom';
-import { AppHeader } from '@/components/AppHeader';
 import { SignupForm } from '@/forms/AuthForm/SignupForm';
 import { SignupFormValues } from '@/validations/form/authForm';
-import { api, storage, initiateGoogleOAuth } from '@workspace/api-client';
-import { useMutation } from '@tanstack/react-query';
+import { initiateGoogleOAuth } from '@workspace/api-client';
 import { useCallback } from 'react';
+import { useSignup } from '@/hooks/auth/useSignup';
 
 export default function Signup() {
     const [sp] = useSearchParams();
     const next = sp.get('next') || '/';
-    const signup = useMutation({
-        mutationFn: async ({
-            fullName,
-            username,
-            password,
-        }: SignupFormValues) => {
-            const { error, data } = await api.POST('/auth/signup', {
-                body: { fullName, username, password },
-            });
-            if (error) throw error;
-            return data;
-        },
-    });
+    const signup = useSignup();
 
     async function onSubmit(values: SignupFormValues) {
         signup.mutate(
@@ -31,12 +18,7 @@ export default function Signup() {
                 password: values.password,
             },
             {
-                onError: (error) => {
-                    // window.location.href = next;
-                },
-                onSuccess: (data) => {
-                    storage.access = data.accessToken;
-                    storage.refresh = data.refreshToken;
+                onSuccess: () => {
                     window.location.href = next;
                 },
             },
@@ -45,7 +27,6 @@ export default function Signup() {
 
     const handleGoogleSignup = useCallback(async () => {
         try {
-            // Call backend to initiate PKCE OAuth flow
             const response = await initiateGoogleOAuth();
 
             if (!response?.authorizationUrl || !response?.state) {
@@ -53,11 +34,9 @@ export default function Signup() {
                 return;
             }
 
-            // Store the state and next path for callback verification
             sessionStorage.setItem('oauth_state', response.state);
             sessionStorage.setItem('oauth_next', next);
 
-            // Redirect to Google authorization URL
             window.location.href = response.authorizationUrl;
         } catch (error) {
             console.error('Failed to initiate Google OAuth:', error);

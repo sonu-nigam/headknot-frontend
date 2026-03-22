@@ -27,40 +27,21 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@workspace/ui/components/sidebar';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { api, storage } from '@workspace/api-client';
+import { useQuery } from '@tanstack/react-query';
 import { profileQueryOptions } from '@/query/options/profile';
+import { useLogout } from '@/hooks/auth/useLogout';
 
 export function SidebarUser() {
     const { isMobile } = useSidebar();
     const { data: userProfileData } = useQuery(profileQueryOptions);
-
-    const logout = useMutation({
-        mutationFn: async (data: { refreshToken: string }) => {
-            const { error } = await api.POST('/auth/logout', {
-                body: data,
-                params: { header: {} as any },
-            });
-            if (error) throw error;
-        },
-    });
+    const logout = useLogout();
 
     const onLogout = () => {
-        logout.mutate(
-            {
-                refreshToken: storage.refresh as string,
+        logout.mutate(undefined, {
+            onSettled: () => {
+                window.location.href = '/login';
             },
-            {
-                onSuccess: () => {
-                    storage.clear();
-                    window.location.href = '/auth/login';
-                },
-                onError: () => {
-                    storage.clear();
-                    window.location.href = '/auth/login';
-                },
-            },
-        );
+        });
     };
 
     return (

@@ -23,6 +23,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/space/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update space
+         * @description Updates the name and description of an existing space
+         */
+        put: operations["updateSpace"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/profile/{id}": {
         parameters: {
             query?: never;
@@ -88,8 +108,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * Replace memory blocks
-         * @description Replaces the complete block list of a memory
+         * Update memory blocks
+         * @description Update the complete block list of a memory
          */
         put: operations["updateBlocks"];
         post?: never;
@@ -179,7 +199,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/search": {
+    "/space": {
         parameters: {
             query?: never;
             header?: never;
@@ -187,16 +207,84 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Search all content
-         * @description Performs full-text search across all indexed documents with optional filters
+         * List spaces by workspace
+         * @description Retrieves all spaces for a workspace, optionally filtered by status
          */
-        get: operations["search"];
+        get: operations["listSpaces"];
         put?: never;
         /**
-         * Search content (POST)
-         * @description Performs full-text search with complex query parameters via POST
+         * Create space
+         * @description Creates a new space within a workspace
          */
-        post: operations["searchPost"];
+        post: operations["createSpace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/relationships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find relationships by claim
+         * @description Finds all relationships involving a specific claim (as source or target). Optionally filter by relationship type.
+         */
+        get: operations["findRelationships"];
+        put?: never;
+        /**
+         * Create relationship
+         * @description Creates a new relationship between two claims. Both claims must exist.
+         */
+        post: operations["createRelationship"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/relationships/{relationshipId}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get feedback history
+         * @description Returns all feedback for a relationship
+         */
+        get: operations["getFeedbackHistory"];
+        put?: never;
+        /**
+         * Submit feedback
+         * @description Submit feedback on a relationship: CONFIRM, REJECT, or RECLASSIFY. Records an audit trail and updates the relationship status.
+         */
+        post: operations["submitFeedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reason": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retrieve and generate
+         * @description Performs vector-based retrieval and generates a response based on the provided message
+         */
+        post: operations["generate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -232,7 +320,7 @@ export interface paths {
         };
         /**
          * List memories by workspace
-         * @description Retrieves memories for a workspace, optionally filtered by space and/or status
+         * @description Retrieves memories for a workspace, optionally filtered by space
          */
         get: operations["listByWorkspace"];
         put?: never;
@@ -257,6 +345,96 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["commitBlocks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List entity by workspace
+         * @description Returns all entities in a workspace. Optionally filter by entity type.
+         */
+        get: operations["listEntities"];
+        put?: never;
+        /**
+         * Create or get entity
+         * @description Creates a new knowledge entity. If an entity with the same name, type, and workspace already exists, returns the existing one (idempotent).
+         */
+        post: operations["createEntity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/entities/{entityId}/memories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get memories linked to an entity */
+        get: operations["getMemoriesForEntity"];
+        put?: never;
+        /**
+         * Link memory to entity
+         * @description Creates an explicit link between a memory and this entity. Idempotent — if the link already exists, returns it.
+         */
+        post: operations["linkMemory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/entities/{entityId}/aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get aliases for an entity */
+        get: operations["getAliases"];
+        put?: never;
+        /**
+         * Add alias to entity
+         * @description Adds an alternate name for an entity. Idempotent — if the alias already exists, returns it.
+         */
+        post: operations["addAlias"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query claims
+         * @description Returns claims filtered by entity ID or block ID.
+         */
+        get: operations["queryClaims"];
+        put?: never;
+        /**
+         * Create claim
+         * @description Records a claim linked to a knowledge entity and extracted from a memory block.
+         */
+        post: operations["createClaim"];
         delete?: never;
         options?: never;
         head?: never;
@@ -504,7 +682,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/search/stats": {
+    "/space/{spaceId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -512,10 +690,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get search statistics
-         * @description Retrieves statistics about indexed documents
+         * Get space by ID
+         * @description Retrieves a specific space within a workspace
          */
-        get: operations["getStatistics"];
+        get: operations["getSpace"];
         put?: never;
         post?: never;
         delete?: never;
@@ -524,7 +702,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/search/stats/workspace/{workspaceId}": {
+    "/relationships/{relationshipId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -532,117 +710,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get workspace search statistics
-         * @description Retrieves search statistics for a specific workspace
+         * Get relationship
+         * @description Retrieves a specific relationship by ID
          */
-        get: operations["getWorkspaceStatistics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/recent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get recent documents
-         * @description Retrieves recently created/updated documents across all types
-         */
-        get: operations["getRecentDocuments"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/recent/workspace/{workspaceId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get recent documents by workspace
-         * @description Retrieves recently created/updated documents for a specific workspace
-         */
-        get: operations["getRecentDocumentsByWorkspace"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/document/{entityType}/{entityId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get document by entity
-         * @description Retrieves a search document by its entity ID and type
-         */
-        get: operations["getDocumentByEntity"];
+        get: operations["getRelationship"];
         put?: never;
         post?: never;
         /**
-         * Delete search document
-         * @description Deletes a search document by entity ID and type (internal use)
+         * Delete relationship
+         * @description Deletes an existing relationship
          */
-        delete: operations["deleteDocument"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/document/{entityType}/{entityId}/exists": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Check if document exists
-         * @description Checks if a document exists for the given entity ID and type
-         */
-        get: operations["documentExists"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/search/autocomplete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Autocomplete search
-         * @description Searches for documents by title prefix for autocomplete functionality
-         */
-        get: operations["autocomplete"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["deleteRelationship"];
         options?: never;
         head?: never;
         patch?: never;
@@ -660,6 +738,79 @@ export interface paths {
          * @description Retrieves a specific memory with its blocks
          */
         get: operations["getMemory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/entities/{entityId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get entity by ID */
+        get: operations["getEntity"];
+        put?: never;
+        post?: never;
+        /** Delete entity */
+        delete: operations["deleteEntity"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/entities/by-memory/{memoryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get entities linked to a memory */
+        get: operations["getEntitiesForMemory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/claims/{claimId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get claim by ID */
+        get: operations["getClaim"];
+        put?: never;
+        post?: never;
+        /** Delete claim */
+        delete: operations["deleteClaim"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search workspace
+         * @description Searches for memories, spaces, and other content within a workspace using the provided query
+         */
+        get: operations["search"];
         put?: never;
         post?: never;
         delete?: never;
@@ -758,6 +909,46 @@ export interface components {
             /** @description Whether the workspace is active */
             active?: boolean;
         };
+        /** @description Request to create a new space */
+        UpdateSpaceRequest: {
+            /**
+             * @description Space name
+             * @example New Space
+             */
+            name: string;
+            /**
+             * @description Space description
+             * @example A space for memory collection
+             */
+            description?: string;
+        };
+        /** @description Space details response */
+        SpaceResponse: {
+            /**
+             * Format: uuid
+             * @description Space ID
+             */
+            id?: string;
+            /** @description Space name */
+            name?: string;
+            /** @description Space description */
+            description?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updatedAt?: string;
+        };
         /** @description Profile update data */
         UpdateProfileRequest: {
             firstName?: string;
@@ -795,6 +986,7 @@ export interface components {
             index?: number;
             kind?: string;
             data?: Record<string, never>;
+            text?: string;
         };
         /** @description Request to update memory blocks */
         UpdateMemoryBlocksRequest: {
@@ -816,23 +1008,11 @@ export interface components {
              */
             workspaceId?: string;
             /**
-             * @description Memory status
-             * @example ACTIVE
-             * @enum {string}
-             */
-            status?: "ACTIVE" | "ARCHIVED" | "TRASHED";
-            /**
              * Format: date-time
              * @description Creation timestamp
              * @example 2025-12-15T10:00:00Z
              */
             createdAt?: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             * @example 2025-12-15T11:30:00Z
-             */
-            updatedAt?: string;
             /** @description Memory content blocks */
             blocks?: components["schemas"]["BlockDto"][];
         };
@@ -857,77 +1037,137 @@ export interface components {
              */
             memberId: string;
         };
-        SearchQueryRequest: {
-            query?: string;
-            entityType?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: int32 */
-            page?: number;
-            /** Format: int32 */
-            size?: number;
-            sortBy?: string;
-            sortDirection?: string;
+        /** @description Request to create a new space */
+        CreateSpaceRequest: {
+            /**
+             * @description space name
+             * @example New space
+             */
+            name: string;
+            /**
+             * @description space description
+             * @example A space for memory collection
+             */
+            description?: string;
         };
-        PageSearchResultDTO: {
-            /** Format: int64 */
-            totalElements?: number;
-            /** Format: int32 */
-            totalPages?: number;
-            /** Format: int32 */
-            numberOfElements?: number;
-            /** Format: int32 */
-            size?: number;
-            /** Format: int32 */
-            number?: number;
-            sort?: components["schemas"]["SortObject"][];
-            content?: components["schemas"]["SearchResultDTO"][];
-            first?: boolean;
-            last?: boolean;
-            pageable?: components["schemas"]["PageableObject"];
-            empty?: boolean;
+        /** @description Request to create a new relationship between claims */
+        CreateRelationshipRequest: {
+            /**
+             * Format: uuid
+             * @description ID of the source claim
+             */
+            sourceClaimId: string;
+            /**
+             * Format: uuid
+             * @description ID of the target claim
+             */
+            targetClaimId: string;
+            /**
+             * @description Type of relationship
+             * @example SUPPORTS
+             * @enum {string}
+             */
+            type: "supports" | "contradicts" | "references" | "derives_from" | "related";
         };
-        PageableObject: {
-            sort?: components["schemas"]["SortObject"][];
-            /** Format: int64 */
-            offset?: number;
-            paged?: boolean;
-            /** Format: int32 */
-            pageNumber?: number;
-            /** Format: int32 */
-            pageSize?: number;
-            unpaged?: boolean;
-        };
-        SearchResultDTO: {
-            /** Format: uuid */
+        /** @description Relationship between claims */
+        RelationshipResponse: {
+            /**
+             * Format: uuid
+             * @description Relationship ID
+             */
             id?: string;
-            /** Format: uuid */
-            entityId?: string;
-            entityType?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            title?: string;
-            content?: string;
-            status?: string;
-            createdBy?: string;
-            metadata?: {
-                [key: string]: Record<string, never>;
-            };
-            /** Format: date-time */
+            /**
+             * Format: uuid
+             * @description Source claim ID
+             */
+            sourceClaimId?: string;
+            /**
+             * Format: uuid
+             * @description Target claim ID
+             */
+            targetClaimId?: string;
+            /**
+             * @description Relationship type
+             * @enum {string}
+             */
+            type?: "supports" | "contradicts" | "references" | "derives_from" | "related";
+            /**
+             * Format: double
+             * @description Confidence score (0.0-1.0)
+             */
+            confidence?: number;
+            /**
+             * @description Lifecycle status
+             * @enum {string}
+             */
+            status?: "SUGGESTED" | "CONFIRMED" | "REJECTED";
+            /**
+             * @description Provenance source
+             * @enum {string}
+             */
+            source?: "SYSTEM" | "USER";
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
             createdAt?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
             updatedAt?: string;
-            /** Format: double */
-            relevanceScore?: number;
-            highlightedTitle?: string;
-            highlightedSnippet?: string;
         };
-        SortObject: {
-            direction?: string;
-            nullHandling?: string;
-            ascending?: boolean;
-            property?: string;
-            ignoreCase?: boolean;
+        /** @description Request to submit feedback on a relationship */
+        SubmitFeedbackRequest: {
+            /**
+             * @description Feedback action
+             * @example CONFIRM
+             * @enum {string}
+             */
+            action: "CONFIRM" | "REJECT" | "RECLASSIFY";
+            /**
+             * @description New type if reclassifying
+             * @example SUPPORTS
+             */
+            newType?: string;
+            /** @description Optional comment */
+            comment?: string;
+        };
+        /** @description Feedback record on a relationship */
+        FeedbackResponse: {
+            /**
+             * Format: uuid
+             * @description Feedback ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Relationship ID
+             */
+            relationshipId?: string;
+            /** @description Previous type */
+            oldType?: string;
+            /** @description New type (if reclassified) */
+            newType?: string;
+            /** @description Previous status */
+            oldStatus?: string;
+            /** @description New status */
+            newStatus?: string;
+            /**
+             * Format: uuid
+             * @description User who submitted
+             */
+            userId?: string;
+            /** @description Optional comment */
+            comment?: string;
+            /**
+             * Format: date-time
+             * @description Timestamp
+             */
+            createdAt?: string;
+        };
+        MessageRequest: {
+            message?: string;
         };
         /** @description Profile creation data */
         CreateProfileRequest: {
@@ -951,6 +1191,86 @@ export interface components {
             spaceId?: string | null;
             /** @description Memory content blocks */
             blocks: components["schemas"]["BlockDto"][];
+        };
+        CreateEntityRequest: {
+            name: string;
+            /** @enum {string} */
+            entityType: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
+            attributes?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: uuid */
+            workspaceId: string;
+        };
+        EntityResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** @enum {string} */
+            entityType?: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
+            attributes?: {
+                [key: string]: Record<string, never>;
+            };
+            aliases?: string[];
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        LinkMemoryRequest: {
+            /** Format: uuid */
+            memoryId: string;
+            /** Format: uuid */
+            workspaceId: string;
+        };
+        MemoryEntityLinkResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            memoryId?: string;
+            /** Format: uuid */
+            entityId?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        CreateClaimRequest: {
+            /** Format: uuid */
+            entityId: string;
+            /** Format: uuid */
+            blockId: string;
+            claimText: string;
+            predicate?: string;
+            /** Format: uuid */
+            objectEntityId?: string;
+            objectValue?: string;
+            polarity?: string;
+            /** Format: double */
+            confidence?: number;
+        };
+        ClaimResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            entityId?: string;
+            /** Format: uuid */
+            blockId?: string;
+            claimText?: string;
+            predicate?: string;
+            /** Format: uuid */
+            objectEntityId?: string;
+            objectValue?: string;
+            polarity?: string;
+            /** Format: double */
+            confidence?: number;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: date-time */
+            createdAt?: string;
         };
         SignupRequest: {
             username: string;
@@ -1016,6 +1336,17 @@ export interface components {
             /** Format: date-time */
             occurredAt?: string;
         };
+        SearchResponse: {
+            items?: components["schemas"]["SearchResultItem"][];
+        };
+        SearchResultItem: {
+            entityType?: string;
+            /** Format: uuid */
+            entityId?: string;
+            entitySubtype?: string;
+            title?: string;
+            snippet?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1046,23 +1377,26 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceResponse"];
                 };
             };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Access denied */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
-                };
+                content?: never;
             };
             /** @description Workspace not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1091,32 +1425,80 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceResponse"];
                 };
             };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Not workspace owner */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
-                };
+                content?: never;
             };
             /** @description Workspace not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
-                };
+                content?: never;
             };
             /** @description Name already exists */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
+                content?: never;
+            };
+        };
+    };
+    updateSpace: {
+        parameters: {
+            query: {
+                workspaceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Space updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
                 };
+                content: {
+                    "application/json": components["schemas"]["SpaceResponse"];
+                };
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Space not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1146,18 +1528,14 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Profile not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1191,36 +1569,28 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Forbidden - cannot update another user's profile */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Profile not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1289,18 +1659,14 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Profile not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1331,27 +1697,21 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Profile not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1454,18 +1814,21 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
                 };
+                content?: never;
             };
             /** @description Workspace name already exists */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["WorkspaceResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1487,6 +1850,20 @@ export interface operations {
         responses: {
             /** @description Member added */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1527,6 +1904,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Not workspace owner */
             403: {
                 headers: {
@@ -1562,6 +1946,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Not workspace owner */
             403: {
                 headers: {
@@ -1578,19 +1969,10 @@ export interface operations {
             };
         };
     };
-    search: {
+    listSpaces: {
         parameters: {
             query: {
-                /** @description Search query */
-                query: string;
-                /** @description Filter by entity type (e.g., Activity, Memory) */
-                entityType?: string;
-                /** @description Filter by workspace ID */
-                workspaceId?: string;
-                /** @description Page number (0-based) */
-                page?: number;
-                /** @description Page size */
-                size?: number;
+                workspaceId: string;
             };
             header?: never;
             path?: never;
@@ -1598,18 +1980,90 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Spaces retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PageSearchResultDTO"];
+                    "application/json": components["schemas"]["SpaceResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createSpace: {
+        parameters: {
+            query: {
+                workspaceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Space created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpaceResponse"];
+                };
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access denied to workspace */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    findRelationships: {
+        parameters: {
+            query: {
+                /** @description Claim ID to find relationships for */
+                claimId: string;
+                /** @description Optional relationship type filter */
+                type?: "supports" | "contradicts" | "references" | "derives_from" | "related";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Relationships retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipResponse"][];
                 };
             };
         };
     };
-    searchPost: {
+    createRelationship: {
         parameters: {
             query?: never;
             header?: never;
@@ -1618,18 +2072,138 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SearchQueryRequest"];
+                "application/json": components["schemas"]["CreateRelationshipRequest"];
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Relationship created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipResponse"];
+                };
+            };
+            /** @description Invalid request or validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipResponse"];
+                };
+            };
+            /** @description Relationship already exists with same source, target, and type */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipResponse"];
+                };
+            };
+        };
+    };
+    getFeedbackHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationshipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Feedback history retrieved */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PageSearchResultDTO"];
+                    "application/json": components["schemas"]["FeedbackResponse"][];
                 };
+            };
+        };
+    };
+    submitFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationshipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Feedback submitted */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackResponse"];
+                };
+            };
+            /** @description Relationship not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackResponse"];
+                };
+            };
+        };
+    };
+    generate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Response generated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error during generation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1660,27 +2234,21 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
             /** @description Profile already exists for this user */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
-                };
+                content?: never;
             };
         };
     };
@@ -1689,7 +2257,6 @@ export interface operations {
             query: {
                 workspaceId: string;
                 spaceId?: string;
-                status?: string;
             };
             header?: never;
             path?: never;
@@ -1706,7 +2273,7 @@ export interface operations {
                     "application/json": components["schemas"]["MemoryResponse"][];
                 };
             };
-            /** @description Invalid status parameter */
+            /** @description Invalid request params */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -1769,8 +2336,241 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content?: never;
+            };
+        };
+    };
+    listEntities: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspaceId: string;
+                /** @description Optional entity type filter */
+                type?: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entities retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": string;
+                    "application/json": components["schemas"]["EntityResponse"][];
+                };
+            };
+        };
+    };
+    createEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEntityRequest"];
+            };
+        };
+        responses: {
+            /** @description Entity created or returned */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResponse"];
+                };
+            };
+        };
+    };
+    getMemoriesForEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Links retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryEntityLinkResponse"][];
+                };
+            };
+        };
+    };
+    linkMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkMemoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Link created or returned */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryEntityLinkResponse"];
+                };
+            };
+            /** @description Entity not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryEntityLinkResponse"];
+                };
+            };
+        };
+    };
+    getAliases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aliases retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+        };
+    };
+    addAlias: {
+        parameters: {
+            query: {
+                alias: string;
+                type: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
+                workspaceId: string;
+            };
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Alias added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    queryClaims: {
+        parameters: {
+            query?: {
+                /** @description Filter by entity ID */
+                entityId?: string;
+                /** @description Filter by block ID */
+                blockId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claims retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"][];
+                };
+            };
+        };
+    };
+    createClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClaimRequest"];
+            };
+        };
+        responses: {
+            /** @description Claim created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"];
+                };
+            };
+            /** @description Entity not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"];
                 };
             };
         };
@@ -1788,7 +2588,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description User created successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1796,6 +2596,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TokenPairResponse"];
                 };
+            };
+            /** @description Invalid request payload or validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Username already exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1812,7 +2626,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Token refreshed successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1820,6 +2634,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TokenPairResponse"];
                 };
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired refresh token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1836,7 +2664,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description OAuth authentication successful */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1844,6 +2672,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GoogleOAuthResponse"];
                 };
+            };
+            /** @description Invalid request payload or authorization code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description OAuth authentication failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1856,7 +2698,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description OAuth flow initiated successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1864,6 +2706,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OAuthAuthorizeResponse"];
                 };
+            };
+            /** @description Internal server error during OAuth initialization */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1880,7 +2729,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description OAuth callback successful - user authenticated */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1888,6 +2737,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GoogleOAuthResponse"];
                 };
+            };
+            /** @description Invalid request payload or state mismatch */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description OAuth authentication failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1906,8 +2769,22 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Logout successful */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - invalid or missing token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1926,8 +2803,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Logged out from all devices successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - invalid or missing token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1948,7 +2832,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Login successful */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1956,6 +2840,27 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TokenPairResponse"];
                 };
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid credentials or account locked */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Too many failed login attempts */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1971,7 +2876,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Activity found */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1979,6 +2884,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ActivityLogResponse"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Activity not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1991,7 +2910,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Workspaces retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1999,6 +2918,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WorkspaceResponse"][];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2011,7 +2937,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Member workspaces retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2019,6 +2945,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["WorkspaceResponse"][];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2031,7 +2964,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Active workspaces retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2040,149 +2973,8 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceResponse"][];
                 };
             };
-        };
-    };
-    getStatistics: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": {
-                        [key: string]: number;
-                    };
-                };
-            };
-        };
-    };
-    getWorkspaceStatistics: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace ID */
-                workspaceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": {
-                        [key: string]: number;
-                    };
-                };
-            };
-        };
-    };
-    getRecentDocuments: {
-        parameters: {
-            query?: {
-                /** @description Page number (0-based) */
-                page?: number;
-                /** @description Page size */
-                size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PageSearchResultDTO"];
-                };
-            };
-        };
-    };
-    getRecentDocumentsByWorkspace: {
-        parameters: {
-            query?: {
-                /** @description Page number (0-based) */
-                page?: number;
-                /** @description Page size */
-                size?: number;
-            };
-            header?: never;
-            path: {
-                /** @description Workspace ID */
-                workspaceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PageSearchResultDTO"];
-                };
-            };
-        };
-    };
-    getDocumentByEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Entity ID */
-                entityId: string;
-                /** @description Entity type (e.g., Activity, Memory) */
-                entityType: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SearchResultDTO"];
-                };
-            };
-        };
-    };
-    deleteDocument: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Entity ID */
-                entityId: string;
-                /** @description Entity type */
-                entityType: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2190,42 +2982,10 @@ export interface operations {
             };
         };
     };
-    documentExists: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Entity ID */
-                entityId: string;
-                /** @description Entity type */
-                entityType: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": {
-                        [key: string]: boolean;
-                    };
-                };
-            };
-        };
-    };
-    autocomplete: {
+    getSpace: {
         parameters: {
             query: {
-                /** @description Title prefix */
-                prefix: string;
-                /** @description Page number (0-based) */
-                page?: number;
-                /** @description Page size */
-                size?: number;
+                workspaceId: string;
             };
             header?: never;
             path?: never;
@@ -2233,14 +2993,79 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Space found */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["PageSearchResultDTO"];
+                    "application/json": components["schemas"]["SpaceResponse"];
                 };
+            };
+            /** @description Space not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getRelationship: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationshipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Relationship found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipResponse"];
+                };
+            };
+            /** @description Relationship not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipResponse"];
+                };
+            };
+        };
+    };
+    deleteRelationship: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationshipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Relationship deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Relationship not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2273,6 +3098,194 @@ export interface operations {
             };
         };
     };
+    getEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entity found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResponse"];
+                };
+            };
+            /** @description Entity not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResponse"];
+                };
+            };
+        };
+    };
+    deleteEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entity deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getEntitiesForMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Links retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryEntityLinkResponse"][];
+                };
+            };
+        };
+    };
+    getClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claimId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claim found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"];
+                };
+            };
+            /** @description Claim not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"];
+                };
+            };
+        };
+    };
+    deleteClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claimId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claim deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Claim not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query: {
+                /** @description Workspace ID to search within */
+                workspaceId: string;
+                /** @description Search query string */
+                query: string;
+                /** @description Maximum number of results to return */
+                limit?: number;
+                /** @description Number of results to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Search completed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access denied to workspace */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getActivityLogList: {
         parameters: {
             query?: {
@@ -2285,7 +3298,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Activities retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2293,6 +3306,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ActivityLogResponse"][];
                 };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2312,6 +3339,13 @@ export interface operations {
         responses: {
             /** @description Member removed */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

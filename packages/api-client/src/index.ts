@@ -2,7 +2,7 @@ import createClient, {
     type Middleware,
     type ClientMethod,
 } from 'openapi-fetch';
-export type { paths, components } from '../schema/schema';
+export type { paths, components, operations } from '../schema/schema';
 
 const baseUrl = 'http://localhost:8080/api';
 
