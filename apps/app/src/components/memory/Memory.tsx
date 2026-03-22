@@ -74,10 +74,11 @@ export function Memory() {
 
     return (
         <>
-            <MemoryHeader />
+            <MemoryHeader memoryId={memoryId || undefined} />
             <MemoryEditor
                 initialBlocks={initialBlocks}
                 onBlocksChange={onChange}
+                memoryId={memoryId || undefined}
             />
         </>
     );

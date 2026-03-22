@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { $getRoot } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Network } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@workspace/ui/components/tooltip';
+import { contextPanelStore } from '@/state/contextPanelStore';
+import { useRelationshipsPanelStore } from '@/state/relationshipsPanelStore';
 
 interface BlockPosition {
     key: string;
@@ -12,7 +14,12 @@ interface BlockPosition {
     height: number;
 }
 
-export function BlockActionsPlugin() {
+interface BlockActionsPluginProps {
+    keyToIdRef: RefObject<Map<string, string>>;
+    memoryId?: string;
+}
+
+export function BlockActionsPlugin({ keyToIdRef, memoryId }: BlockActionsPluginProps) {
     const [editor] = useLexicalComposerContext();
     const [scrollContainer, setScrollContainer] = useState<HTMLElement | null>(null);
     const [blockPositions, setBlockPositions] = useState<BlockPosition[]>([]);
@@ -80,6 +87,19 @@ export function BlockActionsPlugin() {
         if (scrollContainer) requestAnimationFrame(computePositions);
     }, [scrollContainer, computePositions]);
 
+    const openBlockView = useRelationshipsPanelStore((s) => s.openBlockView);
+
+    const handleBlockClick = useCallback(
+        (nodeKey: string) => {
+            const blockId = keyToIdRef.current.get(nodeKey);
+            if (blockId && memoryId) {
+                openBlockView(memoryId, blockId);
+                contextPanelStore.open('Block Connections');
+            }
+        },
+        [keyToIdRef, memoryId, openBlockView],
+    );
+
     if (!scrollContainer) return null;
 
     return createPortal(
@@ -96,6 +116,7 @@ export function BlockActionsPlugin() {
                                 variant="ghost"
                                 size="icon-sm"
                                 className="pointer-events-auto size-6 text-muted-foreground/30 transition-colors hover:bg-muted hover:text-muted-foreground"
+                                onClick={() => handleBlockClick(key)}
                             >
                                 <Network className="size-3.5" />
                             </Button>

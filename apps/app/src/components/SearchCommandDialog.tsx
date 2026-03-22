@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { create } from 'zustand';
 import { Schemas } from '@/types/api';
+import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 
 // Shared state so sidebar button and dashboard can both open the dialog
 interface SearchDialogStore {
@@ -86,7 +87,7 @@ export function SearchCommandDialog() {
             setOpen(false);
             setQuery('');
             if (item.entityType?.toUpperCase() === 'MEMORY' && item.entityId) {
-                navigate(`/${item.entityId}`);
+                navigate(`/${convertMemoryIdToSlug(item.entityId)}`);
             }
         },
         [navigate, setOpen],
