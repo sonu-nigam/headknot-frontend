@@ -3,16 +3,20 @@ import { useUpdateMemoryBlocks } from "@/hooks/memory/useUpdateMemoryBlocks";
 import { type LexicalBlock, type LexicalBlockKind } from "@/lib/lexicalBlockTransformer";
 import { extractMemoryIdFromSlug } from "@/lib/memoryUtils";
 import { memoryByIdQueryOptions } from "@/query/options/memory";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebounceFn, useThrottleFn } from "ahooks";
 import { useParams } from "react-router-dom";
 import { MemoryHeader } from "./MemoryHeader";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { MemoryEditor } from "../MemoryEditor/MemoryEditor";
 
 export function Memory() {
     const params = useParams();
     const memoryId = extractMemoryIdFromSlug(params.memorySlug || null);
+    const queryClient = useQueryClient();
+
+    // Counter to force editor remount after checkout/rollback
+    const [editorKey, setEditorKey] = useState(0);
 
     const { data: initialBlocks } = useSuspenseQuery({
         ...memoryByIdQueryOptions(memoryId || ''),
@@ -72,10 +76,26 @@ export function Memory() {
         debouncedCommit.run();               // reset inactivity timer
     }, [throttledTrigger, debouncedCommit]);
 
+    // Called after checkout/rollback to reload editor with fresh blocks
+    const handleEditorReload = useCallback(async () => {
+        // Cancel any pending updates
+        pendingBlocksRef.current = null;
+        isInFlightRef.current = false;
+        throttledTrigger.cancel();
+        debouncedCommit.cancel();
+        // Refetch memory data, then remount editor
+        await queryClient.invalidateQueries({ queryKey: ['memory', memoryId] });
+        setEditorKey((k) => k + 1);
+    }, [queryClient, memoryId, throttledTrigger, debouncedCommit]);
+
     return (
         <>
-            <MemoryHeader memoryId={memoryId || undefined} />
+            <MemoryHeader
+                memoryId={memoryId || undefined}
+                onEditorReload={handleEditorReload}
+            />
             <MemoryEditor
+                key={editorKey}
                 initialBlocks={initialBlocks}
                 onBlocksChange={onChange}
                 memoryId={memoryId || undefined}

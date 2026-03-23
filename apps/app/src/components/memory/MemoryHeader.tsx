@@ -9,7 +9,6 @@ import { FileClockIcon, MessageCircleIcon, NetworkIcon } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu';
 import {
@@ -19,26 +18,28 @@ import {
 import { Separator } from '@workspace/ui/components/separator';
 import { contextPanelStore } from '@/state/contextPanelStore';
 import { useRelationshipsPanelStore } from '@/state/relationshipsPanelStore';
+import { SnapshotTimeline } from './Timeline';
 
 interface MemoryHeaderProps {
     memoryId?: string;
+    onEditorReload?: () => void;
 }
 
-export function MemoryHeader({ memoryId }: MemoryHeaderProps) {
+export function MemoryHeader({ memoryId, onEditorReload }: MemoryHeaderProps) {
     return (
         <div className="mb-4 px-12">
             <div className="flex justify-between  items-center">
                 <div className="flex items-center">
                     <MemoryEditedBy />
                 </div>
-                <MemoryActions memoryId={memoryId} />
+                <MemoryActions memoryId={memoryId} onEditorReload={onEditorReload} />
             </div>
             <Separator className="mt-6 px-12" />
         </div>
     );
 }
 
-function MemoryActions({ memoryId }: { memoryId?: string }) {
+function MemoryActions({ memoryId, onEditorReload }: { memoryId?: string; onEditorReload?: () => void }) {
     const openMemoryView = useRelationshipsPanelStore(
         (s) => s.openMemoryView,
     );
@@ -84,7 +85,7 @@ function MemoryActions({ memoryId }: { memoryId?: string }) {
                     <MessageCircleIcon className="group-data-[state=on]/toggle:fill-foreground" />
                 </ToggleGroupItem>
             </ToggleGroup>
-            <MemoryTimeline />
+            <MemoryTimeline memoryId={memoryId} onEditorReload={onEditorReload} />
         </div>
     );
 }
@@ -122,7 +123,7 @@ function MemoryActionOccuredAt() {
     );
 }
 
-function MemoryTimeline() {
+function MemoryTimeline({ memoryId, onEditorReload }: { memoryId?: string; onEditorReload?: () => void }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -130,18 +131,17 @@ function MemoryTimeline() {
                     <FileClockIcon />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-                className="w-40 max-h-60 overflow-y-auto"
-                align="start"
-            >
-                {Array.from({ length: 25 }).map((_, i) => (
-                    <DropdownMenuItem key={i}>
-                        {format(
-                            Date.now() - i * 1000 * 60 * 60 * 24,
-                            'dd MMM yyyy',
-                        )}
-                    </DropdownMenuItem>
-                ))}
+            <DropdownMenuContent className="p-0 w-auto" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                {memoryId ? (
+                    <SnapshotTimeline
+                        memoryId={memoryId}
+                        onEditorReload={onEditorReload}
+                    />
+                ) : (
+                    <div className="p-4 text-xs text-muted-foreground">
+                        No memory selected
+                    </div>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );

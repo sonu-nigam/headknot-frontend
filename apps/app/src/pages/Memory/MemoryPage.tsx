@@ -6,11 +6,12 @@ import {
 import { Skeleton } from '@workspace/ui/components/skeleton';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function MemoryPage() {
     const { reset } = useQueryErrorResetBoundary();
     const navigate = useNavigate();
+    const { memorySlug } = useParams();
 
     return (
         <AppLayout
@@ -29,7 +30,7 @@ export default function MemoryPage() {
                     }}
                 >
                     <Suspense fallback={<MemoryLoading />}>
-                        <Memory />
+                        <Memory key={memorySlug} />
                     </Suspense>
                 </ErrorBoundary>
             </div>

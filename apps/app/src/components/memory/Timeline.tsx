@@ -1,76 +1,255 @@
-import { format } from "date-fns";
+import { useQuery } from '@tanstack/react-query';
+import { snapshotListQueryOptions } from '@/query/options/snapshot';
+import { useCheckoutSnapshot } from '@/hooks/memory/useCheckoutSnapshot';
+import { useRollbackSnapshot } from '@/hooks/memory/useRollbackSnapshot';
+import { Schemas } from '@/types/api';
+import { formatDistanceToNow, format } from 'date-fns';
+import {
+    GitBranchIcon,
+    RotateCcwIcon,
+    LayersIcon,
+    FileTextIcon,
+    GitForkIcon,
+} from 'lucide-react';
+import { Button } from '@workspace/ui/components/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@workspace/ui/components/tooltip';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@workspace/ui/components/dialog';
+import { useState } from 'react';
 
-interface MemoryVersion {
-    id: string;
-    version: number;
-    timestamp: Date;
-    title: string;
-    preview: string;
+interface SnapshotTimelineProps {
+    memoryId: string;
+    onEditorReload?: () => void;
 }
 
-export function Timeline() {
-    // Sample memory versions - replace with actual data from API
-    const versions: MemoryVersion[] = [
-        {
-            id: "v3",
-            version: 3,
-            timestamp: new Date(Date.now()),
-            title: "Project Planning",
-            preview: "Final version with all updates..."
-        },
-        {
-            id: "v2",
-            version: 2,
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-            title: "Project Planning",
-            preview: "Updated with new requirements..."
-        },
-        {
-            id: "v1",
-            version: 1,
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-            title: "Project Planning",
-            preview: "Initial version..."
-        },
-    ];
+export function SnapshotTimeline({
+    memoryId,
+    onEditorReload,
+}: SnapshotTimelineProps) {
+    const { data: snapshots, isLoading } = useQuery(
+        snapshotListQueryOptions(memoryId),
+    );
+
+    if (isLoading) {
+        return (
+            <div className="p-3 space-y-2 w-64">
+                {[1, 2, 3].map((i) => (
+                    <div
+                        key={i}
+                        className="h-12 bg-muted/50 rounded-md animate-pulse"
+                    />
+                ))}
+            </div>
+        );
+    }
+
+    if (!snapshots || snapshots.length === 0) {
+        return (
+            <div className="p-4 text-center w-64">
+                <LayersIcon className="size-6 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">
+                    No snapshots yet
+                </p>
+            </div>
+        );
+    }
+
+    // Show newest first
+    const sorted = [...snapshots].reverse();
 
     return (
-        <div className="flex flex-col gap-4 py-4">
-            {versions.map((version, index) => (
-                <div key={version.id} className="relative">
-                    {/* Timeline line */}
-                    {index !== versions.length - 1 && (
-                        <div className="absolute left-4 top-10 h-8 w-0.5 bg-border" />
-                    )}
+        <div className="w-72 max-h-80 overflow-y-auto">
+            <div className="px-3 py-2 border-b border-border sticky top-0 bg-popover z-10">
+                <p className="text-xs font-medium text-muted-foreground">
+                    {snapshots.length} snapshot
+                    {snapshots.length !== 1 ? 's' : ''}
+                </p>
+            </div>
+            <div className="p-1.5 space-y-0.5">
+                {sorted.map((snapshot, index) => (
+                    <SnapshotItem
+                        key={snapshot.id}
+                        snapshot={snapshot}
+                        memoryId={memoryId}
+                        isLatest={index === 0}
+                        onEditorReload={onEditorReload}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
 
-                    {/* Version item */}
-                    <div className="flex gap-4">
-                        {/* Timeline dot */}
-                        <div className="flex flex-col items-center">
-                            <div className="size-9 rounded-full bg-primary border-4 border-background flex items-center justify-center text-xs font-semibold text-primary-foreground">
-                                {version.version}
-                            </div>
-                        </div>
+function SnapshotItem({
+    snapshot,
+    memoryId,
+    isLatest,
+    onEditorReload,
+}: {
+    snapshot: Schemas['SnapshotResponse'];
+    memoryId: string;
+    isLatest: boolean;
+    onEditorReload?: () => void;
+}) {
+    const checkout = useCheckoutSnapshot(memoryId);
+    const rollback = useRollbackSnapshot(memoryId);
+    const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
 
-                        {/* Version content */}
-                        <div className="flex-1 pb-4">
-                            <button className="w-full text-left hover:opacity-70 transition-opacity">
-                                <div className="flex flex-col gap-1">
-                                    <time className="text-xs text-muted-foreground">
-                                        {format(version.timestamp, "MMM dd, yyyy 'at' HH:mm")}
-                                    </time>
-                                    <p className="text-sm font-medium">
-                                        {version.title}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground line-clamp-2">
-                                        {version.preview}
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
+    const handleCheckout = () => {
+        if (!snapshot.id) return;
+        checkout.mutate(snapshot.id, {
+            onSuccess: () => onEditorReload?.(),
+        });
+    };
+
+    const handleRollback = () => {
+        if (!snapshot.id) return;
+        rollback.mutate(snapshot.id, {
+            onSuccess: () => {
+                setShowRollbackConfirm(false);
+                onEditorReload?.();
+            },
+        });
+    };
+
+    const hasBranch = !!snapshot.parentSnapshotId;
+
+    return (
+        <>
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors group">
+                {/* Version badge */}
+                <div
+                    className={`size-7 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold ${
+                        isLatest
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                    }`}
+                >
+                    {snapshot.version}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                        <p className="text-xs font-medium">
+                            v{snapshot.version}
+                        </p>
+                        {isLatest && (
+                            <span className="text-xs text-primary bg-primary/10 px-1 rounded">
+                                latest
+                            </span>
+                        )}
+                        {hasBranch && (
+                            <GitForkIcon className="size-3 text-amber-500" />
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        {snapshot.committedAt && (
+                            <span>
+                                {formatDistanceToNow(
+                                    new Date(snapshot.committedAt),
+                                    { addSuffix: true },
+                                )}
+                            </span>
+                        )}
+                        {snapshot.blockCount != null && (
+                            <>
+                                <span>&middot;</span>
+                                <span className="flex items-center gap-0.5">
+                                    <FileTextIcon className="size-2.5" />
+                                    {snapshot.blockCount}
+                                </span>
+                            </>
+                        )}
                     </div>
                 </div>
-            ))}
-        </div>
+
+                {/* Actions — visible on hover */}
+                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!isLatest && (
+                        <>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-6"
+                                        onClick={handleCheckout}
+                                        disabled={checkout.isPending}
+                                    >
+                                        <GitBranchIcon className="size-3" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    Checkout
+                                </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-6 text-destructive hover:text-destructive"
+                                        onClick={() =>
+                                            setShowRollbackConfirm(true)
+                                        }
+                                    >
+                                        <RotateCcwIcon className="size-3" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    Rollback
+                                </TooltipContent>
+                            </Tooltip>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Rollback confirmation dialog */}
+            <Dialog
+                open={showRollbackConfirm}
+                onOpenChange={setShowRollbackConfirm}
+            >
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Rollback to v{snapshot.version}?</DialogTitle>
+                        <DialogDescription>
+                            This is destructive. All snapshots after v
+                            {snapshot.version} will be permanently deleted along
+                            with their associated data.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowRollbackConfirm(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleRollback}
+                            disabled={rollback.isPending}
+                        >
+                            {rollback.isPending
+                                ? 'Rolling back...'
+                                : 'Rollback'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

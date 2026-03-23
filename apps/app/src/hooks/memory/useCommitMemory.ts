@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
 
 interface UseCommitMemoryProps {
@@ -12,6 +12,8 @@ export function useCommitMemory({
     onSuccess,
     onError,
 }: UseCommitMemoryProps) {
+    const queryClient = useQueryClient();
+
     return useMutation({
         mutationFn: async () => {
             const { error, data } = await api.POST(
@@ -30,7 +32,12 @@ export function useCommitMemory({
             if (error) throw error;
             return data;
         },
-        onSuccess,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: ['snapshots', memoryId],
+            });
+            onSuccess?.(data);
+        },
         onError,
     });
 }

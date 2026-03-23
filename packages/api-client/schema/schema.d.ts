@@ -335,6 +335,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/memory/{id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rollback to snapshot
+         * @description Rolls back a memory to a specific snapshot. Destructive — deletes all snapshots after the target, orphaned blocks, and triggers cleanup of associated claims, relationships, and entities.
+         */
+        post: operations["rollbackToSnapshot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/memory/{id}/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Checkout snapshot
+         * @description Loads blocks from a specific snapshot as drafts for editing. This enables branching — after checkout, editing and committing creates a divergent snapshot timeline within the same memory.
+         */
+        post: operations["checkoutSnapshot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/memory/{id}/blocks/commit": {
         parameters: {
             query?: never;
@@ -1191,6 +1231,63 @@ export interface components {
             spaceId?: string | null;
             /** @description Memory content blocks */
             blocks: components["schemas"]["BlockDto"][];
+        };
+        /** @description Request to rollback a memory to a specific snapshot */
+        RollbackSnapshotRequest: {
+            /**
+             * Format: uuid
+             * @description Snapshot ID to rollback to
+             */
+            snapshotId: string;
+        };
+        /** @description Memory response rendered from a snapshot with content blocks */
+        MemoryViewResponse: {
+            /**
+             * Format: uuid
+             * @description Memory unique identifier
+             * @example 123e4567-e89b-12d3-a456-426614174000
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace identifier
+             * @example 123e4567-e89b-12d3-a456-426614174001
+             */
+            workspaceId?: string;
+            /**
+             * Format: uuid
+             * @description Snapshot identifier used to render this memory
+             * @example 223e4567-e89b-12d3-a456-426614174999
+             */
+            snapshotId?: string;
+            /**
+             * Format: int32
+             * @description Snapshot version
+             * @example 3
+             */
+            snapshotVersion?: number;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             * @example 2025-12-15T10:00:00Z
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             * @example 2025-12-15T11:30:00Z
+             */
+            updatedAt?: string;
+            /** @description Memory content blocks from the snapshot */
+            blocks?: components["schemas"]["BlockDto"][];
+        };
+        /** @description Request to checkout a specific snapshot for editing */
+        CheckoutSnapshotRequest: {
+            /**
+             * Format: uuid
+             * @description Snapshot ID to checkout
+             */
+            snapshotId: string;
         };
         CreateEntityRequest: {
             name: string;
@@ -2313,6 +2410,86 @@ export interface operations {
             };
             /** @description Access denied to workspace */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rollbackToSnapshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RollbackSnapshotRequest"];
+            };
+        };
+        responses: {
+            /** @description Memory rolled back successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryViewResponse"];
+                };
+            };
+            /** @description Access denied to workspace */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Memory or snapshot not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    checkoutSnapshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutSnapshotRequest"];
+            };
+        };
+        responses: {
+            /** @description Snapshot checked out successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryViewResponse"];
+                };
+            };
+            /** @description Access denied to workspace */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Memory or snapshot not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
