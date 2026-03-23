@@ -3,7 +3,8 @@ import { useUpdateMemoryBlocks } from "@/hooks/memory/useUpdateMemoryBlocks";
 import { type LexicalBlock, type LexicalBlockKind } from "@/lib/lexicalBlockTransformer";
 import { extractMemoryIdFromSlug } from "@/lib/memoryUtils";
 import { memoryByIdQueryOptions } from "@/query/options/memory";
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useQueryClient, useQuery } from "@tanstack/react-query";
+import { snapshotListQueryOptions } from "@/query/options/snapshot";
 import { useDebounceFn, useThrottleFn } from "ahooks";
 import { useParams } from "react-router-dom";
 import { MemoryHeader } from "./MemoryHeader";
@@ -17,6 +18,14 @@ export function Memory() {
 
     // Counter to force editor remount after checkout/rollback
     const [editorKey, setEditorKey] = useState(0);
+
+    // Fetch snapshots to get the latest snapshotId for claims query
+    const { data: snapshots } = useQuery(
+        snapshotListQueryOptions(memoryId || ''),
+    );
+    const latestSnapshotId = snapshots?.length
+        ? snapshots[snapshots.length - 1].id
+        : undefined;
 
     const { data: initialBlocks } = useSuspenseQuery({
         ...memoryByIdQueryOptions(memoryId || ''),
@@ -99,6 +108,7 @@ export function Memory() {
                 initialBlocks={initialBlocks}
                 onBlocksChange={onChange}
                 memoryId={memoryId || undefined}
+                snapshotId={latestSnapshotId}
             />
         </>
     );

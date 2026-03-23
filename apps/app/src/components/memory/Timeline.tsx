@@ -8,7 +8,6 @@ import {
     GitBranchIcon,
     RotateCcwIcon,
     LayersIcon,
-    FileTextIcon,
     GitForkIcon,
 } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
@@ -79,6 +78,7 @@ export function SnapshotTimeline({
                     <SnapshotItem
                         key={snapshot.id}
                         snapshot={snapshot}
+                        allSnapshots={snapshots}
                         memoryId={memoryId}
                         isLatest={index === 0}
                         onEditorReload={onEditorReload}
@@ -91,11 +91,13 @@ export function SnapshotTimeline({
 
 function SnapshotItem({
     snapshot,
+    allSnapshots,
     memoryId,
     isLatest,
     onEditorReload,
 }: {
     snapshot: Schemas['SnapshotResponse'];
+    allSnapshots: Schemas['SnapshotResponse'][];
     memoryId: string;
     isLatest: boolean;
     onEditorReload?: () => void;
@@ -121,7 +123,9 @@ function SnapshotItem({
         });
     };
 
-    const hasBranch = !!snapshot.parentSnapshotId;
+    const parentSnapshot = snapshot.parentSnapshotId
+        ? allSnapshots.find((s) => s.id === snapshot.parentSnapshotId)
+        : null;
 
     return (
         <>
@@ -148,8 +152,11 @@ function SnapshotItem({
                                 latest
                             </span>
                         )}
-                        {hasBranch && (
-                            <GitForkIcon className="size-3 text-amber-500" />
+                        {parentSnapshot && (
+                            <span className="flex items-center gap-0.5 text-xs text-amber-500">
+                                <GitForkIcon className="size-3" />
+                                from v{parentSnapshot.version}
+                            </span>
                         )}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -160,15 +167,6 @@ function SnapshotItem({
                                     { addSuffix: true },
                                 )}
                             </span>
-                        )}
-                        {snapshot.blockCount != null && (
-                            <>
-                                <span>&middot;</span>
-                                <span className="flex items-center gap-0.5">
-                                    <FileTextIcon className="size-2.5" />
-                                    {snapshot.blockCount}
-                                </span>
-                            </>
                         )}
                     </div>
                 </div>

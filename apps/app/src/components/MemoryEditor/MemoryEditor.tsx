@@ -37,6 +37,7 @@ interface MemoryEditorProps {
     onBlocksChange?: (blocks: LexicalBlock[]) => void;
     placeholder?: string;
     memoryId?: string;
+    snapshotId?: string;
 }
 
 // ─── Inner layout ─────────────────────────────────────────────────────────────
@@ -46,7 +47,8 @@ function MemoryEditorLayout({
     initialBlocks,
     onBlocksChange,
     memoryId,
-}: Pick<MemoryEditorProps, 'placeholder' | 'initialBlocks' | 'onBlocksChange' | 'memoryId'>) {
+    snapshotId,
+}: Pick<MemoryEditorProps, 'placeholder' | 'initialBlocks' | 'onBlocksChange' | 'memoryId' | 'snapshotId'>) {
     const [editor] = useLexicalComposerContext();
 
     // Stable node-key → UUID map; survives re-renders without triggering them
@@ -65,7 +67,14 @@ function MemoryEditorLayout({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // intentionally empty — one-time correlation on mount
 
+    // Skip the initial onChange fired by Lexical on mount
+    const isInitialMount = useRef(true);
+
     const handleChange = useCallback((editorState: EditorState) => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
         // Assign stable UUIDs to any new top-level nodes
         editorState.read(() => {
             for (const node of $getRoot().getChildren()) {
@@ -110,7 +119,7 @@ function MemoryEditorLayout({
             <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
             <SlashMenuPlugin />
             <FloatingCommentPlugin />
-            <BlockActionsPlugin keyToIdRef={keyToIdRef} memoryId={memoryId} />
+            <BlockActionsPlugin keyToIdRef={keyToIdRef} memoryId={memoryId} snapshotId={snapshotId} />
             <DraggableBlockPlugin />
 
             {/* Emit LexicalBlock[] on every content change (selection changes ignored) */}
@@ -128,6 +137,7 @@ export function MemoryEditor({
     onBlocksChange,
     placeholder = 'Start writing, or press "/" for commands…',
     memoryId,
+    snapshotId,
 }: MemoryEditorProps) {
     const initialConfig: InitialConfigType = {
         namespace: 'MemoryEditor',
@@ -158,6 +168,7 @@ export function MemoryEditor({
                     initialBlocks={initialBlocks}
                     onBlocksChange={onBlocksChange}
                     memoryId={memoryId}
+                    snapshotId={snapshotId}
                 />
             </CommentPlugin>
         </LexicalComposer>

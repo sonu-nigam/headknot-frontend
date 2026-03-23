@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { $getRoot } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -12,7 +12,7 @@ import {
 } from '@workspace/ui/components/tooltip';
 import { contextPanelStore } from '@/state/contextPanelStore';
 import { useRelationshipsPanelStore } from '@/state/relationshipsPanelStore';
-import { claimsByBlockQueryOptions } from '@/query/options/knowledge';
+import { claimsBySnapshotQueryOptions } from '@/query/options/knowledge';
 
 interface BlockPosition {
     key: string;
@@ -23,17 +23,37 @@ interface BlockPosition {
 interface BlockActionsPluginProps {
     keyToIdRef: RefObject<Map<string, string>>;
     memoryId?: string;
+    snapshotId?: string;
 }
 
 export function BlockActionsPlugin({
     keyToIdRef,
     memoryId,
+    snapshotId,
 }: BlockActionsPluginProps) {
     const [editor] = useLexicalComposerContext();
     const [scrollContainer, setScrollContainer] = useState<HTMLElement | null>(
         null,
     );
     const [blockPositions, setBlockPositions] = useState<BlockPosition[]>([]);
+
+    // Single API call: fetch all claims for the current snapshot
+    const { data: snapshotClaims } = useQuery({
+        ...claimsBySnapshotQueryOptions(snapshotId ?? ''),
+        enabled: !!snapshotId,
+    });
+
+    // Build a map: blockId → claim count
+    const blockClaimCounts = useMemo(() => {
+        const map = new Map<string, number>();
+        if (!snapshotClaims) return map;
+        for (const claim of snapshotClaims) {
+            if (claim.blockId) {
+                map.set(claim.blockId, (map.get(claim.blockId) ?? 0) + 1);
+            }
+        }
+        return map;
+    }, [snapshotClaims]);
 
     // Locate the nearest scrollable + positioned ancestor when the root mounts
     useEffect(() => {
@@ -102,78 +122,57 @@ export function BlockActionsPlugin({
         if (scrollContainer) requestAnimationFrame(computePositions);
     }, [scrollContainer, computePositions]);
 
+    const openBlockView = useRelationshipsPanelStore((s) => s.openBlockView);
+
+    const handleBlockClick = useCallback(
+        (nodeKey: string) => {
+            const blockId = keyToIdRef.current.get(nodeKey);
+            if (blockId && memoryId) {
+                openBlockView(memoryId, blockId);
+                contextPanelStore.open('Block Connections');
+            }
+        },
+        [keyToIdRef, memoryId, openBlockView],
+    );
+
     if (!scrollContainer) return null;
 
     return createPortal(
         <>
-            {blockPositions.map(({ key, top, height }) => (
-                <BlockActionIcon
-                    key={key}
-                    nodeKey={key}
-                    top={top}
-                    height={height}
-                    blockId={keyToIdRef.current.get(key)}
-                    memoryId={memoryId}
-                />
-            ))}
+            {blockPositions.map(({ key, top, height }) => {
+                const blockId = keyToIdRef.current.get(key);
+                const claimCount = blockId
+                    ? blockClaimCounts.get(blockId) ?? 0
+                    : 0;
+
+                if (claimCount === 0) return null;
+
+                return (
+                    <div
+                        key={key}
+                        className="pointer-events-none absolute right-3 flex items-start"
+                        style={{ top, height }}
+                    >
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="pointer-events-auto size-6 text-primary/60 transition-colors hover:bg-primary/10 hover:text-primary"
+                                    onClick={() => handleBlockClick(key)}
+                                >
+                                    <Network className="size-3.5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                {claimCount} connection
+                                {claimCount !== 1 ? 's' : ''}
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
+                );
+            })}
         </>,
         scrollContainer,
-    );
-}
-
-// ── Per-block icon: only renders if claims exist for this block ───────────
-
-function BlockActionIcon({
-    nodeKey,
-    top,
-    height,
-    blockId,
-    memoryId,
-}: {
-    nodeKey: string;
-    top: number;
-    height: number;
-    blockId?: string;
-    memoryId?: string;
-}) {
-    const openBlockView = useRelationshipsPanelStore((s) => s.openBlockView);
-
-    const { data: claims } = useQuery({
-        ...claimsByBlockQueryOptions(blockId ?? ''),
-        enabled: !!blockId,
-    });
-
-    const hasClaims = claims && claims.length > 0;
-
-    if (!hasClaims) return null;
-
-    const handleClick = () => {
-        if (blockId && memoryId) {
-            openBlockView(memoryId, blockId);
-            contextPanelStore.open('Block Connections');
-        }
-    };
-
-    return (
-        <div
-            className="pointer-events-none absolute right-3 flex items-start"
-            style={{ top, height }}
-        >
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="pointer-events-auto size-6 text-primary/60 transition-colors hover:bg-primary/10 hover:text-primary"
-                        onClick={handleClick}
-                    >
-                        <Network className="size-3.5" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                    {claims.length} connection{claims.length !== 1 ? 's' : ''}
-                </TooltipContent>
-            </Tooltip>
-        </div>
     );
 }

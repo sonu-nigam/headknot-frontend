@@ -2692,6 +2692,8 @@ export interface operations {
                 entityId?: string;
                 /** @description Filter by block ID */
                 blockId?: string;
+                /** @description Filter by snapshot ID */
+                snapshotId?: string;
             };
             header?: never;
             path?: never;

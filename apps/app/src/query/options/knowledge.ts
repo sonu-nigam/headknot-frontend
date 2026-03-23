@@ -63,6 +63,19 @@ export const claimsByBlockQueryOptions = (blockId: string) =>
         },
     });
 
+export const claimsBySnapshotQueryOptions = (snapshotId: string) =>
+    queryOptions<Schemas['ClaimResponse'][]>({
+        queryKey: ['knowledge', 'claims', 'snapshot', snapshotId],
+        enabled: !!snapshotId,
+        queryFn: async () => {
+            const res = await api.GET('/knowledge/claims', {
+                params: { query: { snapshotId } },
+            });
+            if (res.error) throw new Error('Failed to fetch claims');
+            return res.data;
+        },
+    });
+
 export const claimsByEntityQueryOptions = (entityId: string) =>
     queryOptions<Schemas['ClaimResponse'][]>({
         queryKey: ['knowledge', 'claims', 'entity', entityId],
