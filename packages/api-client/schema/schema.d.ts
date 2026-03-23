@@ -43,6 +43,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings/workspace/{workspaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get workspace settings
+         * @description Returns the settings for the specified workspace
+         */
+        get: operations["getWorkspaceSettings"];
+        /**
+         * Update workspace settings
+         * @description Merges the provided settings into the workspace settings
+         */
+        put: operations["updateWorkspaceSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user settings
+         * @description Returns the current user's settings and preferences
+         */
+        get: operations["getUserSettings"];
+        /**
+         * Update user preferences
+         * @description Merges the provided preferences into the current user's settings
+         */
+        put: operations["updateUserPreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/app/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get app config by key
+         * @description Returns a single application configuration entry by its key
+         */
+        get: operations["getAppConfig"];
+        /**
+         * Set app config
+         * @description Creates or updates an application configuration entry
+         */
+        put: operations["setAppConfig"];
+        post?: never;
+        /**
+         * Delete app config
+         * @description Deletes an application configuration entry by its key
+         */
+        delete: operations["deleteAppConfig"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/profile/{id}": {
         parameters: {
             query?: never;
@@ -99,6 +175,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get notification preferences
+         * @description Retrieves the current user's notification preferences
+         */
+        get: operations["getPreferences"];
+        /**
+         * Update notification preferences
+         * @description Updates the current user's notification preferences
+         */
+        put: operations["updatePreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/memory/{id}/blocks": {
         parameters: {
             query?: never;
@@ -112,6 +212,26 @@ export interface paths {
          * @description Update the complete block list of a memory
          */
         put: operations["updateBlocks"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/workspace/{workspaceId}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change plan
+         * @description Changes a workspace's subscription plan
+         */
+        put: operations["changeWorkspacePlan"];
         post?: never;
         delete?: never;
         options?: never;
@@ -311,6 +431,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark notification as read
+         * @description Marks a specific notification as read
+         */
+        post: operations["markAsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark all notifications as read
+         * @description Marks all notifications for the current user as read
+         */
+        post: operations["markAllAsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/memory": {
         parameters: {
             query?: never;
@@ -466,7 +626,7 @@ export interface paths {
         };
         /**
          * Query claims
-         * @description Returns claims filtered by entity ID or block ID.
+         * @description Returns claims filtered by entity ID, block ID, or snapshot ID. When filtering by snapshot ID, returns all claims associated with the blocks in that snapshot.
          */
         get: operations["queryClaims"];
         put?: never;
@@ -475,6 +635,46 @@ export interface paths {
          * @description Records a claim linked to a knowledge entity and extracted from a memory block.
          */
         post: operations["createClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/workspace/{workspaceId}/subscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Subscribe workspace
+         * @description Subscribes a workspace to a plan
+         */
+        post: operations["subscribeWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/workspace/{workspaceId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel subscription
+         * @description Cancels a workspace's subscription
+         */
+        post: operations["cancelSubscription"];
         delete?: never;
         options?: never;
         head?: never;
@@ -742,6 +942,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings/app": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all app configs
+         * @description Returns all application configuration entries
+         */
+        get: operations["getAllAppConfigs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/relationships/{relationshipId}": {
         parameters: {
             query?: never;
@@ -766,6 +986,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List notifications
+         * @description Retrieves the current user's notifications with pagination
+         */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List unread notifications
+         * @description Retrieves the current user's unread notifications
+         */
+        get: operations["listUnreadNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/unread/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get unread count
+         * @description Returns the count of unread notifications for the current user
+         */
+        get: operations["getUnreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Subscribe to notification stream
+         * @description Opens an SSE connection for real-time notifications
+         */
+        get: operations["streamNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/memory/{id}": {
         parameters: {
             query?: never;
@@ -778,6 +1078,26 @@ export interface paths {
          * @description Retrieves a specific memory with its blocks
          */
         get: operations["getMemory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/memory/{id}/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List snapshots
+         * @description Returns all snapshots for a memory, ordered by version ascending
+         */
+        get: operations["listSnapshots"];
         put?: never;
         post?: never;
         delete?: never;
@@ -839,6 +1159,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/workspace/{workspaceId}/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get usage
+         * @description Returns usage records for a workspace
+         */
+        get: operations["getUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/workspace/{workspaceId}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get subscription
+         * @description Returns the subscription for a workspace
+         */
+        get: operations["getWorkspaceSubscription"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/workspace/{workspaceId}/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check limits
+         * @description Checks all limit statuses for a workspace
+         */
+        get: operations["checkLimits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List plans
+         * @description Returns all active subscription plans
+         */
+        get: operations["getPlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/plans/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get plan
+         * @description Returns a subscription plan by name
+         */
+        get: operations["getPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search": {
         parameters: {
             query?: never;
@@ -894,6 +1314,26 @@ export interface paths {
          * @description Removes a member from the workspace
          */
         delete: operations["removeMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete notification
+         * @description Deletes a specific notification
+         */
+        delete: operations["deleteNotification"];
         options?: never;
         head?: never;
         patch?: never;
@@ -989,6 +1429,51 @@ export interface components {
              */
             updatedAt?: string;
         };
+        UpdateWorkspaceSettingsRequest: {
+            settings: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        WorkspaceSettingsResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            settings?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        UpdateUserPreferencesRequest: {
+            preferences: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        UserSettingsResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            userId?: string;
+            preferences?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        SetAppConfigRequest: {
+            value: string;
+            description?: string;
+        };
+        AppConfigResponse: {
+            /** Format: uuid */
+            id?: string;
+            key?: string;
+            value?: string;
+            description?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         /** @description Profile update data */
         UpdateProfileRequest: {
             firstName?: string;
@@ -1014,6 +1499,44 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @description Update notification preferences request */
+        UpdatePreferencesRequest: {
+            /** @description Whether in-app notifications are enabled */
+            inAppEnabled?: boolean;
+            /** @description Whether email notifications are enabled */
+            emailEnabled?: boolean;
+            /** @description List of disabled notification types */
+            disabledTypes?: string[];
+        };
+        /** @description Notification preference details response */
+        NotificationPreferenceResponse: {
+            /**
+             * Format: uuid
+             * @description Preference ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description User ID
+             */
+            userId?: string;
+            /** @description Whether in-app notifications are enabled */
+            inAppEnabled?: boolean;
+            /** @description Whether email notifications are enabled */
+            emailEnabled?: boolean;
+            /** @description List of disabled notification types */
+            disabledTypes?: string[];
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
             updatedAt?: string;
         };
         /** @description Memory content blocks */
@@ -1055,6 +1578,54 @@ export interface components {
             createdAt?: string;
             /** @description Memory content blocks */
             blocks?: components["schemas"]["BlockDto"][];
+        };
+        /** @description Change subscription plan request */
+        ChangePlanRequest: {
+            /**
+             * @description New plan name
+             * @example enterprise
+             */
+            planName: string;
+        };
+        /** @description Workspace subscription details response */
+        SubscriptionResponse: {
+            /**
+             * Format: uuid
+             * @description Subscription ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /**
+             * Format: uuid
+             * @description Plan ID
+             */
+            planId?: string;
+            /** @description Subscription status */
+            status?: string;
+            /**
+             * Format: date-time
+             * @description Subscription start timestamp
+             */
+            startedAt?: string;
+            /**
+             * Format: date-time
+             * @description Subscription expiration timestamp
+             */
+            expiresAt?: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updatedAt?: string;
         };
         /** @description Request to create a new workspace */
         CreateWorkspaceRequest: {
@@ -1369,6 +1940,14 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        /** @description Subscribe workspace to a plan request */
+        SubscribeRequest: {
+            /**
+             * @description Plan name
+             * @example pro
+             */
+            planName: string;
+        };
         SignupRequest: {
             username: string;
             fullName: string;
@@ -1432,6 +2011,183 @@ export interface components {
             };
             /** Format: date-time */
             occurredAt?: string;
+        };
+        /** @description Notification details response */
+        NotificationResponse: {
+            /**
+             * Format: uuid
+             * @description Notification ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description User ID
+             */
+            userId?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /** @description Notification type */
+            type?: string;
+            /** @description Notification title */
+            title?: string;
+            /** @description Notification message */
+            message?: string;
+            /** @description Additional data */
+            data?: {
+                [key: string]: Record<string, never>;
+            };
+            /** @description Whether the notification has been read */
+            read?: boolean;
+            /**
+             * Format: date-time
+             * @description Timestamp when the notification was read
+             */
+            readAt?: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+        };
+        /** @description Unread notification count response */
+        UnreadCountResponse: {
+            /**
+             * Format: int64
+             * @description Number of unread notifications
+             */
+            count?: number;
+        };
+        SseEmitter: {
+            /** Format: int64 */
+            timeout?: number;
+        };
+        /** @description Memory snapshot summary */
+        SnapshotResponse: {
+            /**
+             * Format: uuid
+             * @description Snapshot ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Memory ID
+             */
+            memoryId?: string;
+            /**
+             * Format: int32
+             * @description Version number
+             */
+            version?: number;
+            /**
+             * Format: int32
+             * @description Number of blocks in this snapshot
+             */
+            blockCount?: number;
+            /**
+             * Format: uuid
+             * @description Parent snapshot ID (for branch lineage)
+             */
+            parentSnapshotId?: string;
+            /**
+             * Format: date-time
+             * @description When this snapshot was committed
+             */
+            committedAt?: string;
+        };
+        /** @description Usage record details response */
+        UsageResponse: {
+            /**
+             * Format: uuid
+             * @description Usage record ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /** @description Metric name */
+            metric?: string;
+            /**
+             * Format: int64
+             * @description Current value
+             */
+            value?: number;
+            /**
+             * Format: date-time
+             * @description Last recorded timestamp
+             */
+            recordedAt?: string;
+        };
+        /** @description Limit check response for a metric */
+        LimitCheckResponse: {
+            /** @description Metric name */
+            metric?: string;
+            /**
+             * Format: int64
+             * @description Current usage value
+             */
+            current?: number;
+            /**
+             * Format: int64
+             * @description Plan limit (-1 = unlimited)
+             */
+            limit?: number;
+            /** @description Whether usage is within the limit */
+            withinLimit?: boolean;
+        };
+        /** @description Subscription plan details response */
+        PlanResponse: {
+            /**
+             * Format: uuid
+             * @description Plan ID
+             */
+            id?: string;
+            /** @description Plan name */
+            name?: string;
+            /** @description Plan display name */
+            displayName?: string;
+            /** @description Plan description */
+            description?: string;
+            /**
+             * Format: int32
+             * @description Maximum memories allowed (-1 = unlimited)
+             */
+            maxMemories?: number;
+            /**
+             * Format: int32
+             * @description Maximum entities allowed (-1 = unlimited)
+             */
+            maxEntities?: number;
+            /**
+             * Format: int32
+             * @description Maximum workspaces allowed (-1 = unlimited)
+             */
+            maxWorkspaces?: number;
+            /**
+             * Format: int32
+             * @description Maximum members per workspace (-1 = unlimited)
+             */
+            maxMembersPerWorkspace?: number;
+            /** @description Monthly price */
+            priceMonthly?: number;
+            /** @description Yearly price */
+            priceYearly?: number;
+            /** @description Whether the plan is active */
+            active?: boolean;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updatedAt?: string;
         };
         SearchResponse: {
             items?: components["schemas"]["SearchResultItem"][];
@@ -1592,6 +2348,248 @@ export interface operations {
             };
             /** @description Space not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getWorkspaceSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workspace settings retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSettingsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateWorkspaceSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWorkspaceSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Workspace settings updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSettingsResponse"];
+                };
+            };
+            /** @description Invalid request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getUserSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User settings retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSettingsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateUserPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserPreferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description User preferences updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSettingsResponse"];
+                };
+            };
+            /** @description Invalid request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAppConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Config key */
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description App config retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppConfigResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description App config not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    setAppConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Config key */
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetAppConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description App config saved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppConfigResponse"];
+                };
+            };
+            /** @description Invalid request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteAppConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Config key */
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description App config deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1844,6 +2842,57 @@ export interface operations {
             };
         };
     };
+    getPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preferences retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferenceResponse"];
+                };
+            };
+        };
+    };
+    updatePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePreferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description Preferences updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferenceResponse"];
+                };
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     updateBlocks: {
         parameters: {
             query?: never;
@@ -1876,6 +2925,54 @@ export interface operations {
                 content?: never;
             };
             /** @description Memory not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    changeWorkspacePlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Plan changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription or plan not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2349,6 +3446,51 @@ export interface operations {
             };
         };
     };
+    markAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notification marked as read */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Notification not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    markAllAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All notifications marked as read */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listByWorkspace: {
         parameters: {
             query: {
@@ -2751,6 +3893,84 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ClaimResponse"];
                 };
+            };
+        };
+    };
+    subscribeWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscribeRequest"];
+            };
+        };
+        responses: {
+            /** @description Subscription created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Invalid request or workspace already subscribed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    cancelSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscription cancelled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3190,6 +4410,33 @@ export interface operations {
             };
         };
     };
+    getAllAppConfigs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description App configs retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppConfigResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getRelationship: {
         parameters: {
             query?: never;
@@ -3248,6 +4495,90 @@ export interface operations {
             };
         };
     };
+    listNotifications: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notifications retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationResponse"][];
+                };
+            };
+        };
+    };
+    listUnreadNotifications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unread notifications retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationResponse"][];
+                };
+            };
+        };
+    };
+    getUnreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unread count retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountResponse"];
+                };
+            };
+        };
+    };
+    streamNotifications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                    "application/json": components["schemas"]["SseEmitter"];
+                };
+            };
+        };
+    };
     getMemory: {
         parameters: {
             query?: never;
@@ -3269,6 +4600,35 @@ export interface operations {
                 };
             };
             /** @description Memory not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listSnapshots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Snapshots retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotResponse"][];
+                };
+            };
+            /** @description Memory not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3415,6 +4775,167 @@ export interface operations {
             };
         };
     };
+    getUsage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usage records retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getWorkspaceSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscription found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    checkLimits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Limit checks retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitCheckResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plans retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Plan name */
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plan found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Plan not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     search: {
         parameters: {
             query: {
@@ -3538,6 +5059,33 @@ export interface operations {
                 content?: never;
             };
             /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notification deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Notification not found */
             404: {
                 headers: {
                     [name: string]: unknown;
