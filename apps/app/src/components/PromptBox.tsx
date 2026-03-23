@@ -31,9 +31,11 @@ import { useRef, useState } from 'react';
 export default function PromptBox({
     className,
     placeholder,
+    onSubmit,
 }: {
     className?: string;
     placeholder?: string;
+    onSubmit?: (query: string) => void;
 }) {
     const [input, setInput] = useState('');
     const [selectedModel, setSelectedModel] = useState('Local');
@@ -45,6 +47,8 @@ export default function PromptBox({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (input.trim()) {
+            onSubmit?.(input.trim());
+            setInput('');
         }
     };
 

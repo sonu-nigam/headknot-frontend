@@ -7,10 +7,21 @@ import MemoryPage from './pages/Memory/MemoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GoogleCallback from './pages/GoogleCallback';
 import { AccountPage } from './pages/Account/AccountPage';
+import { BillingPage } from './pages/Billing/BillingPage';
+import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import Archives from './pages/Archives';
-import Trash from './pages/Trash';
+
 import Workspace from './pages/Workspace';
 import Activity from './pages/Activity';
+import { IntegrationsPage } from './pages/Integrations/IntegrationsPage';
+import { ControlPanelPage } from './pages/ControlPanel/ControlPanelPage';
+import { SearchResultsPage } from './pages/Search/SearchResultsPage';
+import { KnowledgeResultsPage } from './pages/Search/KnowledgeResultsPage';
+import { CausalResultsPage } from './pages/Search/CausalResultsPage';
+import { ProceduralResultsPage } from './pages/Search/ProceduralResultsPage';
+import { ComparativeResultsPage } from './pages/Search/ComparativeResultsPage';
+import { ImpactAnalysisPage } from './pages/Search/ImpactAnalysisPage';
+import { ReasoningResultsPage } from './pages/Search/ReasoningResultsPage';
 
 export default function App() {
     const loc = useLocation();
@@ -43,6 +54,62 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/search"
+                element={
+                    <ProtectedRoute>
+                        <SearchResultsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/discover"
+                element={
+                    <ProtectedRoute>
+                        <KnowledgeResultsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/causal"
+                element={
+                    <ProtectedRoute>
+                        <CausalResultsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/procedural"
+                element={
+                    <ProtectedRoute>
+                        <ProceduralResultsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/compare"
+                element={
+                    <ProtectedRoute>
+                        <ComparativeResultsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/impact"
+                element={
+                    <ProtectedRoute>
+                        <ImpactAnalysisPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/reasoning"
+                element={
+                    <ProtectedRoute>
+                        <ReasoningResultsPage />
+                    </ProtectedRoute>
+                }
+            />
             <Route path="/not-found" element={<NotFoundPage />} />
             <Route
                 path="/account"
@@ -68,8 +135,39 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/control-panel"
+                element={
+                    <ProtectedRoute>
+                        <ControlPanelPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/integrations"
+                element={
+                    <ProtectedRoute>
+                        <IntegrationsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/billing"
+                element={
+                    <ProtectedRoute>
+                        <BillingPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/notifications"
+                element={
+                    <ProtectedRoute>
+                        <NotificationsPage />
+                    </ProtectedRoute>
+                }
+            />
             <Route path="/archives" element={<Archives />} />
-            <Route path="/trash" element={<Trash />} />
         </Routes>
     );
 }

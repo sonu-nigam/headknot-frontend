@@ -1,4 +1,9 @@
-import { HourglassIcon, LayoutDashboardIcon, TrashIcon } from 'lucide-react';
+import {
+    HourglassIcon,
+    LayoutDashboardIcon,
+    PanelTopIcon,
+    PlugIcon,
+} from 'lucide-react';
 import { PlatformNav } from '@/components/PlatformNav';
 import { WorkspaceSwitcher } from '@/components/sidebar/WorkspaceSwitcher';
 import {
@@ -23,14 +28,19 @@ const data = {
             icon: LayoutDashboardIcon,
         },
         {
-            title: 'Trash',
-            url: '/trash',
-            icon: TrashIcon,
-        },
-        {
             title: 'Activity',
             url: '/activity',
             icon: HourglassIcon,
+        },
+        {
+            title: 'Control Panel',
+            url: '/control-panel',
+            icon: PanelTopIcon,
+        },
+        {
+            title: 'Integrations',
+            url: '/integrations',
+            icon: PlugIcon,
         },
     ],
 };

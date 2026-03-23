@@ -102,6 +102,14 @@ export function SearchCommandDialog() {
         [navigate, setOpen],
     );
 
+    const handleSearchAll = useCallback(() => {
+        if (query.trim().length >= 2) {
+            setOpen(false);
+            navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+            setQuery('');
+        }
+    }, [query, navigate, setOpen]);
+
     return (
         <CommandDialog
             open={open}
@@ -118,6 +126,21 @@ export function SearchCommandDialog() {
                 <CommandList>
                     {debouncedQuery.length >= 2 && !isLoading && !searchResults?.items?.length && (
                         <CommandEmpty>No results found.</CommandEmpty>
+                    )}
+
+                    {/* View all results */}
+                    {debouncedQuery.length >= 2 && !isLoading && (
+                        <CommandGroup heading="Search">
+                            <CommandItem
+                                onSelect={handleSearchAll}
+                                className="gap-3"
+                            >
+                                <SearchIcon className="size-4" />
+                                <span className="font-medium">
+                                    View all results for &ldquo;{query}&rdquo;
+                                </span>
+                            </CommandItem>
+                        </CommandGroup>
                     )}
 
                     {/* Search results */}

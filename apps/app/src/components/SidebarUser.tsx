@@ -6,6 +6,7 @@ import {
     LogOutIcon,
     SparklesIcon,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import {
     Avatar,
@@ -35,6 +36,7 @@ export function SidebarUser() {
     const { isMobile } = useSidebar();
     const { data: userProfileData } = useQuery(profileQueryOptions);
     const logout = useLogout();
+    const navigate = useNavigate();
 
     const onLogout = () => {
         logout.mutate(undefined, {
@@ -111,15 +113,15 @@ export function SidebarUser() {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate('/account')}>
                                 <BadgeCheckIcon />
                                 Account
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate('/billing')}>
                                 <CreditCardIcon />
                                 Billing
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate('/notifications')}>
                                 <BellIcon />
                                 Notifications
                             </DropdownMenuItem>
