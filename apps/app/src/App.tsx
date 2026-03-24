@@ -22,6 +22,11 @@ import { ProceduralResultsPage } from './pages/Search/ProceduralResultsPage';
 import { ComparativeResultsPage } from './pages/Search/ComparativeResultsPage';
 import { ImpactAnalysisPage } from './pages/Search/ImpactAnalysisPage';
 import { ReasoningResultsPage } from './pages/Search/ReasoningResultsPage';
+import { ExtractionEnginePage } from './pages/ExtractionEngine/ExtractionEnginePage';
+import { ClaimsLibraryPage } from './pages/ClaimsLibrary/ClaimsLibraryPage';
+import { RefineKnowledgePage } from './pages/RefineKnowledge/RefineKnowledgePage';
+import { RelationshipGraphPage } from './pages/RelationshipGraph/RelationshipGraphPage';
+import { MemoryCenterPage } from './pages/MemoryCenter/MemoryCenterPage';
 
 export default function App() {
     const loc = useLocation();
@@ -107,6 +112,46 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <ReasoningResultsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/memory"
+                element={
+                    <ProtectedRoute>
+                        <MemoryCenterPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/memory/graph"
+                element={
+                    <ProtectedRoute>
+                        <RelationshipGraphPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/memory/extraction"
+                element={
+                    <ProtectedRoute>
+                        <ExtractionEnginePage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/memory/refine"
+                element={
+                    <ProtectedRoute>
+                        <RefineKnowledgePage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/memory/claims"
+                element={
+                    <ProtectedRoute>
+                        <ClaimsLibraryPage />
                     </ProtectedRoute>
                 }
             />

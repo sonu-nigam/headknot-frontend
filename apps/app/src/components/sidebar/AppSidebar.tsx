@@ -1,4 +1,5 @@
 import {
+    DatabaseIcon,
     HourglassIcon,
     LayoutDashboardIcon,
     PanelTopIcon,
@@ -26,6 +27,18 @@ const data = {
             title: 'Dashboard',
             url: '/',
             icon: LayoutDashboardIcon,
+        },
+        {
+            title: 'Memory',
+            url: '/memory',
+            icon: DatabaseIcon,
+            isActive: true,
+            items: [
+                { title: 'Relationship Graph', url: '/memory/graph' },
+                { title: 'Extraction Engine', url: '/memory/extraction' },
+                { title: 'Refine Knowledge', url: '/memory/refine' },
+                { title: 'Claim Library', url: '/memory/claims' },
+            ],
         },
         {
             title: 'Activity',
