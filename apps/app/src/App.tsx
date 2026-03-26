@@ -15,7 +15,7 @@ import Workspace from './pages/Workspace';
 import Activity from './pages/Activity';
 import { IntegrationsPage } from './pages/Integrations/IntegrationsPage';
 import { ControlPanelPage } from './pages/ControlPanel/ControlPanelPage';
-import { SearchResultsPage } from './pages/Search/SearchResultsPage';
+import { SearchRouter } from './pages/Search/SearchRouter';
 import { KnowledgeResultsPage } from './pages/Search/KnowledgeResultsPage';
 import { CausalResultsPage } from './pages/Search/CausalResultsPage';
 import { ProceduralResultsPage } from './pages/Search/ProceduralResultsPage';
@@ -63,7 +63,7 @@ export default function App() {
                 path="/search"
                 element={
                     <ProtectedRoute>
-                        <SearchResultsPage />
+                        <SearchRouter />
                     </ProtectedRoute>
                 }
             />
