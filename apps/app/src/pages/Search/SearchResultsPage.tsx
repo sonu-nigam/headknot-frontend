@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
-import { Checkbox } from '@workspace/ui/components/checkbox';
 import { useAppStore } from '@/state/store';
 import { searchQueryOptions } from '@/query/options/search';
 import { Schemas } from '@/types/api';
@@ -19,148 +18,11 @@ import {
     SearchIcon,
     LinkIcon,
     ExternalLink,
-    ListFilter,
     ArrowLeft,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
 
-// --- Lazy imports for answer type components ---
-import { KnowledgeResultsContent } from './KnowledgeResultsPage';
-import { CausalResultsContent } from './CausalResultsPage';
-import { ProceduralResultsContent } from './ProceduralResultsPage';
-import { ComparativeResultsContent } from './ComparativeResultsPage';
-import { ImpactAnalysisContent } from './ImpactAnalysisPage';
-import { ReasoningResultsContent } from './ReasoningResultsPage';
-
-// --- Response type → component map ---
-
-const RESPONSE_TYPE_MAP: Record<
-    string,
-    React.ComponentType<{ answer?: Schemas['SearchResponse']['answer'] }>
-> = {
-    KNOWLEDGE: KnowledgeResultsContent,
-    CAUSAL: CausalResultsContent,
-    PROCEDURAL: ProceduralResultsContent,
-    COMPARATIVE: ComparativeResultsContent,
-    IMPACT: ImpactAnalysisContent,
-    REASONING: ReasoningResultsContent,
-};
-
-// --- Filter Sidebar ---
-
-type SourceFilter = 'all' | 'jira' | 'github' | 'slack' | 'confluence';
-type TimeFilter = '24h' | '7d' | '30d';
-
-function FilterSidebar({
-    sources,
-    onSourcesChange,
-    timeFilter,
-    onTimeFilterChange,
-}: {
-    sources: SourceFilter[];
-    onSourcesChange: (sources: SourceFilter[]) => void;
-    timeFilter: TimeFilter;
-    onTimeFilterChange: (t: TimeFilter) => void;
-}) {
-    const toggleSource = (source: SourceFilter) => {
-        if (source === 'all') {
-            onSourcesChange(['all']);
-            return;
-        }
-        const without = sources.filter((s) => s !== 'all' && s !== source);
-        if (sources.includes(source)) {
-            onSourcesChange(without.length ? without : ['all']);
-        } else {
-            onSourcesChange([...without, source]);
-        }
-    };
-
-    const sourceOptions: { value: SourceFilter; label: string }[] = [
-        { value: 'all', label: 'All Sources' },
-        { value: 'jira', label: 'Jira Software' },
-        { value: 'github', label: 'GitHub' },
-        { value: 'slack', label: 'Slack' },
-        { value: 'confluence', label: 'Confluence' },
-    ];
-
-    const timeOptions: { value: TimeFilter; label: string }[] = [
-        { value: '24h', label: 'Past 24h' },
-        { value: '7d', label: 'Past 7 days' },
-        { value: '30d', label: 'Past 30 days' },
-    ];
-
-    return (
-        <aside className="hidden md:flex flex-col w-64 shrink-0 border-r p-6 gap-8">
-            <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-                    Sources
-                </h3>
-                <div className="space-y-3">
-                    {sourceOptions.map((opt) => (
-                        <label
-                            key={opt.value}
-                            className="flex items-center gap-3 cursor-pointer group"
-                        >
-                            <Checkbox
-                                checked={
-                                    opt.value === 'all'
-                                        ? sources.includes('all')
-                                        : sources.includes(opt.value)
-                                }
-                                onCheckedChange={() => toggleSource(opt.value)}
-                            />
-                            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                                {opt.label}
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-            <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-                    Timeframe
-                </h3>
-                <div className="space-y-3">
-                    {timeOptions.map((opt) => (
-                        <label
-                            key={opt.value}
-                            className="flex items-center gap-3 cursor-pointer group"
-                        >
-                            <input
-                                type="radio"
-                                name="timeFilter"
-                                checked={timeFilter === opt.value}
-                                onChange={() => onTimeFilterChange(opt.value)}
-                                className="size-4 border-border text-primary focus:ring-primary/20"
-                            />
-                            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                                {opt.label}
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-            <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-                    File Type
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                    {['Code', 'Doc', 'Ticket'].map((type) => (
-                        <Badge
-                            key={type}
-                            variant="secondary"
-                            className="text-[10px] uppercase"
-                        >
-                            {type}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-        </aside>
-    );
-}
-
-// --- Primary Answer (default, when no responseType match) ---
+// --- Primary Answer (default fallback when no responseType) ---
 
 function PrimaryAnswer({
     query,
@@ -315,7 +177,7 @@ function ResultItem({
     );
 }
 
-// --- Main Page ---
+// --- Main Page: Alternatives list + default answer fallback ---
 
 export function SearchResultsPage() {
     const [searchParams] = useSearchParams();
@@ -324,8 +186,6 @@ export function SearchResultsPage() {
     const navigate = useNavigate();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const [sources, setSources] = useState<SourceFilter[]>(['all']);
-    const [timeFilter, setTimeFilter] = useState<TimeFilter>('7d');
     const [limit, setLimit] = useState(10);
 
     const { data: searchResults, isLoading } = useQuery({
@@ -338,13 +198,7 @@ export function SearchResultsPage() {
     });
 
     const answer = searchResults?.answer;
-    const hasAnswer = !!answer?.text;
-    const responseType = answer?.responseType?.toUpperCase();
     const alternatives = searchResults?.alternatives ?? [];
-    const hasNoResults = !hasAnswer && alternatives.length === 0;
-
-    // Get the specialized content component based on responseType
-    const AnswerContent = responseType ? RESPONSE_TYPE_MAP[responseType] : undefined;
 
     const handleResultClick = (item: Schemas['SearchResultItem']) => {
         if (item.entityType?.toUpperCase() === 'MEMORY' && item.entityId) {
@@ -356,137 +210,116 @@ export function SearchResultsPage() {
         <AppLayout
             breadcrumbs={[
                 { label: 'Home', href: '/' },
-                { label: isAlternativesView ? 'Alternative Results' : 'Search Results' },
+                {
+                    label: isAlternativesView
+                        ? 'Alternative Results'
+                        : 'Search Results',
+                },
             ]}
         >
-            <div className="flex min-h-0 flex-1">
-                {/* Filter Sidebar */}
-                <FilterSidebar
-                    sources={sources}
-                    onSourcesChange={setSources}
-                    timeFilter={timeFilter}
-                    onTimeFilterChange={setTimeFilter}
-                />
-
-                {/* Main Content */}
-                <main className="flex-1 min-w-0 overflow-y-auto relative">
-                    <div className="max-w-5xl mx-auto space-y-8 p-8 md:p-12 pb-32">
-                        {/* Loading */}
-                        {isLoading && (
-                            <div className="flex items-center justify-center py-20">
-                                <div className="flex flex-col items-center gap-4 text-muted-foreground">
-                                    <Loader2 className="size-8 animate-spin" />
-                                    <p className="text-sm font-medium">Searching...</p>
-                                </div>
+            <main className="flex-1 overflow-y-auto relative">
+                <div className="max-w-4xl mx-auto space-y-8 p-8 md:p-12 pb-32">
+                    {/* Loading */}
+                    {isLoading && (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                                <Loader2 className="size-8 animate-spin" />
+                                <p className="text-sm font-medium">
+                                    Searching...
+                                </p>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {/* ===== ALTERNATIVES VIEW ===== */}
-                        {!isLoading && isAlternativesView && (
-                            <>
+                    {!isLoading && (
+                        <>
+                            {/* Back button for alternatives view */}
+                            {isAlternativesView && (
                                 <div className="flex items-center gap-3">
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         className="gap-1"
                                         onClick={() =>
-                                            navigate(`/search?q=${encodeURIComponent(query)}`)
+                                            navigate(
+                                                `/search?q=${encodeURIComponent(query)}`
+                                            )
                                         }
                                     >
                                         <ArrowLeft className="size-4" />
                                         Back to answer
                                     </Button>
                                 </div>
+                            )}
 
+                            {/* Alternatives view header */}
+                            {isAlternativesView && (
                                 <section className="p-8 rounded-xl bg-gradient-to-br from-muted to-muted/50 border">
                                     <h2 className="text-xl font-bold">
                                         Alternative Results
                                     </h2>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Other relevant results for &ldquo;{query}&rdquo; from your knowledge base.
+                                        Other relevant results for &ldquo;
+                                        {query}&rdquo; from your knowledge base.
                                     </p>
                                 </section>
+                            )}
 
-                                <div className="space-y-2">
-                                    <h3 className="text-sm font-bold text-muted-foreground px-2">
-                                        {alternatives.length} Alternative{alternatives.length !== 1 ? 's' : ''}
-                                    </h3>
+                            {/* Default answer (when SearchRouter falls through with no responseType) */}
+                            {!isAlternativesView && query && (
+                                <PrimaryAnswer
+                                    query={query}
+                                    answer={answer}
+                                    onSourceClick={handleResultClick}
+                                />
+                            )}
 
-                                    {alternatives.length === 0 && (
-                                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                                            <SearchIcon className="size-10 mb-4" />
-                                            <p className="text-sm font-medium">
-                                                No alternative results available.
-                                            </p>
-                                        </div>
-                                    )}
+                            {/* Alternatives list */}
+                            <div className="space-y-2">
+                                <h3 className="text-sm font-bold text-muted-foreground px-2">
+                                    {alternatives.length} Alternative
+                                    {alternatives.length !== 1 ? 's' : ''}
+                                </h3>
 
-                                    {alternatives.map((item) => (
-                                        <ResultItem
-                                            key={item.entityId}
-                                            item={item}
-                                            onClick={() => handleResultClick(item)}
-                                        />
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* ===== PRIMARY ANSWER VIEW ===== */}
-                        {!isLoading && !isAlternativesView && query && (
-                            <>
-                                {/* No results at all */}
-                                {hasNoResults && (
-                                    <section className="relative p-8 rounded-xl bg-muted border overflow-hidden">
-                                        <div className="flex flex-col items-center text-center space-y-3">
-                                            <SearchIcon className="size-10 text-muted-foreground" />
-                                            <h2 className="text-xl font-bold">
-                                                No results found for &ldquo;{query}&rdquo;
-                                            </h2>
-                                            <p className="text-sm text-muted-foreground max-w-md">
-                                                We couldn't find a direct answer. Try
-                                                rephrasing your query.
-                                            </p>
-                                        </div>
-                                    </section>
+                                {alternatives.length === 0 && (
+                                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                                        <SearchIcon className="size-10 mb-4" />
+                                        <p className="text-sm font-medium">
+                                            No alternative results available.
+                                        </p>
+                                    </div>
                                 )}
 
-                                {/* Specialized answer content (rendered as component inside this page) */}
-                                {hasAnswer && AnswerContent && (
-                                    <AnswerContent answer={answer} />
-                                )}
-
-                                {/* Default answer (no specialized responseType) */}
-                                {hasAnswer && !AnswerContent && (
-                                    <PrimaryAnswer
-                                        query={query}
-                                        answer={answer}
-                                        onSourceClick={handleResultClick}
+                                {alternatives.map((item) => (
+                                    <ResultItem
+                                        key={item.entityId}
+                                        item={item}
+                                        onClick={() =>
+                                            handleResultClick(item)
+                                        }
                                     />
-                                )}
+                                ))}
+                            </div>
 
-                                {/* View alternatives button */}
-                                {alternatives.length > 0 && (
-                                    <div className="flex justify-center py-4">
+                            {/* Load More */}
+                            {alternatives.length > 0 &&
+                                alternatives.length >= limit && (
+                                    <div className="flex justify-center pt-8">
                                         <Button
-                                            variant="outline"
-                                            className="gap-2 rounded-full"
+                                            variant="secondary"
+                                            className="rounded-full"
                                             onClick={() =>
-                                                navigate(
-                                                    `/search?q=${encodeURIComponent(query)}&view=alternatives`
-                                                )
+                                                setLimit((l) => l + 10)
                                             }
                                         >
-                                            <ListFilter className="size-4" />
-                                            View {alternatives.length} Alternative Result{alternatives.length !== 1 ? 's' : ''}
+                                            Load more results
                                         </Button>
                                     </div>
                                 )}
-                            </>
-                        )}
-                    </div>
-                </main>
-            </div>
+                        </>
+                    )}
+                </div>
+            </main>
             <StickyPromptBox />
         </AppLayout>
     );
