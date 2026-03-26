@@ -5,14 +5,12 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Checkbox } from '@workspace/ui/components/checkbox';
-import { Label } from '@workspace/ui/components/label';
 import { useAppStore } from '@/state/store';
 import { searchQueryOptions } from '@/query/options/search';
 import { Schemas } from '@/types/api';
 import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 import {
     Sparkles,
-    CheckCircle,
     FileText,
     Code,
     BookOpen,
@@ -21,8 +19,32 @@ import {
     SearchIcon,
     LinkIcon,
     ExternalLink,
+    ListFilter,
+    ArrowLeft,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+
+// --- Lazy imports for answer type components ---
+import { KnowledgeResultsContent } from './KnowledgeResultsPage';
+import { CausalResultsContent } from './CausalResultsPage';
+import { ProceduralResultsContent } from './ProceduralResultsPage';
+import { ComparativeResultsContent } from './ComparativeResultsPage';
+import { ImpactAnalysisContent } from './ImpactAnalysisPage';
+import { ReasoningResultsContent } from './ReasoningResultsPage';
+
+// --- Response type → component map ---
+
+const RESPONSE_TYPE_MAP: Record<
+    string,
+    React.ComponentType<{ answer?: Schemas['SearchResponse']['answer'] }>
+> = {
+    KNOWLEDGE: KnowledgeResultsContent,
+    CAUSAL: CausalResultsContent,
+    PROCEDURAL: ProceduralResultsContent,
+    COMPARATIVE: ComparativeResultsContent,
+    IMPACT: ImpactAnalysisContent,
+    REASONING: ReasoningResultsContent,
+};
 
 // --- Filter Sidebar ---
 
@@ -138,7 +160,7 @@ function FilterSidebar({
     );
 }
 
-// --- Primary Answer ---
+// --- Primary Answer (default, when no responseType match) ---
 
 function PrimaryAnswer({
     query,
@@ -167,8 +189,6 @@ function PrimaryAnswer({
                         <p className="text-base md:text-lg leading-relaxed whitespace-pre-line">
                             {answer.text}
                         </p>
-
-                        {/* Sources */}
                         {answer.sources && answer.sources.length > 0 && (
                             <div className="pt-4 border-t border-primary/10 space-y-2">
                                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -178,9 +198,7 @@ function PrimaryAnswer({
                                     {answer.sources.map((source, i) => (
                                         <button
                                             key={source.entityId ?? i}
-                                            onClick={() =>
-                                                onSourceClick(source)
-                                            }
+                                            onClick={() => onSourceClick(source)}
                                             className="flex items-center gap-2 bg-card px-3 py-2 rounded-lg shadow-sm border hover:border-primary/30 transition-colors cursor-pointer text-left"
                                         >
                                             <LinkIcon className="size-3 text-primary shrink-0" />
@@ -197,9 +215,7 @@ function PrimaryAnswer({
                     <>
                         <h2 className="text-xl md:text-2xl font-semibold leading-relaxed">
                             Results for &ldquo;
-                            <span className="text-primary font-bold">
-                                {query}
-                            </span>
+                            <span className="text-primary font-bold">{query}</span>
                             &rdquo;
                         </h2>
                         <p className="text-muted-foreground leading-relaxed">
@@ -274,10 +290,7 @@ function ResultItem({
                         {item.entityId && ` • ${item.entityId.slice(0, 8)}`}
                     </span>
                     {item.entitySubtype && (
-                        <Badge
-                            variant="secondary"
-                            className="text-[10px] py-0"
-                        >
+                        <Badge variant="secondary" className="text-[10px] py-0">
                             {item.entitySubtype}
                         </Badge>
                     )}
@@ -299,25 +312,6 @@ function ResultItem({
             </div>
             <ExternalLink className="size-4 text-muted-foreground/30 group-hover:text-muted-foreground mt-1 shrink-0 transition-colors" />
         </div>
-    );
-}
-
-// --- No Results Banner ---
-
-function NoResultsBanner({ query }: { query: string }) {
-    return (
-        <section className="relative p-8 rounded-xl bg-muted border overflow-hidden">
-            <div className="flex flex-col items-center text-center space-y-3">
-                <SearchIcon className="size-10 text-muted-foreground" />
-                <h2 className="text-xl font-bold">
-                    No results found for &ldquo;{query}&rdquo;
-                </h2>
-                <p className="text-sm text-muted-foreground max-w-md">
-                    We couldn't find a direct answer. Try rephrasing your query
-                    or check the alternative results below.
-                </p>
-            </div>
-        </section>
     );
 }
 
@@ -345,17 +339,12 @@ export function SearchResultsPage() {
 
     const answer = searchResults?.answer;
     const hasAnswer = !!answer?.text;
+    const responseType = answer?.responseType?.toUpperCase();
     const alternatives = searchResults?.alternatives ?? [];
-    const results = searchResults?.items ?? [];
-    const hasNoResults = !hasAnswer && alternatives.length === 0 && results.length === 0;
+    const hasNoResults = !hasAnswer && alternatives.length === 0;
 
-    // In alternatives view, always show alternatives
-    // Otherwise show alternatives if available, fall back to items
-    const displayResults = isAlternativesView
-        ? alternatives
-        : alternatives.length > 0
-          ? alternatives
-          : results;
+    // Get the specialized content component based on responseType
+    const AnswerContent = responseType ? RESPONSE_TYPE_MAP[responseType] : undefined;
 
     const handleResultClick = (item: Schemas['SearchResultItem']) => {
         if (item.entityType?.toUpperCase() === 'MEMORY' && item.entityId) {
@@ -381,95 +370,120 @@ export function SearchResultsPage() {
 
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 overflow-y-auto relative">
-                    <div className="max-w-4xl mx-auto space-y-10 p-8 md:p-12 pb-32">
-                        {/* No Results / Primary Answer */}
-                        {!isLoading && query && hasNoResults && (
-                            <NoResultsBanner query={query} />
+                    <div className="max-w-5xl mx-auto space-y-8 p-8 md:p-12 pb-32">
+                        {/* Loading */}
+                        {isLoading && (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                                    <Loader2 className="size-8 animate-spin" />
+                                    <p className="text-sm font-medium">Searching...</p>
+                                </div>
+                            </div>
                         )}
 
-                        {!isLoading && query && !hasNoResults && !isAlternativesView && (
-                            <PrimaryAnswer
-                                query={query}
-                                answer={answer}
-                                onSourceClick={handleResultClick}
-                            />
-                        )}
+                        {/* ===== ALTERNATIVES VIEW ===== */}
+                        {!isLoading && isAlternativesView && (
+                            <>
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-1"
+                                        onClick={() =>
+                                            navigate(`/search?q=${encodeURIComponent(query)}`)
+                                        }
+                                    >
+                                        <ArrowLeft className="size-4" />
+                                        Back to answer
+                                    </Button>
+                                </div>
 
-                        {isAlternativesView && query && (
-                            <section className="relative p-8 rounded-xl bg-gradient-to-br from-muted to-muted/50 border overflow-hidden">
-                                <div className="space-y-2">
+                                <section className="p-8 rounded-xl bg-gradient-to-br from-muted to-muted/50 border">
                                     <h2 className="text-xl font-bold">
                                         Alternative Results
                                     </h2>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground mt-1">
                                         Other relevant results for &ldquo;{query}&rdquo; from your knowledge base.
                                     </p>
+                                </section>
+
+                                <div className="space-y-2">
+                                    <h3 className="text-sm font-bold text-muted-foreground px-2">
+                                        {alternatives.length} Alternative{alternatives.length !== 1 ? 's' : ''}
+                                    </h3>
+
+                                    {alternatives.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                                            <SearchIcon className="size-10 mb-4" />
+                                            <p className="text-sm font-medium">
+                                                No alternative results available.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {alternatives.map((item) => (
+                                        <ResultItem
+                                            key={item.entityId}
+                                            item={item}
+                                            onClick={() => handleResultClick(item)}
+                                        />
+                                    ))}
                                 </div>
-                            </section>
+                            </>
                         )}
 
-                        {/* Results List */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-sm font-bold text-muted-foreground px-2">
-                                    {isLoading
-                                        ? 'Searching...'
-                                        : isAlternativesView
-                                          ? `${alternatives.length} Alternative${alternatives.length !== 1 ? 's' : ''}`
-                                          : `${displayResults.length} Result${displayResults.length !== 1 ? 's' : ''} found`}
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground">
-                                        Sort by:
-                                    </span>
-                                    <button className="text-xs font-semibold flex items-center gap-1">
-                                        Relevance
-                                    </button>
-                                </div>
-                            </div>
-
-                            {isLoading && (
-                                <div className="flex items-center justify-center py-16">
-                                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                                </div>
-                            )}
-
-                            {!isLoading &&
-                                displayResults.length === 0 &&
-                                query &&
-                                !hasNoResults && (
-                                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                                        <SearchIcon className="size-10 mb-4" />
-                                        <p className="text-sm font-medium">
-                                            No alternative results available.
-                                        </p>
-                                    </div>
+                        {/* ===== PRIMARY ANSWER VIEW ===== */}
+                        {!isLoading && !isAlternativesView && query && (
+                            <>
+                                {/* No results at all */}
+                                {hasNoResults && (
+                                    <section className="relative p-8 rounded-xl bg-muted border overflow-hidden">
+                                        <div className="flex flex-col items-center text-center space-y-3">
+                                            <SearchIcon className="size-10 text-muted-foreground" />
+                                            <h2 className="text-xl font-bold">
+                                                No results found for &ldquo;{query}&rdquo;
+                                            </h2>
+                                            <p className="text-sm text-muted-foreground max-w-md">
+                                                We couldn't find a direct answer. Try
+                                                rephrasing your query.
+                                            </p>
+                                        </div>
+                                    </section>
                                 )}
 
-                            {displayResults.map((item) => (
-                                <ResultItem
-                                    key={item.entityId}
-                                    item={item}
-                                    onClick={() => handleResultClick(item)}
-                                />
-                            ))}
-                        </div>
+                                {/* Specialized answer content (rendered as component inside this page) */}
+                                {hasAnswer && AnswerContent && (
+                                    <AnswerContent answer={answer} />
+                                )}
 
-                        {/* Load More */}
-                        {displayResults.length > 0 &&
-                            displayResults.length >= limit && (
-                                <div className="flex justify-center pt-8">
-                                    <Button
-                                        variant="secondary"
-                                        className="rounded-full"
-                                        onClick={() =>
-                                            setLimit((l) => l + 10)
-                                        }
-                                    >
-                                        Load more results
-                                    </Button>
-                                </div>
-                            )}
+                                {/* Default answer (no specialized responseType) */}
+                                {hasAnswer && !AnswerContent && (
+                                    <PrimaryAnswer
+                                        query={query}
+                                        answer={answer}
+                                        onSourceClick={handleResultClick}
+                                    />
+                                )}
+
+                                {/* View alternatives button */}
+                                {alternatives.length > 0 && (
+                                    <div className="flex justify-center py-4">
+                                        <Button
+                                            variant="outline"
+                                            className="gap-2 rounded-full"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/search?q=${encodeURIComponent(query)}&view=alternatives`
+                                                )
+                                            }
+                                        >
+                                            <ListFilter className="size-4" />
+                                            View {alternatives.length} Alternative Result{alternatives.length !== 1 ? 's' : ''}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </main>
             </div>

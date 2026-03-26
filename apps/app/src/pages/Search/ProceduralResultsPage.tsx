@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Schemas } from '@/types/api';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -433,5 +434,44 @@ export function ProceduralResultsPage() {
             </div>
             <StickyPromptBox />
         </AppLayout>
+    );
+}
+
+// --- Content-only component for embedding inside SearchResultsPage ---
+
+export function ProceduralResultsContent({
+    answer,
+}: {
+    answer?: Schemas['SearchResponse']['answer'];
+}) {
+    return (
+        <div className="space-y-8">
+            <div>
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <span className="text-xs font-medium tracking-widest uppercase">
+                        Query Intent: Procedural
+                    </span>
+                </div>
+                <h2 className="text-2xl font-extrabold tracking-tight mb-4">
+                    Procedural Results (Guide Intent)
+                </h2>
+                {answer?.text && (
+                    <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                        {answer.text}
+                    </p>
+                )}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <section className="lg:col-span-8 space-y-6">
+                    <ExecutionGuide />
+                    <DocumentationLinks />
+                </section>
+                <aside className="lg:col-span-4 space-y-6">
+                    <SourceVerification />
+                    <Prerequisites />
+                    <Troubleshooting />
+                </aside>
+            </div>
+        </div>
     );
 }

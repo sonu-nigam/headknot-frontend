@@ -1,5 +1,6 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Schemas } from '@/types/api';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -518,5 +519,32 @@ export function ComparativeResultsPage() {
             </div>
             <StickyPromptBox />
         </AppLayout>
+    );
+}
+
+// --- Content-only component for embedding inside SearchResultsPage ---
+
+export function ComparativeResultsContent({
+    answer,
+}: {
+    answer?: Schemas['SearchResponse']['answer'];
+}) {
+    return (
+        <div className="space-y-8">
+            <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight">
+                    Comparative Results
+                </h2>
+                {answer?.text && (
+                    <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                        {answer.text}
+                    </p>
+                )}
+            </div>
+            <SynthesisRecommendation />
+            <TradeoffMatrix />
+            <EvidenceMatrix />
+            <ProsAndCons />
+        </div>
     );
 }

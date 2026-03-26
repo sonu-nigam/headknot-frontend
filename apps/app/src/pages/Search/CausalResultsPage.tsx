@@ -429,3 +429,32 @@ export function CausalResultsPage() {
         </AppLayout>
     );
 }
+
+// --- Content-only component for embedding inside SearchResultsPage ---
+
+export function CausalResultsContent({
+    answer,
+}: {
+    answer?: Schemas['SearchResponse']['answer'];
+}) {
+    return (
+        <div className="space-y-10">
+            <section>
+                <h2 className="text-2xl font-extrabold tracking-tighter mb-2">
+                    Causal Results (Reasoning Intent)
+                </h2>
+                {answer?.text && (
+                    <p className="text-muted-foreground max-w-2xl text-lg">
+                        {answer.text}
+                    </p>
+                )}
+            </section>
+            <CausalChainMap />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <ConflictLog />
+                <DecisionMemory />
+            </div>
+            <FooterStats />
+        </div>
+    );
+}

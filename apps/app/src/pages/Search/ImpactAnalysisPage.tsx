@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Schemas } from '@/types/api';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -520,5 +521,40 @@ export function ImpactAnalysisPage() {
             </div>
             <StickyPromptBox />
         </AppLayout>
+    );
+}
+
+// --- Content-only component for embedding inside SearchResultsPage ---
+
+export function ImpactAnalysisContent({
+    answer,
+}: {
+    answer?: Schemas['SearchResponse']['answer'];
+}) {
+    return (
+        <div className="space-y-8">
+            <div>
+                <Badge variant="destructive" className="text-[10px] uppercase tracking-wider mb-2">
+                    Critical Impact
+                </Badge>
+                <h2 className="text-2xl font-extrabold tracking-tight">
+                    Impact Analysis
+                </h2>
+                {answer?.text && (
+                    <p className="text-muted-foreground max-w-2xl mt-2 leading-relaxed">
+                        {answer.text}
+                    </p>
+                )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <RiskScoreCard />
+                <AffectedEntities />
+                <CausalityMap />
+                <div className="md:col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <ImpactEvidencePanel />
+                    <ContradictionsPanel />
+                </div>
+            </div>
+        </div>
     );
 }

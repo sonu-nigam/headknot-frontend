@@ -524,3 +524,22 @@ export function KnowledgeResultsPage() {
         </AppLayout>
     );
 }
+
+// --- Content-only component for embedding inside SearchResultsPage ---
+
+export function KnowledgeResultsContent({
+    answer,
+}: {
+    answer?: Schemas['SearchResponse']['answer'];
+}) {
+    return (
+        <div className="space-y-10">
+            <SynthesizedAnswer
+                query=""
+                answer={answer?.text}
+                sources={answer?.sources ?? []}
+            />
+            <InferredNodes query="" />
+        </div>
+    );
+}

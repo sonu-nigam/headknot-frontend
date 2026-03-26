@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Schemas } from '@/types/api';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -392,5 +393,37 @@ export function ReasoningResultsPage() {
             </div>
             <StickyPromptBox />
         </AppLayout>
+    );
+}
+
+// --- Content-only component for embedding inside SearchResultsPage ---
+
+export function ReasoningResultsContent({
+    answer,
+}: {
+    answer?: Schemas['SearchResponse']['answer'];
+}) {
+    return (
+        <div className="space-y-10 max-w-5xl mx-auto">
+            <section>
+                <h2 className="text-2xl font-extrabold tracking-tight mb-4">
+                    Reasoning Results
+                </h2>
+                {answer?.text && (
+                    <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                        {answer.text}
+                    </p>
+                )}
+            </section>
+            <ReasoningPath />
+            <div className="grid grid-cols-12 gap-6">
+                <TimelineOfClaims />
+                <div className="col-span-12 lg:col-span-4 space-y-6">
+                    <RelationalCluster />
+                    <EvidenceMetric />
+                    <SourcesPanel />
+                </div>
+            </div>
+        </div>
     );
 }
