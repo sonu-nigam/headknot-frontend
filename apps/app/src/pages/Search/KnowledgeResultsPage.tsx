@@ -33,10 +33,12 @@ import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 function SynthesizedAnswer({
     query,
-    results,
+    answer,
+    sources,
 }: {
     query: string;
-    results: Schemas['SearchResultItem'][];
+    answer?: string;
+    sources: Schemas['SearchResultItem'][];
 }) {
     return (
         <section className="relative">
@@ -52,33 +54,34 @@ function SynthesizedAnswer({
                     <h2 className="text-2xl font-bold tracking-tight">
                         {query || 'Knowledge Discovery'}
                     </h2>
-                    <div className="space-y-4 text-muted-foreground leading-relaxed max-w-4xl">
-                        <p className="text-lg">
-                            Found{' '}
-                            <span className="font-semibold text-foreground">
-                                {results.length} relevant results
-                            </span>{' '}
-                            across your connected knowledge sources. Results are
-                            synthesized and ranked by contextual relevance to
-                            your query.
+                    {answer ? (
+                        <p className="text-lg leading-relaxed">
+                            {answer}
                         </p>
-                    </div>
-                    <div className="pt-6 border-t flex flex-wrap gap-3">
-                        <span className="text-xs font-bold text-muted-foreground mr-2 self-center">
-                            SOURCES:
-                        </span>
-                        {results.slice(0, 3).map((item, i) => (
-                            <div
-                                key={item.entityId ?? i}
-                                className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg border cursor-pointer hover:bg-muted/80 transition-colors"
-                            >
-                                <FileText className="size-3 text-primary" />
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    [{i + 1}] {item.title ?? 'Untitled'}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                    ) : (
+                        <p className="text-lg text-muted-foreground leading-relaxed">
+                            Searching across your connected knowledge sources
+                            for relevant results.
+                        </p>
+                    )}
+                    {sources.length > 0 && (
+                        <div className="pt-6 border-t flex flex-wrap gap-3">
+                            <span className="text-xs font-bold text-muted-foreground mr-2 self-center">
+                                SOURCES:
+                            </span>
+                            {sources.slice(0, 5).map((item, i) => (
+                                <div
+                                    key={item.entityId ?? i}
+                                    className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg border cursor-pointer hover:bg-muted/80 transition-colors"
+                                >
+                                    <FileText className="size-3 text-primary" />
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                        [{i + 1}] {item.title ?? 'Untitled'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
@@ -444,7 +447,11 @@ export function KnowledgeResultsPage() {
                 <div className="pt-8 pb-32 px-8 md:px-12 max-w-6xl mx-auto space-y-10">
                     {/* Synthesized Answer */}
                     {query && (
-                        <SynthesizedAnswer query={query} results={answer?.sources ?? results} />
+                        <SynthesizedAnswer
+                            query={query}
+                            answer={answer?.text}
+                            sources={answer?.sources ?? []}
+                        />
                     )}
 
                     {/* Loading State */}
