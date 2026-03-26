@@ -2330,15 +2330,179 @@ export interface components {
             answer?: {
                 /** @description Synthesized answer text */
                 text?: string;
-                /** @description Response type determining which UI to render (e.g. SEARCH, KNOWLEDGE, CAUSAL, PROCEDURAL, COMPARATIVE, IMPACT, REASONING) */
+                /** @description Response type determining which UI to render (KNOWLEDGE, CAUSAL, PROCEDURAL, COMPARATIVE, IMPACT, REASONING) */
                 responseType?: string;
                 /** @description Sources referenced in the answer */
                 sources?: components["schemas"]["SearchResultItem"][];
+                /** @description Response-type-specific structured data */
+                data?: components["schemas"]["SearchAnswerData"];
             };
             /** @description Alternative results */
             alternatives?: components["schemas"]["SearchResultItem"][];
             /** @description Search result items */
             items?: components["schemas"]["SearchResultItem"][];
+        };
+        /** @description Response-type-specific structured data for search answers */
+        SearchAnswerData: {
+            /** @description KNOWLEDGE: Follow-up question suggestions */
+            suggestions?: string[];
+            /** @description CAUSAL: Ordered causal chain stages */
+            causalStages?: {
+                label?: string;
+                title?: string;
+                description?: string;
+                sourceTag?: string;
+                sourceLabel?: string;
+            }[];
+            /** @description CAUSAL: Active and resolved conflicts */
+            conflicts?: {
+                type?: string;
+                label?: string;
+                title?: string;
+                description?: string;
+                timeAgo?: string;
+            }[];
+            /** @description CAUSAL/IMPACT: Evidence items */
+            evidence?: {
+                source?: string;
+                date?: string;
+                quote?: string;
+                author?: string;
+                hookLabel?: string;
+                attachment?: string;
+                badge?: string;
+                title?: string;
+                description?: string;
+            }[];
+            /** @description CAUSAL: Summary statistics */
+            stats?: {
+                reasoningDepth?: number;
+                causalConfidence?: number;
+                activeConflicts?: number;
+                knowledgeNodes?: number;
+            };
+            /** @description PROCEDURAL: Estimated time */
+            estimatedTime?: string;
+            /** @description PROCEDURAL: Execution steps */
+            steps?: {
+                number?: number;
+                title?: string;
+                description?: string;
+                codeSnippet?: string;
+                tags?: string[];
+            }[];
+            /** @description PROCEDURAL: Documentation links */
+            documentation?: {
+                title?: string;
+                description?: string;
+            }[];
+            /** @description PROCEDURAL: Source verification per step */
+            sourceVerification?: {
+                stepLabel?: string;
+                sourceType?: string;
+                title?: string;
+                meta?: string;
+            }[];
+            /** @description PROCEDURAL: Prerequisite checklist */
+            prerequisites?: {
+                label?: string;
+                checked?: boolean;
+            }[];
+            /** @description PROCEDURAL: Troubleshooting items */
+            troubleshooting?: {
+                title?: string;
+                description?: string;
+            }[];
+            /** @description COMPARATIVE: Synthesis recommendation */
+            recommendation?: {
+                title?: string;
+                confidence?: number;
+                description?: string;
+                badges?: string[];
+            };
+            /** @description COMPARATIVE: Options being compared */
+            options?: string[];
+            /** @description COMPARATIVE: Recommended option */
+            winner?: string;
+            /** @description COMPARATIVE: Trade-off matrix rows */
+            matrix?: {
+                attribute?: string;
+                linkCount?: number;
+                values?: {
+                    label?: string;
+                    description?: string;
+                }[];
+            }[];
+            /** @description COMPARATIVE: Pros per option */
+            pros?: {
+                option?: string;
+                title?: string;
+                description?: string;
+            }[];
+            /** @description COMPARATIVE: Cons per option */
+            cons?: {
+                option?: string;
+                title?: string;
+                description?: string;
+            }[];
+            /** @description IMPACT: Risk score */
+            riskScore?: {
+                score?: number;
+                maxScore?: number;
+                stabilityChange?: number;
+                description?: string;
+            };
+            /** @description IMPACT: Affected entity statistics */
+            affectedEntities?: {
+                icon?: string;
+                value?: string;
+                label?: string;
+            }[];
+            /** @description IMPACT: Causality dependency map */
+            causalityMap?: {
+                entryPoint?: { label?: string; title?: string };
+                dependencies?: { label?: string; title?: string }[];
+                failurePoints?: { label?: string; title?: string; detail?: string }[];
+                evidenceNodes?: { source?: string; detail?: string }[];
+            };
+            /** @description IMPACT: Structural contradictions */
+            contradictions?: {
+                tag?: string;
+                title?: string;
+                claim?: string;
+                contradiction?: string;
+                impactedOrg?: string;
+            }[];
+            /** @description REASONING: Ordered reasoning steps */
+            reasoningSteps?: {
+                stepNumber?: string;
+                stepLabel?: string;
+                title?: string;
+                description?: string;
+                highlighted?: boolean;
+            }[];
+            /** @description REASONING: Chronological claims timeline */
+            timeline?: {
+                date?: string;
+                source?: string;
+                badge?: string;
+                quote?: string;
+                tags?: string[];
+            }[];
+            /** @description REASONING: Relational cluster graph */
+            relationalCluster?: {
+                centralNode?: string;
+                relatedNodes?: string[];
+                targetNode?: string;
+            };
+            /** @description REASONING: Evidence metrics */
+            metrics?: {
+                label?: string;
+                value?: string;
+                percent?: number;
+            }[];
+            /** @description REASONING: Source references */
+            references?: string[];
         };
         SearchResultItem: {
             entityType?: string;

@@ -310,21 +310,14 @@ function TopologyCard() {
 
 // --- Inferred Nodes (follow-up questions) ---
 
-function InferredNodes({ query }: { query: string }) {
-    const suggestions = [
-        {
-            icon: <BarChart3 className="size-4" />,
-            text: `How does this impact performance?`,
-        },
-        {
-            icon: <History className="size-4" />,
-            text: `View related audit history`,
-        },
-        {
-            icon: <UserSearch className="size-4" />,
-            text: `Who owns this area?`,
-        },
-    ];
+const DEFAULT_SUGGESTIONS = [
+    'How does this impact performance?',
+    'View related audit history',
+    'Who owns this area?',
+];
+
+function InferredNodes({ suggestions }: { suggestions?: string[] }) {
+    const items = suggestions && suggestions.length > 0 ? suggestions : DEFAULT_SUGGESTIONS;
 
     return (
         <section className="mt-12">
@@ -335,13 +328,12 @@ function InferredNodes({ query }: { query: string }) {
                 <div className="h-px flex-grow bg-border" />
             </div>
             <div className="flex flex-wrap gap-3">
-                {suggestions.map((s) => (
+                {items.map((text) => (
                     <button
-                        key={s.text}
+                        key={text}
                         className="flex items-center gap-2 px-4 py-2 bg-muted border rounded-lg text-xs font-semibold hover:bg-muted/80 transition-all"
                     >
-                        {s.icon}
-                        {s.text}
+                        {text}
                     </button>
                 ))}
             </div>
@@ -514,7 +506,7 @@ export function KnowledgeResultsPage() {
 
                     {/* Inferred Nodes */}
                     {!isLoading && query && (
-                        <InferredNodes query={query} />
+                        <InferredNodes suggestions={answer?.data?.suggestions} />
                     )}
 
                     <ViewAlternativesButton />
@@ -539,7 +531,7 @@ export function KnowledgeResultsContent({
                 answer={answer?.text}
                 sources={answer?.sources ?? []}
             />
-            <InferredNodes query="" />
+            <InferredNodes suggestions={answer?.data?.suggestions} />
         </div>
     );
 }
