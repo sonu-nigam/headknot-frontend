@@ -424,7 +424,8 @@ export function KnowledgeResultsPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
-    const results = searchResults?.items ?? [];
+    const results = searchResults?.alternatives ?? searchResults?.items ?? [];
+    const answer = searchResults?.answer;
 
     const handleResultClick = (item: Schemas['SearchResultItem']) => {
         if (item.entityType?.toUpperCase() === 'MEMORY' && item.entityId) {
@@ -443,28 +444,13 @@ export function KnowledgeResultsPage() {
                 <div className="pt-8 pb-32 px-8 md:px-12 max-w-6xl mx-auto space-y-10">
                     {/* Synthesized Answer */}
                     {query && (
-                        <SynthesizedAnswer query={query} results={results} />
+                        <SynthesizedAnswer query={query} results={answer?.sources ?? results} />
                     )}
 
                     {/* Loading State */}
                     {isLoading && (
                         <div className="flex items-center justify-center py-16">
                             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                        </div>
-                    )}
-
-                    {/* Empty State */}
-                    {!isLoading && results.length === 0 && query && (
-                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                            <SearchIcon className="size-10 mb-4" />
-                            <p className="text-sm font-medium">
-                                No knowledge nodes found for &ldquo;{query}
-                                &rdquo;
-                            </p>
-                            <p className="text-xs mt-1">
-                                Try adjusting your query or check connected
-                                sources.
-                            </p>
                         </div>
                     )}
 

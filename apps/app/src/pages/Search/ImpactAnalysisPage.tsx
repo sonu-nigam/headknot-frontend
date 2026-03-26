@@ -449,7 +449,7 @@ export function ImpactAnalysisPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
-    const results = searchResults?.items ?? [];
+    const answer = searchResults?.answer;
 
     return (
         <AppLayout
@@ -477,11 +477,17 @@ export function ImpactAnalysisPage() {
                             <h2 className="text-3xl font-extrabold tracking-tight">
                                 V1 API Deprecation Analysis
                             </h2>
-                            <p className="text-muted-foreground max-w-2xl mt-2 leading-relaxed">
-                                System-wide causality mapping of structural
-                                dependencies, identifying broken logical links
-                                and conflicting service claims.
-                            </p>
+                            {answer?.text ? (
+                                <p className="text-muted-foreground max-w-2xl mt-2 leading-relaxed">
+                                    {answer.text}
+                                </p>
+                            ) : (
+                                <p className="text-muted-foreground max-w-2xl mt-2 leading-relaxed">
+                                    System-wide causality mapping of structural
+                                    dependencies, identifying broken logical links
+                                    and conflicting service claims.
+                                </p>
+                            )}
                         </div>
                         <div className="flex gap-3">
                             <Button variant="secondary">Export Report</Button>
@@ -493,19 +499,6 @@ export function ImpactAnalysisPage() {
                     {isLoading && (
                         <div className="flex items-center justify-center py-16">
                             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                        </div>
-                    )}
-
-                    {/* Empty */}
-                    {!isLoading && results.length === 0 && query && (
-                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                            <SearchIcon className="size-10 mb-4" />
-                            <p className="text-sm font-medium">
-                                No impact data found for &ldquo;{query}&rdquo;
-                            </p>
-                            <p className="text-xs mt-1">
-                                Try a different simulation query.
-                            </p>
                         </div>
                     )}
 

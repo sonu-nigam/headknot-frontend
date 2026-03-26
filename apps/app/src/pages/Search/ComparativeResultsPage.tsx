@@ -446,7 +446,7 @@ export function ComparativeResultsPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
-    const results = searchResults?.items ?? [];
+    const answer = searchResults?.answer;
 
     return (
         <AppLayout
@@ -467,31 +467,23 @@ export function ComparativeResultsPage() {
                         <h2 className="text-3xl font-bold tracking-tight">
                             Comparative Results: MongoDB vs PostgreSQL
                         </h2>
-                        <p className="text-muted-foreground max-w-2xl leading-relaxed">
-                            Systematic evaluation of document-oriented
-                            flexibility against relational integrity for
-                            high-scale cognitive data processing.
-                        </p>
+                        {answer?.text ? (
+                            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                                {answer.text}
+                            </p>
+                        ) : (
+                            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                                Systematic evaluation of document-oriented
+                                flexibility against relational integrity for
+                                high-scale cognitive data processing.
+                            </p>
+                        )}
                     </div>
 
                     {/* Loading */}
                     {isLoading && (
                         <div className="flex items-center justify-center py-16">
                             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                        </div>
-                    )}
-
-                    {/* Empty */}
-                    {!isLoading && results.length === 0 && query && (
-                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                            <SearchIcon className="size-10 mb-4" />
-                            <p className="text-sm font-medium">
-                                No comparative data found for &ldquo;{query}
-                                &rdquo;
-                            </p>
-                            <p className="text-xs mt-1">
-                                Try a different comparison query.
-                            </p>
                         </div>
                     )}
 

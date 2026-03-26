@@ -367,7 +367,7 @@ export function ProceduralResultsPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
-    const results = searchResults?.items ?? [];
+    const answer = searchResults?.answer;
 
     return (
         <AppLayout
@@ -392,31 +392,23 @@ export function ProceduralResultsPage() {
                         <h2 className="text-4xl font-extrabold tracking-tight mb-4">
                             Procedural Results (Guide Intent)
                         </h2>
-                        <p className="text-muted-foreground max-w-2xl leading-relaxed">
-                            System-generated execution path for optimizing
-                            cognitive infrastructure nodes. Follow these
-                            calibrated steps for deterministic outcomes.
-                        </p>
+                        {answer?.text ? (
+                            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                                {answer.text}
+                            </p>
+                        ) : (
+                            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                                System-generated execution path for optimizing
+                                cognitive infrastructure nodes. Follow these
+                                calibrated steps for deterministic outcomes.
+                            </p>
+                        )}
                     </div>
 
                     {/* Loading */}
                     {isLoading && (
                         <div className="flex items-center justify-center py-16">
                             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                        </div>
-                    )}
-
-                    {/* Empty */}
-                    {!isLoading && results.length === 0 && query && (
-                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                            <SearchIcon className="size-10 mb-4" />
-                            <p className="text-sm font-medium">
-                                No procedural guides found for &ldquo;{query}
-                                &rdquo;
-                            </p>
-                            <p className="text-xs mt-1">
-                                Try a different query.
-                            </p>
                         </div>
                     )}
 

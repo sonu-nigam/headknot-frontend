@@ -330,7 +330,7 @@ export function ReasoningResultsPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
-    const results = searchResults?.items ?? [];
+    const answer = searchResults?.answer;
 
     return (
         <AppLayout
@@ -352,31 +352,23 @@ export function ReasoningResultsPage() {
                         <h2 className="text-3xl font-extrabold tracking-tight mb-4">
                             Auth Service: Redis Migration Logic
                         </h2>
-                        <p className="text-muted-foreground max-w-2xl leading-relaxed">
-                            The migration was triggered by a requirement shift
-                            in session persistence, creating a conflict with
-                            legacy database encryption layers.
-                        </p>
+                        {answer?.text ? (
+                            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                                {answer.text}
+                            </p>
+                        ) : (
+                            <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                                The migration was triggered by a requirement shift
+                                in session persistence, creating a conflict with
+                                legacy database encryption layers.
+                            </p>
+                        )}
                     </section>
 
                     {/* Loading */}
                     {isLoading && (
                         <div className="flex items-center justify-center py-16">
                             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                        </div>
-                    )}
-
-                    {/* Empty */}
-                    {!isLoading && results.length === 0 && query && (
-                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                            <SearchIcon className="size-10 mb-4" />
-                            <p className="text-sm font-medium">
-                                No reasoning data found for &ldquo;{query}
-                                &rdquo;
-                            </p>
-                            <p className="text-xs mt-1">
-                                Try a different causal query.
-                            </p>
                         </div>
                     )}
 
