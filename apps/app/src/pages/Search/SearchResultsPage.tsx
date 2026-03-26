@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
@@ -13,17 +13,14 @@ import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 import {
     Sparkles,
     CheckCircle,
-    AlertCircle,
     FileText,
     Code,
-    MessageSquare,
     BookOpen,
     Clock,
-    User,
-    Eye,
-    MessageCircle,
     Loader2,
     SearchIcon,
+    LinkIcon,
+    ExternalLink,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
 
@@ -127,7 +124,11 @@ function FilterSidebar({
                 </h3>
                 <div className="flex flex-wrap gap-2">
                     {['Code', 'Doc', 'Ticket'].map((type) => (
-                        <Badge key={type} variant="secondary" className="text-[10px] uppercase">
+                        <Badge
+                            key={type}
+                            variant="secondary"
+                            className="text-[10px] uppercase"
+                        >
                             {type}
                         </Badge>
                     ))}
@@ -137,9 +138,19 @@ function FilterSidebar({
     );
 }
 
-// --- Synthesized Answer ---
+// --- Primary Answer ---
 
-function SynthesizedAnswer({ query }: { query: string }) {
+function PrimaryAnswer({
+    query,
+    answer,
+    onSourceClick,
+}: {
+    query: string;
+    answer?: Schemas['SearchResponse']['answer'];
+    onSourceClick: (item: Schemas['SearchResultItem']) => void;
+}) {
+    const hasAnswer = answer?.text;
+
     return (
         <section className="relative p-8 rounded-xl bg-gradient-to-br from-primary/5 via-muted to-primary/5 border border-primary/10 overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20" />
@@ -150,36 +161,59 @@ function SynthesizedAnswer({ query }: { query: string }) {
                         Synthesized Answer
                     </span>
                 </div>
-                <h2 className="text-xl md:text-2xl font-semibold leading-relaxed">
-                    Results for &ldquo;
-                    <span className="text-primary font-bold">{query}</span>
-                    &rdquo;
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                    Based on your connected sources, here are the most relevant
-                    results across your knowledge base. Results are ranked by
-                    relevance and recency.
-                </p>
-                <div className="flex flex-wrap gap-4 pt-2">
-                    <div className="flex items-center gap-2 bg-card px-3 py-2 rounded-lg shadow-sm border">
-                        <CheckCircle className="size-4 text-primary" />
-                        <span className="text-xs font-medium">
-                            Sources Searched
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-card px-3 py-2 rounded-lg shadow-sm border">
-                        <AlertCircle className="size-4 text-destructive" />
-                        <span className="text-xs font-medium">
-                            AI-Ranked Results
-                        </span>
-                    </div>
-                </div>
+
+                {hasAnswer ? (
+                    <>
+                        <p className="text-base md:text-lg leading-relaxed whitespace-pre-line">
+                            {answer.text}
+                        </p>
+
+                        {/* Sources */}
+                        {answer.sources && answer.sources.length > 0 && (
+                            <div className="pt-4 border-t border-primary/10 space-y-2">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                    Sources
+                                </span>
+                                <div className="flex flex-wrap gap-2">
+                                    {answer.sources.map((source, i) => (
+                                        <button
+                                            key={source.entityId ?? i}
+                                            onClick={() =>
+                                                onSourceClick(source)
+                                            }
+                                            className="flex items-center gap-2 bg-card px-3 py-2 rounded-lg shadow-sm border hover:border-primary/30 transition-colors cursor-pointer text-left"
+                                        >
+                                            <LinkIcon className="size-3 text-primary shrink-0" />
+                                            <span className="text-xs font-medium truncate">
+                                                {source.title || 'Untitled'}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <h2 className="text-xl md:text-2xl font-semibold leading-relaxed">
+                            Results for &ldquo;
+                            <span className="text-primary font-bold">
+                                {query}
+                            </span>
+                            &rdquo;
+                        </h2>
+                        <p className="text-muted-foreground leading-relaxed">
+                            Based on your connected sources, here are the most
+                            relevant results across your knowledge base.
+                        </p>
+                    </>
+                )}
             </div>
         </section>
     );
 }
 
-// --- Result Item ---
+// --- Entity type config ---
 
 const ENTITY_TYPE_CONFIG: Record<
     string,
@@ -211,6 +245,8 @@ function getConfig(entityType?: string) {
         }
     );
 }
+
+// --- Result Item ---
 
 function ResultItem({
     item,
@@ -250,7 +286,7 @@ function ResultItem({
                     {item.title || 'Untitled'}
                 </h4>
                 {item.snippet && (
-                    <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                         {item.snippet}
                     </p>
                 )}
@@ -261,6 +297,7 @@ function ResultItem({
                     </div>
                 </div>
             </div>
+            <ExternalLink className="size-4 text-muted-foreground/30 group-hover:text-muted-foreground mt-1 shrink-0 transition-colors" />
         </div>
     );
 }
@@ -286,7 +323,9 @@ export function SearchResultsPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
+    const alternatives = searchResults?.alternatives ?? [];
     const results = searchResults?.items ?? [];
+    const displayResults = alternatives.length > 0 ? alternatives : results;
 
     const handleResultClick = (item: Schemas['SearchResultItem']) => {
         if (item.entityType?.toUpperCase() === 'MEMORY' && item.entityId) {
@@ -313,16 +352,24 @@ export function SearchResultsPage() {
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 overflow-y-auto relative">
                     <div className="max-w-4xl mx-auto space-y-10 p-8 md:p-12 pb-32">
-                        {/* Synthesized Answer */}
-                        {query && <SynthesizedAnswer query={query} />}
+                        {/* Primary Answer */}
+                        {query && (
+                            <PrimaryAnswer
+                                query={query}
+                                answer={searchResults?.answer}
+                                onSourceClick={handleResultClick}
+                            />
+                        )}
 
-                        {/* Results List */}
+                        {/* Alternatives / Results */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-sm font-bold text-muted-foreground px-2">
                                     {isLoading
                                         ? 'Searching...'
-                                        : `${results.length} Results found`}
+                                        : alternatives.length > 0
+                                          ? `${alternatives.length} Alternative${alternatives.length !== 1 ? 's' : ''}`
+                                          : `${results.length} Result${results.length !== 1 ? 's' : ''} found`}
                                 </h3>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-muted-foreground">
@@ -340,21 +387,23 @@ export function SearchResultsPage() {
                                 </div>
                             )}
 
-                            {!isLoading && results.length === 0 && query && (
-                                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                                    <SearchIcon className="size-10 mb-4" />
-                                    <p className="text-sm font-medium">
-                                        No results found for &ldquo;{query}
-                                        &rdquo;
-                                    </p>
-                                    <p className="text-xs mt-1">
-                                        Try adjusting your filters or search
-                                        terms.
-                                    </p>
-                                </div>
-                            )}
+                            {!isLoading &&
+                                displayResults.length === 0 &&
+                                query && (
+                                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                                        <SearchIcon className="size-10 mb-4" />
+                                        <p className="text-sm font-medium">
+                                            No results found for &ldquo;{query}
+                                            &rdquo;
+                                        </p>
+                                        <p className="text-xs mt-1">
+                                            Try adjusting your filters or search
+                                            terms.
+                                        </p>
+                                    </div>
+                                )}
 
-                            {results.map((item) => (
+                            {displayResults.map((item) => (
                                 <ResultItem
                                     key={item.entityId}
                                     item={item}
@@ -364,17 +413,20 @@ export function SearchResultsPage() {
                         </div>
 
                         {/* Load More */}
-                        {results.length > 0 && results.length >= limit && (
-                            <div className="flex justify-center pt-8">
-                                <Button
-                                    variant="secondary"
-                                    className="rounded-full"
-                                    onClick={() => setLimit((l) => l + 10)}
-                                >
-                                    Load more results
-                                </Button>
-                            </div>
-                        )}
+                        {displayResults.length > 0 &&
+                            displayResults.length >= limit && (
+                                <div className="flex justify-center pt-8">
+                                    <Button
+                                        variant="secondary"
+                                        className="rounded-full"
+                                        onClick={() =>
+                                            setLimit((l) => l + 10)
+                                        }
+                                    >
+                                        Load more results
+                                    </Button>
+                                </div>
+                            )}
                     </div>
                 </main>
             </div>

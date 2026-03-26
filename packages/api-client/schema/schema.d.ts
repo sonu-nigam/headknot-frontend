@@ -2326,6 +2326,16 @@ export interface components {
             updatedAt?: string;
         };
         SearchResponse: {
+            /** @description Primary synthesized answer */
+            answer?: {
+                /** @description Synthesized answer text */
+                text?: string;
+                /** @description Sources referenced in the answer */
+                sources?: components["schemas"]["SearchResultItem"][];
+            };
+            /** @description Alternative results */
+            alternatives?: components["schemas"]["SearchResultItem"][];
+            /** @description Search result items */
             items?: components["schemas"]["SearchResultItem"][];
         };
         SearchResultItem: {
