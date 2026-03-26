@@ -2330,6 +2330,8 @@ export interface components {
             answer?: {
                 /** @description Synthesized answer text */
                 text?: string;
+                /** @description Response type determining which UI to render (e.g. SEARCH, KNOWLEDGE, CAUSAL, PROCEDURAL, COMPARATIVE, IMPACT, REASONING) */
+                responseType?: string;
                 /** @description Sources referenced in the answer */
                 sources?: components["schemas"]["SearchResultItem"][];
             };

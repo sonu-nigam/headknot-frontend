@@ -21,6 +21,7 @@ import {
     ArrowRight,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 // --- Risk Score Card ---
 
@@ -520,6 +521,8 @@ export function ImpactAnalysisPage() {
                             <ContradictionsPanel />
                         </div>
                     </div>
+
+                    <ViewAlternativesButton />
                 </div>
             </div>
             <StickyPromptBox />

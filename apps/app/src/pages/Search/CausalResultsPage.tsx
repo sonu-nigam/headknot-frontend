@@ -26,6 +26,7 @@ import {
     Paperclip,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 // --- Causal Chain ---
 
@@ -427,6 +428,8 @@ export function CausalResultsPage() {
 
                     {/* Footer Stats */}
                     <FooterStats />
+
+                    <ViewAlternativesButton />
                 </div>
             </div>
             <StickyPromptBox />

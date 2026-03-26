@@ -302,11 +302,31 @@ function ResultItem({
     );
 }
 
+// --- No Results Banner ---
+
+function NoResultsBanner({ query }: { query: string }) {
+    return (
+        <section className="relative p-8 rounded-xl bg-muted border overflow-hidden">
+            <div className="flex flex-col items-center text-center space-y-3">
+                <SearchIcon className="size-10 text-muted-foreground" />
+                <h2 className="text-xl font-bold">
+                    No results found for &ldquo;{query}&rdquo;
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-md">
+                    We couldn't find a direct answer. Try rephrasing your query
+                    or check the alternative results below.
+                </p>
+            </div>
+        </section>
+    );
+}
+
 // --- Main Page ---
 
 export function SearchResultsPage() {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') ?? '';
+    const isAlternativesView = searchParams.get('view') === 'alternatives';
     const navigate = useNavigate();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
@@ -323,9 +343,19 @@ export function SearchResultsPage() {
         enabled: !!query && !!selectedWorkspaceId,
     });
 
+    const answer = searchResults?.answer;
+    const hasAnswer = !!answer?.text;
     const alternatives = searchResults?.alternatives ?? [];
     const results = searchResults?.items ?? [];
-    const displayResults = alternatives.length > 0 ? alternatives : results;
+    const hasNoResults = !hasAnswer && alternatives.length === 0 && results.length === 0;
+
+    // In alternatives view, always show alternatives
+    // Otherwise show alternatives if available, fall back to items
+    const displayResults = isAlternativesView
+        ? alternatives
+        : alternatives.length > 0
+          ? alternatives
+          : results;
 
     const handleResultClick = (item: Schemas['SearchResultItem']) => {
         if (item.entityType?.toUpperCase() === 'MEMORY' && item.entityId) {
@@ -337,7 +367,7 @@ export function SearchResultsPage() {
         <AppLayout
             breadcrumbs={[
                 { label: 'Home', href: '/' },
-                { label: 'Search Results' },
+                { label: isAlternativesView ? 'Alternative Results' : 'Search Results' },
             ]}
         >
             <div className="flex min-h-0 flex-1">
@@ -352,24 +382,41 @@ export function SearchResultsPage() {
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 overflow-y-auto relative">
                     <div className="max-w-4xl mx-auto space-y-10 p-8 md:p-12 pb-32">
-                        {/* Primary Answer */}
-                        {query && (
+                        {/* No Results / Primary Answer */}
+                        {!isLoading && query && hasNoResults && (
+                            <NoResultsBanner query={query} />
+                        )}
+
+                        {!isLoading && query && !hasNoResults && !isAlternativesView && (
                             <PrimaryAnswer
                                 query={query}
-                                answer={searchResults?.answer}
+                                answer={answer}
                                 onSourceClick={handleResultClick}
                             />
                         )}
 
-                        {/* Alternatives / Results */}
+                        {isAlternativesView && query && (
+                            <section className="relative p-8 rounded-xl bg-gradient-to-br from-muted to-muted/50 border overflow-hidden">
+                                <div className="space-y-2">
+                                    <h2 className="text-xl font-bold">
+                                        Alternative Results
+                                    </h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        Other relevant results for &ldquo;{query}&rdquo; from your knowledge base.
+                                    </p>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Results List */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-sm font-bold text-muted-foreground px-2">
                                     {isLoading
                                         ? 'Searching...'
-                                        : alternatives.length > 0
+                                        : isAlternativesView
                                           ? `${alternatives.length} Alternative${alternatives.length !== 1 ? 's' : ''}`
-                                          : `${results.length} Result${results.length !== 1 ? 's' : ''} found`}
+                                          : `${displayResults.length} Result${displayResults.length !== 1 ? 's' : ''} found`}
                                 </h3>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-muted-foreground">
@@ -389,16 +436,12 @@ export function SearchResultsPage() {
 
                             {!isLoading &&
                                 displayResults.length === 0 &&
-                                query && (
+                                query &&
+                                !hasNoResults && (
                                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                                         <SearchIcon className="size-10 mb-4" />
                                         <p className="text-sm font-medium">
-                                            No results found for &ldquo;{query}
-                                            &rdquo;
-                                        </p>
-                                        <p className="text-xs mt-1">
-                                            Try adjusting your filters or search
-                                            terms.
+                                            No alternative results available.
                                         </p>
                                     </div>
                                 )}

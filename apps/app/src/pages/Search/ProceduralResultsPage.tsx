@@ -21,6 +21,7 @@ import {
     Check,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 // --- Step-by-Step Guide ---
 
@@ -434,6 +435,8 @@ export function ProceduralResultsPage() {
                             <Troubleshooting />
                         </aside>
                     </div>
+
+                    <ViewAlternativesButton />
                 </div>
             </div>
             <StickyPromptBox />

@@ -17,6 +17,7 @@ import {
     GitBranch,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 // --- Reasoning Path (3-step causal chain) ---
 
@@ -393,6 +394,8 @@ export function ReasoningResultsPage() {
                             <SourcesPanel />
                         </div>
                     </div>
+
+                    <ViewAlternativesButton />
                 </div>
             </div>
             <StickyPromptBox />

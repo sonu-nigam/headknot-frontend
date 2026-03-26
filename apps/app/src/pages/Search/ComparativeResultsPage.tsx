@@ -22,6 +22,7 @@ import {
     SearchIcon,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 // --- Synthesis Recommendation ---
 
@@ -519,6 +520,8 @@ export function ComparativeResultsPage() {
                             <Button>Configure Deployment</Button>
                         </div>
                     </footer>
+
+                    <ViewAlternativesButton />
                 </div>
             </div>
             <StickyPromptBox />

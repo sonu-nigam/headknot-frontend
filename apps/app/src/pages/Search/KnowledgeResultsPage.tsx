@@ -27,6 +27,7 @@ import {
     Hash,
 } from 'lucide-react';
 import { StickyPromptBox } from '@/components/StickyPromptBox';
+import { ViewAlternativesButton } from '@/components/ViewAlternativesButton';
 
 // --- Synthesized Answer ---
 
@@ -522,6 +523,8 @@ export function KnowledgeResultsPage() {
                     {!isLoading && query && (
                         <InferredNodes query={query} />
                     )}
+
+                    <ViewAlternativesButton />
                 </div>
             </div>
             <StickyPromptBox />
