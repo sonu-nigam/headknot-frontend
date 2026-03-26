@@ -1339,6 +1339,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/workspace/{workspaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List integrations
+         * @description Lists all integrations for a workspace
+         */
+        get: operations["listIntegrations"];
+        put?: never;
+        /**
+         * Connect integration
+         * @description Connects a new integration source to the workspace
+         */
+        post: operations["connectIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{integrationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get integration
+         * @description Gets details of a specific integration
+         */
+        get: operations["getIntegration"];
+        /**
+         * Update integration
+         * @description Updates integration settings
+         */
+        put: operations["updateIntegration"];
+        post?: never;
+        /**
+         * Disconnect integration
+         * @description Disconnects and removes an integration
+         */
+        delete: operations["disconnectIntegration"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{integrationId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get sync status
+         * @description Gets the current sync status of an integration
+         */
+        get: operations["getIntegrationSyncStatus"];
+        put?: never;
+        /**
+         * Trigger sync
+         * @description Triggers a manual sync for an integration
+         */
+        post: operations["triggerIntegrationSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List providers
+         * @description Lists all available integration providers
+         */
+        get: operations["listIntegrationProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/oauth/notion/initiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate Notion OAuth
+         * @description Starts the Notion OAuth flow and returns the authorization URL
+         */
+        post: operations["initiateNotionOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Notion
+         * @description Triggers a sync for the connected Notion integration
+         */
+        post: operations["syncNotion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2199,6 +2335,92 @@ export interface components {
             entitySubtype?: string;
             title?: string;
             snippet?: string;
+        };
+        /** @description Integration source response */
+        IntegrationResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** @description Integration type (e.g. GOOGLE_DRIVE, SLACK, NOTION, GITHUB, JIRA, CONFLUENCE) */
+            type?: string;
+            /** @description Integration status (CONNECTED, DISCONNECTED, SYNCING) */
+            status?: string;
+            /** @description Auth method used */
+            authMethod?: string;
+            /** @description Display name of the integration */
+            displayName?: string;
+            /** @description Description of the integration */
+            description?: string;
+            /** @description Icon URL */
+            iconUrl?: string;
+            /** @description Integration configuration */
+            config?: Record<string, never>;
+            /** Format: uuid */
+            connectedBy?: string;
+            /** Format: date-time */
+            connectedAt?: string;
+            /** Format: date-time */
+            lastSyncedAt?: string;
+            /** @description Number of items indexed */
+            itemsIndexed?: number;
+            /** @description Sync status message */
+            syncStatusMessage?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @description Request to connect a new integration */
+        ConnectIntegrationRequest: {
+            /** @description Integration provider name */
+            provider: string;
+            /** @description OAuth authorization code or API key */
+            authCode?: string;
+            /** @description Additional configuration */
+            config?: Record<string, never>;
+        };
+        /** @description Request to update integration settings */
+        UpdateIntegrationRequest: {
+            /** @description Updated display name */
+            name?: string;
+            /** @description Updated configuration */
+            config?: Record<string, never>;
+        };
+        /** @description Integration sync status response */
+        IntegrationSyncResponse: {
+            /** Format: uuid */
+            integrationId?: string;
+            /** @description Sync status */
+            status?: string;
+            /** @description Number of items synced */
+            itemsSynced?: number;
+            /** @description Total items to sync */
+            totalItems?: number;
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+        };
+        /** @description Available integration provider */
+        IntegrationProviderResponse: {
+            /** @description Provider identifier */
+            provider?: string;
+            /** @description Display name */
+            name?: string;
+            /** @description Provider description */
+            description?: string;
+            /** @description Whether this provider is available */
+            available?: boolean;
+            /** @description OAuth authorization URL */
+            authUrl?: string;
+        };
+        /** @description OAuth initiation response */
+        OAuthInitiateResponse: {
+            /** @description Authorization URL to redirect the user to */
+            authorizationUrl?: string;
+            /** @description State parameter for CSRF protection */
+            state?: string;
         };
     };
     responses: never;
@@ -5087,6 +5309,303 @@ export interface operations {
             };
             /** @description Notification not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listIntegrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of integrations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    connectIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectIntegrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Integration connected */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIntegrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Integration updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    disconnectIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getIntegrationSyncStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationSyncResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerIntegrationSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync triggered */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationSyncResponse"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listIntegrationProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of available providers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationProviderResponse"][];
+                };
+            };
+        };
+    };
+    initiateNotionOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OAuth initiation response with authorization URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthInitiateResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    syncNotion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notion sync triggered */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationSyncResponse"];
+                };
+            };
+            /** @description Notion not connected */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

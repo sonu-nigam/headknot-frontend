@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
@@ -18,58 +21,56 @@ import {
     BookOpen,
     Filter,
     Brain,
+    Loader2,
+    PlugZap,
+    CheckCircle2,
+    X,
+    RefreshCw,
 } from 'lucide-react';
+import { useAppStore } from '@/state/store';
+import { integrationsQueryOptions } from '@/query/options/integrations';
+import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
+import { useDisconnectIntegration } from '@/hooks/integrations/useDisconnectIntegration';
+import { useConnectNotion } from '@/hooks/integrations/useConnectNotion';
+import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
+import { useSyncNotion } from '@/hooks/integrations/useSyncNotion';
+import { Schemas } from '@/types/api';
 
-type IntegrationStatus = 'connected' | 'syncing' | 'idle';
+// --- OAuth providers that use redirect flow ---
 
-interface Integration {
-    name: string;
-    description: string;
-    icon: React.ReactNode;
-    status: IntegrationStatus;
+const OAUTH_PROVIDERS = new Set(['NOTION']);
+
+// --- Provider icon mapping (keyed by `type` field from API) ---
+
+const PROVIDER_ICONS: Record<string, React.ReactNode> = {
+    GOOGLE_DRIVE: <HardDrive className="size-7" />,
+    SLACK: <MessageSquare className="size-7" />,
+    NOTION: <FileText className="size-7" />,
+    GITHUB: <Code className="size-7" />,
+    JIRA: <CheckCircle className="size-7" />,
+    CONFLUENCE: <BookOpen className="size-7" />,
+};
+
+function getProviderIcon(type?: string) {
+    return PROVIDER_ICONS[type ?? ''] ?? <PlugZap className="size-7" />;
 }
 
-const integrations: Integration[] = [
-    {
-        name: 'Google Drive',
-        description: 'Indexing 4,203 items',
-        icon: <HardDrive className="size-7" />,
-        status: 'connected',
-    },
-    {
-        name: 'Slack',
-        description: 'Indexing 12,850 messages',
-        icon: <MessageSquare className="size-7" />,
-        status: 'connected',
-    },
-    {
-        name: 'Notion',
-        description: 'Connect to import pages',
-        icon: <FileText className="size-7" />,
-        status: 'idle',
-    },
-    {
-        name: 'GitHub',
-        description: 'Indexing 154 repositories',
-        icon: <Code className="size-7" />,
-        status: 'syncing',
-    },
-    {
-        name: 'Jira',
-        description: 'Connect to track issues',
-        icon: <CheckCircle className="size-7" />,
-        status: 'idle',
-    },
-    {
-        name: 'Confluence',
-        description: 'Indexing 890 documents',
-        icon: <BookOpen className="size-7" />,
-        status: 'connected',
-    },
-];
+function getStatusDescription(integration: Schemas['IntegrationResponse']) {
+    const status = (integration.status ?? '').toUpperCase();
+    if (status === 'CONNECTED' || status === 'SYNCING') {
+        const count = integration.itemsIndexed ?? 0;
+        return count > 0
+            ? `Indexing ${count.toLocaleString()} items`
+            : 'Connected';
+    }
+    return integration.description ?? 'Connect to get started';
+}
 
-function StatusBadge({ status }: { status: IntegrationStatus }) {
-    if (status === 'connected') {
+// --- Status Badge ---
+
+function StatusBadge({ status }: { status?: string }) {
+    const s = (status ?? '').toUpperCase();
+    if (s === 'CONNECTED') {
         return (
             <Badge
                 variant="outline"
@@ -80,7 +81,7 @@ function StatusBadge({ status }: { status: IntegrationStatus }) {
             </Badge>
         );
     }
-    if (status === 'syncing') {
+    if (s === 'SYNCING') {
         return (
             <Badge
                 variant="outline"
@@ -93,38 +94,149 @@ function StatusBadge({ status }: { status: IntegrationStatus }) {
     }
     return (
         <Badge variant="secondary" className="text-muted-foreground">
-            IDLE
+            {s === 'DISCONNECTED' ? 'DISCONNECTED' : 'IDLE'}
         </Badge>
     );
 }
 
-function IntegrationCard({ integration }: { integration: Integration }) {
-    const isConnected =
-        integration.status === 'connected' ||
-        integration.status === 'syncing';
+// --- Success Banner ---
+
+function SuccessBanner({
+    provider,
+    onDismiss,
+}: {
+    provider: string;
+    onDismiss: () => void;
+}) {
+    return (
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-900 dark:bg-emerald-950">
+            <div className="flex items-center gap-3">
+                <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                    <span className="capitalize">{provider}</span> has been
+                    successfully connected to your workspace.
+                </p>
+            </div>
+            <button
+                onClick={onDismiss}
+                className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200"
+            >
+                <X className="size-4" />
+            </button>
+        </div>
+    );
+}
+
+// --- Helpers ---
+
+function formatLastSync(dateStr?: string) {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    return `${diffDays}d ago`;
+}
+
+// --- Integration Card ---
+
+function IntegrationCard({
+    integration,
+    onConnect,
+    onDisconnect,
+    onSync,
+    isConnecting,
+    isDisconnecting,
+    isSyncing,
+}: {
+    integration: Schemas['IntegrationResponse'];
+    onConnect: () => void;
+    onDisconnect: () => void;
+    onSync: () => void;
+    isConnecting: boolean;
+    isDisconnecting: boolean;
+    isSyncing: boolean;
+}) {
+    const status = (integration.status ?? '').toUpperCase();
+    const isConnected = status === 'CONNECTED' || status === 'SYNCING';
+    const isCurrSyncing = status === 'SYNCING' || isSyncing;
+    const lastSync = formatLastSync(integration.lastSyncedAt);
 
     return (
-        <Card className="group h-[240px] justify-between hover:border-primary/30 transition-all">
+        <Card className="group justify-between hover:border-primary/30 transition-all">
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div className="size-12 rounded-xl bg-muted flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-                        {integration.icon}
+                        {getProviderIcon(integration.type)}
                     </div>
-                    <StatusBadge status={integration.status} />
+                    <StatusBadge status={isCurrSyncing ? 'SYNCING' : integration.status} />
                 </div>
             </CardHeader>
             <CardContent className="space-y-1">
-                <CardTitle className="text-xl">{integration.name}</CardTitle>
-                <CardDescription>{integration.description}</CardDescription>
+                <CardTitle className="text-xl">
+                    {integration.displayName ?? integration.type ?? 'Unknown'}
+                </CardTitle>
+                <CardDescription>
+                    {getStatusDescription(integration)}
+                </CardDescription>
+                {isConnected && lastSync && (
+                    <p className="text-[10px] text-muted-foreground pt-1">
+                        Last synced: {lastSync}
+                    </p>
+                )}
+                {isConnected && integration.syncStatusMessage && (
+                    <p className="text-[10px] text-muted-foreground">
+                        {integration.syncStatusMessage}
+                    </p>
+                )}
             </CardContent>
             <CardFooter className="border-t pt-4">
                 {isConnected ? (
-                    <Button variant="outline" className="w-full">
-                        Disconnect
-                    </Button>
+                    <div className="flex w-full gap-2">
+                        <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={onSync}
+                            disabled={isCurrSyncing}
+                        >
+                            {isCurrSyncing ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                <>
+                                    <RefreshCw className="size-3.5" />
+                                    Sync
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={onDisconnect}
+                            disabled={isDisconnecting}
+                        >
+                            {isDisconnecting ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                'Disconnect'
+                            )}
+                        </Button>
+                    </div>
                 ) : (
-                    <Button className="w-full">
-                        Connect {integration.name}
+                    <Button
+                        className="w-full"
+                        onClick={onConnect}
+                        disabled={isConnecting}
+                    >
+                        {isConnecting ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                            `Connect ${integration.displayName ?? integration.type ?? 'Source'}`
+                        )}
                     </Button>
                 )}
             </CardFooter>
@@ -132,7 +244,116 @@ function IntegrationCard({ integration }: { integration: Integration }) {
     );
 }
 
+// --- Loading State ---
+
+function LoadingState() {
+    return (
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+            <Loader2 className="size-8 animate-spin mb-4" />
+            <p className="text-sm font-medium">Loading integrations...</p>
+        </div>
+    );
+}
+
+// --- Empty State ---
+
+function EmptyState() {
+    return (
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+            <PlugZap className="size-12 mb-4" />
+            <p className="text-lg font-semibold text-foreground mb-1">
+                No integrations yet
+            </p>
+            <p className="text-sm max-w-md text-center">
+                Connect your first source to start building your unified
+                knowledge base. Integrations will appear here once configured.
+            </p>
+        </div>
+    );
+}
+
+// --- Main Page ---
+
 export function IntegrationsPage() {
+    const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
+    const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [successProvider, setSuccessProvider] = useState<string | null>(null);
+
+    // Detect OAuth callback redirect: ?connected=true&provider=notion
+    useEffect(() => {
+        const connected = searchParams.get('connected');
+        const provider = searchParams.get('provider');
+
+        if (connected === 'true' && provider) {
+            setSuccessProvider(provider);
+
+            // Refetch integrations to reflect the new connection
+            queryClient.invalidateQueries({ queryKey: ['integrations'] });
+
+            // Clean up URL params
+            searchParams.delete('connected');
+            searchParams.delete('provider');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams, queryClient]);
+
+    const {
+        data: integrations,
+        isLoading,
+        isError,
+    } = useQuery(integrationsQueryOptions(selectedWorkspaceId ?? ''));
+
+    const connectMutation = useConnectIntegration();
+    const disconnectMutation = useDisconnectIntegration();
+    const connectNotionMutation = useConnectNotion();
+    const syncMutation = useTriggerSync();
+    const syncNotionMutation = useSyncNotion();
+
+    const handleConnect = (integrationType: string) => {
+        if (!selectedWorkspaceId) return;
+
+        // OAuth providers use redirect flow
+        if (OAUTH_PROVIDERS.has(integrationType)) {
+            if (integrationType === 'NOTION') {
+                connectNotionMutation.mutate();
+            }
+            return;
+        }
+
+        // Non-OAuth providers use direct API connect
+        connectMutation.mutate({
+            workspaceId: selectedWorkspaceId,
+            body: { provider: integrationType },
+        });
+    };
+
+    const handleDisconnect = (integrationId: string) => {
+        disconnectMutation.mutate({ integrationId });
+    };
+
+    const handleSync = (integrationId: string, integrationType: string) => {
+        if (integrationType === 'NOTION') {
+            syncNotionMutation.mutate({ integrationId });
+        } else {
+            syncMutation.mutate({ integrationId });
+        }
+    };
+
+    const isTypeConnecting = (integrationType?: string) => {
+        if (!integrationType) return false;
+        if (OAUTH_PROVIDERS.has(integrationType)) {
+            return integrationType === 'NOTION' && connectNotionMutation.isPending;
+        }
+        return (
+            connectMutation.isPending &&
+            connectMutation.variables?.body.provider === integrationType
+        );
+    };
+
+    const hasIntegrations =
+        !isLoading && !isError && integrations && integrations.length > 0;
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -160,15 +381,59 @@ export function IntegrationsPage() {
                         </Button>
                     </div>
 
+                    {/* Success Banner */}
+                    {successProvider && (
+                        <SuccessBanner
+                            provider={successProvider}
+                            onDismiss={() => setSuccessProvider(null)}
+                        />
+                    )}
+
+                    {/* Loading */}
+                    {isLoading && <LoadingState />}
+
+                    {/* Empty */}
+                    {!isLoading && !hasIntegrations && <EmptyState />}
+
                     {/* Integration Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {integrations.map((integration) => (
-                            <IntegrationCard
-                                key={integration.name}
-                                integration={integration}
-                            />
-                        ))}
-                    </div>
+                    {hasIntegrations && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {integrations.map((integration) => (
+                                <IntegrationCard
+                                    key={integration.id ?? integration.type}
+                                    integration={integration}
+                                    onConnect={() =>
+                                        handleConnect(
+                                            integration.type ?? ''
+                                        )
+                                    }
+                                    onDisconnect={() =>
+                                        handleDisconnect(integration.id ?? '')
+                                    }
+                                    onSync={() =>
+                                        handleSync(integration.id ?? '', integration.type ?? '')
+                                    }
+                                    isConnecting={isTypeConnecting(
+                                        integration.type
+                                    )}
+                                    isDisconnecting={
+                                        disconnectMutation.isPending &&
+                                        disconnectMutation.variables
+                                            ?.integrationId === integration.id
+                                    }
+                                    isSyncing={
+                                        integration.type === 'NOTION'
+                                            ? syncNotionMutation.isPending &&
+                                              syncNotionMutation.variables
+                                                  ?.integrationId === integration.id
+                                            : syncMutation.isPending &&
+                                              syncMutation.variables
+                                                  ?.integrationId === integration.id
+                                    }
+                                />
+                            ))}
+                        </div>
+                    )}
 
                     {/* Featured Section */}
                     <div className="mt-12 grid grid-cols-12 gap-8">
