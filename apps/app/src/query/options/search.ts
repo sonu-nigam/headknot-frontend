@@ -17,7 +17,7 @@ export const searchQueryOptions = ({
         queryKey: ['search', workspaceId, query, limit, offset],
         enabled: !!query && !!workspaceId,
         queryFn: async () => {
-            const res = await api.GET('/api/search', {
+            const res = await api.GET('/search', {
                 params: {
                     query: {
                         workspaceId,
