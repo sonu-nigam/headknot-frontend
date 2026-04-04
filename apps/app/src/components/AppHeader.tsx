@@ -9,8 +9,9 @@ import {
 import { Button } from '@workspace/ui/components/button';
 import { Separator } from '@workspace/ui/components/separator';
 import { SidebarTrigger } from '@workspace/ui/components/sidebar';
-import { BellIcon, Moon, Search, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { NotificationDropdown } from './NotificationDropdown';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -79,9 +80,7 @@ export function AppHeader({ breadcrumbs }: AppHeaderProps) {
                             Search
                         </a>
                     </Button>*/}
-                    <Button variant="ghost">
-                        <BellIcon />
-                    </Button>
+                    <NotificationDropdown />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">

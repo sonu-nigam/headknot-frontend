@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
@@ -17,30 +17,28 @@ import {
     MessageSquare,
     FileText,
     Code,
-    CheckCircle,
     BookOpen,
-    Filter,
-    Brain,
+    CheckCircle,
     Loader2,
     PlugZap,
     CheckCircle2,
     X,
-    RefreshCw,
+    Database,
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
-import { integrationsQueryOptions } from '@/query/options/integrations';
+import {
+    integrationsQueryOptions,
+    integrationProvidersQueryOptions,
+} from '@/query/options/integrations';
 import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
-import { useDisconnectIntegration } from '@/hooks/integrations/useDisconnectIntegration';
 import { useConnectNotion } from '@/hooks/integrations/useConnectNotion';
-import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
-import { useSyncNotion } from '@/hooks/integrations/useSyncNotion';
 import { Schemas } from '@/types/api';
 
 // --- OAuth providers that use redirect flow ---
 
 const OAUTH_PROVIDERS = new Set(['NOTION']);
 
-// --- Provider icon mapping (keyed by `type` field from API) ---
+// --- Provider icon mapping ---
 
 const PROVIDER_ICONS: Record<string, React.ReactNode> = {
     GOOGLE_DRIVE: <HardDrive className="size-7" />,
@@ -55,48 +53,76 @@ function getProviderIcon(type?: string) {
     return PROVIDER_ICONS[type ?? ''] ?? <PlugZap className="size-7" />;
 }
 
-function getStatusDescription(integration: Schemas['IntegrationResponse']) {
-    const status = (integration.status ?? '').toUpperCase();
-    if (status === 'CONNECTED' || status === 'SYNCING') {
-        const count = integration.itemsIndexed ?? 0;
-        return count > 0
-            ? `Indexing ${count.toLocaleString()} items`
-            : 'Connected';
-    }
-    return integration.description ?? 'Connect to get started';
+// --- Helpers ---
+
+function formatLastSync(dateStr?: string) {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    return `${diffDays}d ago`;
 }
 
-// --- Status Badge ---
+// --- Merged catalog item ---
 
-function StatusBadge({ status }: { status?: string }) {
-    const s = (status ?? '').toUpperCase();
-    if (s === 'CONNECTED') {
-        return (
-            <Badge
-                variant="outline"
-                className="border-primary/30 bg-primary/10 text-primary gap-1.5"
-            >
-                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-                CONNECTED
-            </Badge>
-        );
+interface CatalogItem {
+    /** Set when already connected to the workspace */
+    integration?: Schemas['IntegrationResponse'];
+    /** Provider metadata from the catalog */
+    provider?: Schemas['IntegrationProviderResponse'];
+    /** Resolved key (integration.type or provider.provider) */
+    type: string;
+    displayName: string;
+    description: string;
+    isConnected: boolean;
+}
+
+function mergeCatalog(
+    integrations?: Schemas['IntegrationResponse'][],
+    providers?: Schemas['IntegrationProviderResponse'][],
+): CatalogItem[] {
+    const byType = new Map<string, CatalogItem>();
+
+    // Seed from providers so we always show the full catalog
+    for (const p of providers ?? []) {
+        const key = p.provider ?? '';
+        if (!key) continue;
+        byType.set(key, {
+            provider: p,
+            type: key,
+            displayName: p.name ?? key,
+            description: p.description ?? '',
+            isConnected: false,
+        });
     }
-    if (s === 'SYNCING') {
-        return (
-            <Badge
-                variant="outline"
-                className="border-primary/30 bg-primary/10 text-primary gap-1.5"
-            >
-                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-                SYNCING
-            </Badge>
-        );
+
+    // Overlay connected integrations
+    for (const i of integrations ?? []) {
+        const key = i.type ?? '';
+        if (!key) continue;
+        const existing = byType.get(key);
+        const status = (i.status ?? '').toUpperCase();
+        byType.set(key, {
+            ...(existing ?? {}),
+            integration: i,
+            type: key,
+            displayName: i.displayName ?? existing?.displayName ?? key,
+            description: i.description ?? existing?.description ?? '',
+            isConnected: status === 'CONNECTED' || status === 'SYNCING',
+        });
     }
-    return (
-        <Badge variant="secondary" className="text-muted-foreground">
-            {s === 'DISCONNECTED' ? 'DISCONNECTED' : 'IDLE'}
-        </Badge>
-    );
+
+    // Sort: connected first, then alphabetical
+    return Array.from(byType.values()).sort((a, b) => {
+        if (a.isConnected !== b.isConnected) return a.isConnected ? -1 : 1;
+        return a.displayName.localeCompare(b.displayName);
+    });
 }
 
 // --- Success Banner ---
@@ -127,105 +153,69 @@ function SuccessBanner({
     );
 }
 
-// --- Helpers ---
+// --- Integration Catalog Card ---
 
-function formatLastSync(dateStr?: string) {
-    if (!dateStr) return null;
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return 'Just now';
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}h ago`;
-    const diffDays = Math.floor(diffHr / 24);
-    return `${diffDays}d ago`;
-}
-
-// --- Integration Card ---
-
-function IntegrationCard({
-    integration,
+function CatalogCard({
+    item,
     onConnect,
-    onDisconnect,
-    onSync,
     isConnecting,
-    isDisconnecting,
-    isSyncing,
 }: {
-    integration: Schemas['IntegrationResponse'];
+    item: CatalogItem;
     onConnect: () => void;
-    onDisconnect: () => void;
-    onSync: () => void;
     isConnecting: boolean;
-    isDisconnecting: boolean;
-    isSyncing: boolean;
 }) {
-    const status = (integration.status ?? '').toUpperCase();
-    const isConnected = status === 'CONNECTED' || status === 'SYNCING';
-    const isCurrSyncing = status === 'SYNCING' || isSyncing;
-    const lastSync = formatLastSync(integration.lastSyncedAt);
+    const navigate = useNavigate();
+    const lastSync = formatLastSync(item.integration?.lastSyncedAt);
+    const itemsIndexed = item.integration?.itemsIndexed ?? 0;
 
     return (
         <Card className="group justify-between hover:border-primary/30 transition-all">
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div className="size-12 rounded-xl bg-muted flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-                        {getProviderIcon(integration.type)}
+                        {getProviderIcon(item.type)}
                     </div>
-                    <StatusBadge status={isCurrSyncing ? 'SYNCING' : integration.status} />
+                    {item.isConnected ? (
+                        <Badge
+                            variant="outline"
+                            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 gap-1.5"
+                        >
+                            <span className="size-1.5 rounded-full bg-emerald-500" />
+                            Connected
+                        </Badge>
+                    ) : (
+                        <Badge variant="secondary" className="text-muted-foreground">
+                            Not connected
+                        </Badge>
+                    )}
                 </div>
             </CardHeader>
             <CardContent className="space-y-1">
-                <CardTitle className="text-xl">
-                    {integration.displayName ?? integration.type ?? 'Unknown'}
-                </CardTitle>
-                <CardDescription>
-                    {getStatusDescription(integration)}
-                </CardDescription>
-                {isConnected && lastSync && (
-                    <p className="text-[10px] text-muted-foreground pt-1">
-                        Last synced: {lastSync}
-                    </p>
-                )}
-                {isConnected && integration.syncStatusMessage && (
-                    <p className="text-[10px] text-muted-foreground">
-                        {integration.syncStatusMessage}
-                    </p>
+                <CardTitle className="text-xl">{item.displayName}</CardTitle>
+                <CardDescription>{item.description}</CardDescription>
+                {item.isConnected && (
+                    <div className="flex items-center gap-3 pt-2 text-xs text-muted-foreground">
+                        {lastSync && <span>Synced {lastSync}</span>}
+                        {itemsIndexed > 0 && (
+                            <span className="flex items-center gap-1">
+                                <Database className="size-3" />
+                                {itemsIndexed.toLocaleString()} items
+                            </span>
+                        )}
+                    </div>
                 )}
             </CardContent>
             <CardFooter className="border-t pt-4">
-                {isConnected ? (
-                    <div className="flex w-full gap-2">
-                        <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={onSync}
-                            disabled={isCurrSyncing}
-                        >
-                            {isCurrSyncing ? (
-                                <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                                <>
-                                    <RefreshCw className="size-3.5" />
-                                    Sync
-                                </>
-                            )}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={onDisconnect}
-                            disabled={isDisconnecting}
-                        >
-                            {isDisconnecting ? (
-                                <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                                'Disconnect'
-                            )}
-                        </Button>
-                    </div>
+                {item.isConnected ? (
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() =>
+                            navigate(`/integrations/${item.integration?.id}`)
+                        }
+                    >
+                        Manage
+                    </Button>
                 ) : (
                     <Button
                         className="w-full"
@@ -235,7 +225,7 @@ function IntegrationCard({
                         {isConnecting ? (
                             <Loader2 className="size-4 animate-spin" />
                         ) : (
-                            `Connect ${integration.displayName ?? integration.type ?? 'Source'}`
+                            'Connect'
                         )}
                     </Button>
                 )}
@@ -255,23 +245,6 @@ function LoadingState() {
     );
 }
 
-// --- Empty State ---
-
-function EmptyState() {
-    return (
-        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-            <PlugZap className="size-12 mb-4" />
-            <p className="text-lg font-semibold text-foreground mb-1">
-                No integrations yet
-            </p>
-            <p className="text-sm max-w-md text-center">
-                Connect your first source to start building your unified
-                knowledge base. Integrations will appear here once configured.
-            </p>
-        </div>
-    );
-}
-
 // --- Main Page ---
 
 export function IntegrationsPage() {
@@ -287,11 +260,8 @@ export function IntegrationsPage() {
 
         if (connected === 'true' && provider) {
             setSuccessProvider(provider);
-
-            // Refetch integrations to reflect the new connection
             queryClient.invalidateQueries({ queryKey: ['integrations'] });
 
-            // Clean up URL params
             searchParams.delete('connected');
             searchParams.delete('provider');
             setSearchParams(searchParams, { replace: true });
@@ -300,59 +270,51 @@ export function IntegrationsPage() {
 
     const {
         data: integrations,
-        isLoading,
-        isError,
+        isLoading: integrationsLoading,
     } = useQuery(integrationsQueryOptions(selectedWorkspaceId ?? ''));
 
-    const connectMutation = useConnectIntegration();
-    const disconnectMutation = useDisconnectIntegration();
-    const connectNotionMutation = useConnectNotion();
-    const syncMutation = useTriggerSync();
-    const syncNotionMutation = useSyncNotion();
+    const {
+        data: providers,
+        isLoading: providersLoading,
+    } = useQuery(integrationProvidersQueryOptions);
 
-    const handleConnect = (integrationType: string) => {
+    const connectMutation = useConnectIntegration();
+    const connectNotionMutation = useConnectNotion();
+
+    const isLoading = integrationsLoading || providersLoading;
+
+    const catalog = mergeCatalog(integrations, providers);
+    const connectedCount = catalog.filter((c) => c.isConnected).length;
+    const totalItems = (integrations ?? []).reduce(
+        (sum, i) => sum + (i.itemsIndexed ?? 0),
+        0,
+    );
+
+    const handleConnect = (type: string) => {
         if (!selectedWorkspaceId) return;
 
-        // OAuth providers use redirect flow
-        if (OAUTH_PROVIDERS.has(integrationType)) {
-            if (integrationType === 'NOTION') {
+        if (OAUTH_PROVIDERS.has(type)) {
+            if (type === 'NOTION') {
                 connectNotionMutation.mutate();
             }
             return;
         }
 
-        // Non-OAuth providers use direct API connect
         connectMutation.mutate({
             workspaceId: selectedWorkspaceId,
-            body: { provider: integrationType },
+            body: { provider: type },
         });
     };
 
-    const handleDisconnect = (integrationId: string) => {
-        disconnectMutation.mutate({ integrationId });
-    };
-
-    const handleSync = (integrationId: string, integrationType: string) => {
-        if (integrationType === 'NOTION') {
-            syncNotionMutation.mutate({ integrationId });
-        } else {
-            syncMutation.mutate({ integrationId });
-        }
-    };
-
-    const isTypeConnecting = (integrationType?: string) => {
-        if (!integrationType) return false;
-        if (OAUTH_PROVIDERS.has(integrationType)) {
-            return integrationType === 'NOTION' && connectNotionMutation.isPending;
+    const isTypeConnecting = (type: string) => {
+        if (OAUTH_PROVIDERS.has(type)) {
+            return type === 'NOTION' && connectNotionMutation.isPending;
         }
         return (
             connectMutation.isPending &&
-            connectMutation.variables?.body.provider === integrationType
+            connectMutation.variables?.body.provider === type
         );
     };
-
-    const hasIntegrations =
-        !isLoading && !isError && integrations && integrations.length > 0;
 
     return (
         <AppLayout
@@ -364,22 +326,38 @@ export function IntegrationsPage() {
             <div className="p-8 md:p-12 flex-1 overflow-y-auto">
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
-                    <div className="mb-10 flex items-end justify-between">
-                        <div>
-                            <h1 className="text-5xl font-black tracking-tighter leading-tight">
-                                Sources.
-                            </h1>
-                            <p className="text-muted-foreground text-lg mt-2 max-w-xl">
-                                Centralize your organizational intelligence.
-                                Connect the tools your team uses every day to
-                                build a unified knowledge base.
-                            </p>
-                        </div>
-                        <Button variant="secondary" className="gap-2">
-                            <Filter className="size-4" />
-                            Filter
-                        </Button>
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Integrations
+                        </h1>
+                        <p className="text-muted-foreground mt-1 max-w-xl">
+                            Connect your tools to automatically enrich your
+                            knowledge graph.
+                        </p>
                     </div>
+
+                    {/* Summary */}
+                    {!isLoading && catalog.length > 0 && (
+                        <div className="flex items-center gap-6 mb-8 text-sm">
+                            <div className="flex items-center gap-2">
+                                <span className="font-semibold">
+                                    {connectedCount} of {catalog.length}
+                                </span>
+                                <span className="text-muted-foreground">
+                                    connected
+                                </span>
+                            </div>
+                            {totalItems > 0 && (
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Database className="size-4" />
+                                    <span>
+                                        {totalItems.toLocaleString()} total
+                                        items indexed
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Success Banner */}
                     {successProvider && (
@@ -392,104 +370,33 @@ export function IntegrationsPage() {
                     {/* Loading */}
                     {isLoading && <LoadingState />}
 
-                    {/* Empty */}
-                    {!isLoading && !hasIntegrations && <EmptyState />}
-
                     {/* Integration Grid */}
-                    {hasIntegrations && (
+                    {!isLoading && catalog.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {integrations.map((integration) => (
-                                <IntegrationCard
-                                    key={integration.id ?? integration.type}
-                                    integration={integration}
-                                    onConnect={() =>
-                                        handleConnect(
-                                            integration.type ?? ''
-                                        )
-                                    }
-                                    onDisconnect={() =>
-                                        handleDisconnect(integration.id ?? '')
-                                    }
-                                    onSync={() =>
-                                        handleSync(integration.id ?? '', integration.type ?? '')
-                                    }
-                                    isConnecting={isTypeConnecting(
-                                        integration.type
-                                    )}
-                                    isDisconnecting={
-                                        disconnectMutation.isPending &&
-                                        disconnectMutation.variables
-                                            ?.integrationId === integration.id
-                                    }
-                                    isSyncing={
-                                        integration.type === 'NOTION'
-                                            ? syncNotionMutation.isPending &&
-                                              syncNotionMutation.variables
-                                                  ?.integrationId === integration.id
-                                            : syncMutation.isPending &&
-                                              syncMutation.variables
-                                                  ?.integrationId === integration.id
-                                    }
+                            {catalog.map((item) => (
+                                <CatalogCard
+                                    key={item.type}
+                                    item={item}
+                                    onConnect={() => handleConnect(item.type)}
+                                    isConnecting={isTypeConnecting(item.type)}
                                 />
                             ))}
                         </div>
                     )}
 
-                    {/* Featured Section */}
-                    <div className="mt-12 grid grid-cols-12 gap-8">
-                        {/* Knowledge Extraction */}
-                        <div className="col-span-12 lg:col-span-8 bg-muted p-8 rounded-xl relative overflow-hidden">
-                            <div className="relative z-10">
-                                <h2 className="text-2xl font-black">
-                                    Real-time Knowledge Extraction
-                                </h2>
-                                <p className="text-muted-foreground mt-2 max-w-md">
-                                    Our AI automatically labels, categorizes,
-                                    and links content across all connected
-                                    sources.
-                                </p>
-                                <div className="mt-6 flex gap-4">
-                                    <div className="bg-card p-4 rounded-xl shadow-sm border">
-                                        <span className="text-xs font-bold text-primary block mb-1">
-                                            ACCURACY
-                                        </span>
-                                        <span className="text-2xl font-black">
-                                            99.4%
-                                        </span>
-                                    </div>
-                                    <div className="bg-card p-4 rounded-xl shadow-sm border">
-                                        <span className="text-xs font-bold text-primary block mb-1">
-                                            LATENCY
-                                        </span>
-                                        <span className="text-2xl font-black">
-                                            &lt;200ms
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="absolute top-0 right-0 h-full w-1/3 opacity-20 bg-gradient-to-l from-primary to-transparent pointer-events-none" />
-                            <Brain className="absolute -bottom-6 -right-6 size-40 text-primary/5" />
+                    {/* Empty state: no providers at all */}
+                    {!isLoading && catalog.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+                            <PlugZap className="size-12 mb-4" />
+                            <p className="text-lg font-semibold text-foreground mb-1">
+                                No integrations available
+                            </p>
+                            <p className="text-sm max-w-md text-center">
+                                Integration providers will appear here once
+                                configured by your administrator.
+                            </p>
                         </div>
-
-                        {/* Request Source */}
-                        <div className="col-span-12 lg:col-span-4 bg-primary text-primary-foreground p-8 rounded-xl flex flex-col justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold">
-                                    Request Source
-                                </h2>
-                                <p className="text-primary-foreground/80 text-sm mt-2">
-                                    Can't find what you're looking for? Suggest
-                                    a new integration for our roadmap.
-                                </p>
-                            </div>
-                            <Button
-                                variant="secondary"
-                                className="mt-6 w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold"
-                            >
-                                Submit Request
-                            </Button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </AppLayout>

@@ -1,9 +1,14 @@
 import {
+    ActivityIcon,
+    AlertTriangleIcon,
+    ClockIcon,
     DatabaseIcon,
-    HourglassIcon,
-    LayoutDashboardIcon,
-    PanelTopIcon,
+    GitBranchIcon,
+    HomeIcon,
+    NetworkIcon,
     PlugIcon,
+    SearchIcon,
+    SettingsIcon,
 } from 'lucide-react';
 import { PlatformNav } from '@/components/PlatformNav';
 import { WorkspaceSwitcher } from '@/components/sidebar/WorkspaceSwitcher';
@@ -26,34 +31,52 @@ const data = {
         {
             title: 'Dashboard',
             url: '/',
-            icon: LayoutDashboardIcon,
+            icon: HomeIcon,
         },
         {
-            title: 'Memory',
-            url: '/memory',
+            title: 'Knowledge Graph',
+            url: '/knowledge-graph',
+            icon: NetworkIcon,
+        },
+        {
+            title: 'Entities',
+            url: '/entities',
             icon: DatabaseIcon,
-            isActive: true,
-            items: [
-                { title: 'Relationship Graph', url: '/memory/graph' },
-                { title: 'Extraction Engine', url: '/memory/extraction' },
-                { title: 'Refine Knowledge', url: '/memory/refine' },
-                { title: 'Claim Library', url: '/memory/claims' },
-            ],
+        },
+        {
+            title: 'Relationships',
+            url: '/relationships',
+            icon: GitBranchIcon,
+        },
+        {
+            title: 'Search',
+            url: '/search',
+            icon: SearchIcon,
+        },
+        {
+            title: 'Timeline',
+            url: '/timeline',
+            icon: ClockIcon,
+        },
+        {
+            title: 'Conflicts',
+            url: '/conflicts',
+            icon: AlertTriangleIcon,
         },
         {
             title: 'Activity',
             url: '/activity',
-            icon: HourglassIcon,
-        },
-        {
-            title: 'Control Panel',
-            url: '/control-panel',
-            icon: PanelTopIcon,
+            icon: ActivityIcon,
         },
         {
             title: 'Integrations',
             url: '/integrations',
             icon: PlugIcon,
+        },
+        {
+            title: 'Settings',
+            url: '/account',
+            icon: SettingsIcon,
         },
     ],
 };

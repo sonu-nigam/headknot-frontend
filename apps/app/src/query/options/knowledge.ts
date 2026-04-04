@@ -117,3 +117,61 @@ export const memoriesForEntityQueryOptions = (entityId: string) =>
             return res.data;
         },
     });
+
+export const entityAliasesQueryOptions = (entityId: string) =>
+    queryOptions<string[]>({
+        queryKey: ['knowledge', 'aliases', entityId],
+        enabled: !!entityId,
+        queryFn: async () => {
+            const res = await api.GET(
+                '/knowledge/entities/{entityId}/aliases',
+                {
+                    params: { path: { entityId } },
+                },
+            );
+            if (res.error) throw new Error('Failed to fetch aliases');
+            return res.data;
+        },
+    });
+
+export const relationshipByIdQueryOptions = (relationshipId: string) =>
+    queryOptions<Schemas['RelationshipResponse']>({
+        queryKey: ['knowledge', 'relationship', relationshipId],
+        enabled: !!relationshipId,
+        queryFn: async () => {
+            const res = await api.GET('/relationships/{relationshipId}', {
+                params: { path: { relationshipId } },
+            });
+            if (res.error) throw new Error('Failed to fetch relationship');
+            return res.data;
+        },
+    });
+
+export const feedbackHistoryQueryOptions = (relationshipId: string) =>
+    queryOptions<Schemas['FeedbackResponse'][]>({
+        queryKey: ['knowledge', 'feedback', relationshipId],
+        enabled: !!relationshipId,
+        queryFn: async () => {
+            const res = await api.GET(
+                '/relationships/{relationshipId}/feedback',
+                {
+                    params: { path: { relationshipId } },
+                },
+            );
+            if (res.error) throw new Error('Failed to fetch feedback');
+            return res.data;
+        },
+    });
+
+export const claimByIdQueryOptions = (claimId: string) =>
+    queryOptions<Schemas['ClaimResponse']>({
+        queryKey: ['knowledge', 'claim', claimId],
+        enabled: !!claimId,
+        queryFn: async () => {
+            const res = await api.GET('/knowledge/claims/{claimId}', {
+                params: { path: { claimId } },
+            });
+            if (res.error) throw new Error('Failed to fetch claim');
+            return res.data;
+        },
+    });

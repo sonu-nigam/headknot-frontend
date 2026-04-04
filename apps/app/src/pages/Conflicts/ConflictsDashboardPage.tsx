@@ -27,6 +27,7 @@ import { Schemas } from '@/types/api';
 import { conflictsQueryOptions } from '@/query/options/conflicts';
 import { useAcknowledgeConflict } from '@/hooks/conflicts/useAcknowledgeConflict';
 import { useResolveConflict } from '@/hooks/conflicts/useResolveConflict';
+import { ResolveConflictDialog } from '@/components/conflicts/ResolveConflictDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 // --- Status Badge ---
@@ -299,6 +300,7 @@ export function ConflictsDashboardPage() {
     const navigate = useNavigate();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
     const [statusFilter, setStatusFilter] = useState('');
+    const [resolveConflict, setResolveConflict] = useState<Schemas['ConflictResponse'] | null>(null);
 
     const {
         data: conflicts,
@@ -393,12 +395,26 @@ export function ConflictsDashboardPage() {
                         <ConflictsTable
                             conflicts={conflicts}
                             onAcknowledge={(id) => acknowledge.mutate(id)}
-                            onResolve={(id) => resolve.mutate(id)}
+                            onResolve={(id) => {
+                                const c = conflicts?.find((x) => x.id === id);
+                                if (c) setResolveConflict(c);
+                            }}
                             onNavigate={(id) => navigate(`/conflicts/${id}`)}
                         />
                     )}
                 </div>
             </div>
+
+            {/* Resolve Conflict Dialog */}
+            {resolveConflict && (
+                <ResolveConflictDialog
+                    open={!!resolveConflict}
+                    onOpenChange={(open) => {
+                        if (!open) setResolveConflict(null);
+                    }}
+                    conflict={resolveConflict}
+                />
+            )}
         </AppLayout>
     );
 }
