@@ -27,6 +27,9 @@ import { ClaimsLibraryPage } from './pages/ClaimsLibrary/ClaimsLibraryPage';
 import { RefineKnowledgePage } from './pages/RefineKnowledge/RefineKnowledgePage';
 import { RelationshipGraphPage } from './pages/RelationshipGraph/RelationshipGraphPage';
 import { MemoryCenterPage } from './pages/MemoryCenter/MemoryCenterPage';
+import { ConflictsDashboardPage } from './pages/Conflicts/ConflictsDashboardPage';
+import { ConflictDetailPage } from './pages/Conflicts/ConflictDetailPage';
+import { ChangeFeedPage } from './pages/ChangeFeed/ChangeFeedPage';
 
 export default function App() {
     const loc = useLocation();
@@ -152,6 +155,30 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <ClaimsLibraryPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/conflicts"
+                element={
+                    <ProtectedRoute>
+                        <ConflictsDashboardPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/conflicts/:id"
+                element={
+                    <ProtectedRoute>
+                        <ConflictDetailPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/changes"
+                element={
+                    <ProtectedRoute>
+                        <ChangeFeedPage />
                     </ProtectedRoute>
                 }
             />

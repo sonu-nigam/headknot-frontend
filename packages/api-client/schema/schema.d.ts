@@ -1475,6 +1475,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get timeline
+         * @description Returns timeline events for a specific object
+         */
+        get: operations["getTimeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/timeline/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get timeline changes
+         * @description Returns workspace change feed since a given timestamp
+         */
+        get: operations["getTimelineChanges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List conflicts
+         * @description Returns conflicts for a workspace, optionally filtered by status
+         */
+        get: operations["listConflicts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get conflict
+         * @description Returns conflict details by ID
+         */
+        get: operations["getConflict"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts/{id}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Acknowledge conflict
+         * @description Marks a conflict as acknowledged
+         */
+        post: operations["acknowledgeConflict"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve conflict
+         * @description Marks a conflict as resolved
+         */
+        post: operations["resolveConflict"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2075,6 +2195,11 @@ export interface components {
             };
             /** Format: date-time */
             createdAt?: string;
+            /**
+             * @description Lifecycle status of the claim
+             * @enum {string}
+             */
+            lifecycleStatus?: "DRAFT" | "ACTIVE" | "DISPUTED" | "SUPERSEDED" | "ARCHIVED";
         };
         /** @description Subscribe workspace to a plan request */
         SubscribeRequest: {
@@ -2597,6 +2722,119 @@ export interface components {
             authorizationUrl?: string;
             /** @description State parameter for CSRF protection */
             state?: string;
+        };
+        /** @description A timeline event for any tracked object */
+        TimelineEventResponse: {
+            /**
+             * Format: uuid
+             * @description Event ID
+             */
+            id?: string;
+            /**
+             * @description Type of the object this event relates to
+             * @enum {string}
+             */
+            objectType?: "CLAIM" | "ENTITY" | "MEMORY" | "RELATIONSHIP";
+            /**
+             * Format: uuid
+             * @description ID of the object this event relates to
+             */
+            objectId?: string;
+            /** @description Type of event (e.g. CREATED, UPDATED, CONFLICT_DETECTED) */
+            eventType?: string;
+            /**
+             * Format: date-time
+             * @description When the event occurred
+             */
+            timestamp?: string;
+            /**
+             * Format: uuid
+             * @description ID of the actor who triggered the event
+             */
+            actorId?: string;
+            /** @description Display name of the actor */
+            actorName?: string;
+            /** @description Additional event-specific details */
+            details?: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        /** @description Paginated timeline changes response */
+        TimelineChangesResponse: {
+            /** @description List of timeline events */
+            events?: components["schemas"]["TimelineEventResponse"][];
+            /** @description Cursor for fetching the next page */
+            cursor?: string;
+        };
+        /** @description A detected conflict between claims */
+        ConflictResponse: {
+            /**
+             * Format: uuid
+             * @description Conflict ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace this conflict belongs to
+             */
+            workspaceId?: string;
+            /**
+             * @description Current status of the conflict
+             * @enum {string}
+             */
+            status?: "ACTIVE" | "ACKNOWLEDGED" | "RESOLVED";
+            /** @description Human-readable description of the conflict */
+            description?: string;
+            /**
+             * Format: uuid
+             * @description ID of the source claim
+             */
+            sourceClaimId?: string;
+            /**
+             * Format: uuid
+             * @description ID of the target claim
+             */
+            targetClaimId?: string;
+            /**
+             * Format: uuid
+             * @description ID of the relationship that detected this conflict
+             */
+            relationshipId?: string;
+            /**
+             * Format: double
+             * @description Confidence score (0.0-1.0)
+             */
+            confidence?: number;
+            /**
+             * Format: date-time
+             * @description When the conflict was detected
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updatedAt?: string;
+            /**
+             * Format: date-time
+             * @description When the conflict was acknowledged
+             */
+            acknowledgedAt?: string;
+            /**
+             * Format: uuid
+             * @description User who acknowledged the conflict
+             */
+            acknowledgedBy?: string;
+            /**
+             * Format: date-time
+             * @description When the conflict was resolved
+             */
+            resolvedAt?: string;
+            /**
+             * Format: uuid
+             * @description User who resolved the conflict
+             */
+            resolvedBy?: string;
         };
     };
     responses: never;
@@ -5782,6 +6020,258 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getTimeline: {
+        parameters: {
+            query: {
+                /** @description Type of object to get timeline for */
+                objectType: string;
+                /** @description ID of the object */
+                objectId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Timeline events retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimelineEventResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Object not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getTimelineChanges: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspaceId: string;
+                /**
+                 * Format: date-time
+                 * @description ISO 8601 timestamp to fetch changes since
+                 */
+                since: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Changes retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimelineEventResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listConflicts: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspaceId: string;
+                /** @description Filter by conflict status */
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conflicts retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getConflict: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Conflict ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conflict found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    acknowledgeConflict: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Conflict ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conflict acknowledged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid state transition */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resolveConflict: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Conflict ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conflict resolved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid state transition */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
