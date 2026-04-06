@@ -17,10 +17,29 @@ import { useAppStore } from '@/state/store';
 import { useCreateGraphEvent } from '@/hooks/graph/useCreateGraphEvent';
 import { graphEntitiesQueryOptions } from '@/query/options/graph';
 
+const EVENT_TYPES = [
+    'WORKS_AT',
+    'FOUNDED',
+    'ACQUIRED',
+    'MEMBER_OF',
+    'LOCATED_IN',
+    'RELATED_TO',
+    'CAUSED',
+    'PARTICIPATED_IN',
+    'PRODUCED',
+    'USES',
+    'CUSTOM',
+] as const;
+
+const TEMPORAL_TYPES = ['ATEMPORAL', 'STATIC', 'DYNAMIC'] as const;
+
 const schema = z.object({
-    label: z.string().min(1, 'Label is required'),
+    eventType: z.enum(EVENT_TYPES),
     description: z.string().optional(),
-    occurredAt: z.string().optional(),
+    confidence: z.coerce.number().min(0).max(1).optional(),
+    validFrom: z.string().optional(),
+    validTo: z.string().optional(),
+    temporalType: z.enum(TEMPORAL_TYPES),
     subjectId: z.string().min(1, 'Subject entity is required'),
     objectId: z.string().min(1, 'Object entity is required'),
 });
@@ -53,9 +72,12 @@ export function CreateEventDialog({
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
-            label: '',
+            eventType: 'RELATED_TO',
             description: '',
-            occurredAt: '',
+            confidence: 0.9,
+            validFrom: '',
+            validTo: '',
+            temporalType: 'STATIC',
             subjectId: '',
             objectId: '',
         },
@@ -66,11 +88,16 @@ export function CreateEventDialog({
 
         createMutation.mutate(
             {
-                label: values.label,
+                eventType: values.eventType,
                 description: values.description || undefined,
-                occurredAt: values.occurredAt
-                    ? new Date(values.occurredAt).toISOString()
+                confidence: values.confidence,
+                validFrom: values.validFrom
+                    ? new Date(values.validFrom).toISOString()
                     : undefined,
+                validTo: values.validTo
+                    ? new Date(values.validTo).toISOString()
+                    : undefined,
+                temporalType: values.temporalType,
                 subjectId: values.subjectId,
                 objectId: values.objectId,
                 workspaceId: selectedWorkspaceId,
@@ -92,20 +119,25 @@ export function CreateEventDialog({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Label */}
+                    {/* Event Type */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="event-label" className="text-xs">
-                            Label
+                        <Label htmlFor="event-type" className="text-xs">
+                            Event Type
                         </Label>
-                        <Input
-                            id="event-label"
-                            placeholder="Event label"
-                            className="h-9"
-                            {...register('label')}
-                        />
-                        {errors.label && (
+                        <select
+                            id="event-type"
+                            {...register('eventType')}
+                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                            {EVENT_TYPES.map((type) => (
+                                <option key={type} value={type}>
+                                    {type.replace(/_/g, ' ')}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.eventType && (
                             <p className="text-xs text-destructive">
-                                {errors.label.message}
+                                {errors.eventType.message}
                             </p>
                         )}
                     </div>
@@ -113,44 +145,31 @@ export function CreateEventDialog({
                     {/* Description */}
                     <div className="space-y-1.5">
                         <Label htmlFor="event-desc" className="text-xs">
-                            Description (optional)
+                            Description
                         </Label>
                         <textarea
                             id="event-desc"
                             rows={2}
-                            placeholder="Describe this event..."
+                            placeholder="Describe the event..."
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                             {...register('description')}
                         />
                     </div>
 
-                    {/* Occurred At */}
-                    <div className="space-y-1.5">
-                        <Label htmlFor="event-date" className="text-xs">
-                            Occurred At (optional)
-                        </Label>
-                        <Input
-                            id="event-date"
-                            type="date"
-                            className="h-9"
-                            {...register('occurredAt')}
-                        />
-                    </div>
-
                     {/* Subject Entity */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="event-subject" className="text-xs">
+                        <Label htmlFor="subject" className="text-xs">
                             Subject Entity
                         </Label>
                         <select
-                            id="event-subject"
+                            id="subject"
                             {...register('subjectId')}
                             className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         >
-                            <option value="">Select entity...</option>
+                            <option value="">Select subject...</option>
                             {entityList.map((entity) => (
                                 <option key={entity.id} value={entity.id}>
-                                    {entity.name}
+                                    {entity.name} ({entity.entityType})
                                 </option>
                             ))}
                         </select>
@@ -163,18 +182,18 @@ export function CreateEventDialog({
 
                     {/* Object Entity */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="event-object" className="text-xs">
+                        <Label htmlFor="object" className="text-xs">
                             Object Entity
                         </Label>
                         <select
-                            id="event-object"
+                            id="object"
                             {...register('objectId')}
                             className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         >
-                            <option value="">Select entity...</option>
+                            <option value="">Select object...</option>
                             {entityList.map((entity) => (
                                 <option key={entity.id} value={entity.id}>
-                                    {entity.name}
+                                    {entity.name} ({entity.entityType})
                                 </option>
                             ))}
                         </select>
@@ -183,6 +202,66 @@ export function CreateEventDialog({
                                 {errors.objectId.message}
                             </p>
                         )}
+                    </div>
+
+                    {/* Confidence + Temporal Type */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="confidence" className="text-xs">
+                                Confidence
+                            </Label>
+                            <Input
+                                id="confidence"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="1"
+                                className="h-9"
+                                {...register('confidence')}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="temporal-type" className="text-xs">
+                                Temporal Type
+                            </Label>
+                            <select
+                                id="temporal-type"
+                                {...register('temporalType')}
+                                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            >
+                                {TEMPORAL_TYPES.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Valid From / To */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="valid-from" className="text-xs">
+                                Valid From
+                            </Label>
+                            <Input
+                                id="valid-from"
+                                type="date"
+                                className="h-9"
+                                {...register('validFrom')}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="valid-to" className="text-xs">
+                                Valid To
+                            </Label>
+                            <Input
+                                id="valid-to"
+                                type="date"
+                                className="h-9"
+                                {...register('validTo')}
+                            />
+                        </div>
                     </div>
 
                     <DialogFooter>
@@ -203,7 +282,7 @@ export function CreateEventDialog({
                             {createMutation.isPending && (
                                 <Loader2 className="size-3 animate-spin" />
                             )}
-                            Create
+                            Create Event
                         </Button>
                     </DialogFooter>
                 </form>

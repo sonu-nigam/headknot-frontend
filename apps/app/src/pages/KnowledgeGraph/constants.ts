@@ -24,3 +24,8 @@ export const LINK_COLORS: Record<string, string> = {
     SUBJECT_OF: '#8b5cf6',
     OBJECT_OF: '#06b6d4',
 };
+
+/** Normalize entity type from backend (PERSON → person) for color/label lookup */
+export function normalizeEntityType(type?: string): string {
+    return (type ?? 'other').toLowerCase();
+}

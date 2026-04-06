@@ -10,7 +10,7 @@ import {
     graphEntityNeighborsQueryOptions,
 } from '@/query/options/graph';
 import { useDeleteGraphEntity } from '@/hooks/graph/useDeleteGraphEntity';
-import { ENTITY_COLORS, ENTITY_TYPE_LABELS } from './constants';
+import { ENTITY_COLORS, ENTITY_TYPE_LABELS, normalizeEntityType } from './constants';
 
 interface EntityDetailPanelProps {
     entityId: string;
@@ -47,8 +47,9 @@ export function EntityDetailPanel({
         });
     };
 
-    const typeColor = ENTITY_COLORS[entity?.entityType ?? 'other'] ?? ENTITY_COLORS.other;
-    const typeLabel = ENTITY_TYPE_LABELS[entity?.entityType ?? 'other'] ?? 'Other';
+    const normalizedType = normalizeEntityType(entity?.entityType);
+    const typeColor = ENTITY_COLORS[normalizedType] ?? ENTITY_COLORS.other;
+    const typeLabel = ENTITY_TYPE_LABELS[normalizedType] ?? entity?.entityType ?? 'Other';
 
     return (
         <div className="absolute right-0 top-0 w-80 bg-card border-l h-full overflow-y-auto z-20 flex flex-col">
@@ -87,8 +88,8 @@ export function EntityDetailPanel({
                     </Badge>
 
                     {/* Properties */}
-                    {entity?.properties &&
-                        Object.keys(entity.properties).length > 0 && (
+                    {entity?.attributes &&
+                        Object.keys(entity.attributes).length > 0 && (
                             <>
                                 <Separator />
                                 <div>
@@ -96,7 +97,7 @@ export function EntityDetailPanel({
                                         Properties
                                     </h3>
                                     <div className="space-y-1.5">
-                                        {Object.entries(entity.properties).map(
+                                        {Object.entries(entity.attributes).map(
                                             ([key, value]) => (
                                                 <div
                                                     key={key}
@@ -138,11 +139,11 @@ export function EntityDetailPanel({
                                         className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted transition-colors"
                                     >
                                         <p className="text-xs font-medium truncate">
-                                            {event.label ?? 'Untitled Event'}
+                                            {event.eventType ?? 'Event'}
                                         </p>
-                                        {event.occurredAt && (
-                                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                                                {new Date(event.occurredAt).toLocaleDateString()}
+                                        {event.description && (
+                                            <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                                                {event.description}
                                             </p>
                                         )}
                                     </button>
@@ -170,10 +171,10 @@ export function EntityDetailPanel({
                             <div className="space-y-1.5">
                                 {neighbors.map((neighbor, idx) => (
                                     <button
-                                        key={neighbor.entity?.id ?? idx}
+                                        key={neighbor.id ?? idx}
                                         onClick={() =>
-                                            neighbor.entity?.id &&
-                                            onSelectNode(neighbor.entity.id, 'entity')
+                                            neighbor.id &&
+                                            onSelectNode(neighbor.id, 'entity')
                                         }
                                         className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted transition-colors"
                                     >
@@ -183,22 +184,17 @@ export function EntityDetailPanel({
                                                 style={{
                                                     backgroundColor:
                                                         ENTITY_COLORS[
-                                                            neighbor.entity?.entityType ?? 'other'
+                                                            normalizeEntityType(neighbor.entityType)
                                                         ] ?? ENTITY_COLORS.other,
                                                 }}
                                             />
                                             <p className="text-xs font-medium truncate">
-                                                {neighbor.entity?.name ?? 'Unnamed'}
+                                                {neighbor.name ?? 'Unnamed'}
                                             </p>
+                                            <Badge variant="outline" className="ml-auto text-[10px] shrink-0">
+                                                {ENTITY_TYPE_LABELS[normalizeEntityType(neighbor.entityType)] ?? neighbor.entityType}
+                                            </Badge>
                                         </div>
-                                        {neighbor.relationship && (
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <ArrowRight className="size-2.5 text-muted-foreground" />
-                                                <span className="text-[10px] text-muted-foreground">
-                                                    {neighbor.relationship}
-                                                </span>
-                                            </div>
-                                        )}
                                     </button>
                                 ))}
                             </div>

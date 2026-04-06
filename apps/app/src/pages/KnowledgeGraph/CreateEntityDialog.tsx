@@ -29,7 +29,7 @@ const ENTITY_TYPES = [
 const schema = z.object({
     name: z.string().min(1, 'Name is required'),
     entityType: z.enum(ENTITY_TYPES),
-    properties: z.string().optional(),
+    attributes: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -57,19 +57,19 @@ export function CreateEntityDialog({
         defaultValues: {
             name: '',
             entityType: 'concept',
-            properties: '',
+            attributes: '',
         },
     });
 
     const onSubmit = (values: FormValues) => {
         if (!selectedWorkspaceId) return;
 
-        let properties: Record<string, unknown> | undefined;
-        if (values.properties?.trim()) {
+        let attributes: { [key: string]: Record<string, never> } | undefined;
+        if (values.attributes?.trim()) {
             try {
-                properties = JSON.parse(values.properties);
+                attributes = JSON.parse(values.attributes);
             } catch {
-                setError('properties', {
+                setError('attributes', {
                     message: 'Invalid JSON. Please check the syntax.',
                 });
                 return;
@@ -80,7 +80,7 @@ export function CreateEntityDialog({
             {
                 name: values.name,
                 entityType: values.entityType,
-                properties,
+                attributes,
                 workspaceId: selectedWorkspaceId,
             },
             {
@@ -151,11 +151,11 @@ export function CreateEntityDialog({
                             rows={3}
                             placeholder='{"key": "value"}'
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-                            {...register('properties')}
+                            {...register('attributes')}
                         />
-                        {errors.properties && (
+                        {errors.attributes && (
                             <p className="text-xs text-destructive">
-                                {errors.properties.message}
+                                {errors.attributes.message}
                             </p>
                         )}
                     </div>

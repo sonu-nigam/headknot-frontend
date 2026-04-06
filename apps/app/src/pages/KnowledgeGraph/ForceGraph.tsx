@@ -215,7 +215,7 @@ export function ForceGraph({
             .each(function (d) {
                 const g = d3.select(this);
                 const color = getNodeColor(d as unknown as GraphNode);
-                const evtData = d.data as Schemas['GraphEventResponse'];
+                const evtData = d.data as Schemas['EventNodeDetailResponse'];
 
                 // Hover ring (hidden by default)
                 g.append('rect')
@@ -254,8 +254,8 @@ export function ForceGraph({
                     .attr('pointer-events', 'none');
 
                 // Tooltip with subject→object
-                const subjectName = evtData.subject?.name ?? evtData.subjectId?.slice(0, 8) ?? '?';
-                const objectName = evtData.object?.name ?? evtData.objectId?.slice(0, 8) ?? '?';
+                const subjectName = evtData.subject?.name ?? '?';
+                const objectName = evtData.object?.name ?? '?';
                 g.append('title').text(
                     `${d.label}\n${subjectName} → ${objectName}`,
                 );

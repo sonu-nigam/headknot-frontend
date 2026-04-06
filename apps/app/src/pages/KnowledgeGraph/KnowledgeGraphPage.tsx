@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { useAppStore } from '@/state/store';
@@ -7,6 +7,7 @@ import { useGraphData } from '@/hooks/graph/useGraphData';
 import {
     graphEntitiesQueryOptions,
     graphEventsQueryOptions,
+    graphEventDetailsQueryOptions,
 } from '@/query/options/graph';
 import { GraphCanvas } from './GraphCanvas';
 import { GraphToolbar } from './GraphToolbar';
@@ -45,19 +46,40 @@ function KnowledgeGraphPage() {
         fitToScreen: () => void;
     } | null>(null);
 
+    // 1. Fetch all entities
     const { data: entities, isLoading: entitiesLoading } = useQuery({
         ...graphEntitiesQueryOptions(selectedWorkspaceId ?? ''),
         enabled: !!selectedWorkspaceId,
     });
 
-    const { data: events, isLoading: eventsLoading } = useQuery({
+    // 2. Fetch event list (no subject/object, just IDs)
+    const { data: eventList, isLoading: eventsLoading } = useQuery({
         ...graphEventsQueryOptions(selectedWorkspaceId ?? ''),
         enabled: !!selectedWorkspaceId,
     });
 
-    const { nodes, links } = useGraphData(entities, events, entityTypeFilters);
+    // 3. Extract event IDs and fetch details (which include subject/object)
+    const eventIds = useMemo(
+        () =>
+            (eventList ?? [])
+                .map((e) => e.id)
+                .filter((id): id is string => !!id),
+        [eventList],
+    );
 
-    const isLoading = entitiesLoading || eventsLoading;
+    const { data: eventDetails, isLoading: detailsLoading } = useQuery({
+        ...graphEventDetailsQueryOptions(eventIds),
+        enabled: eventIds.length > 0,
+    });
+
+    // 4. Transform into d3 nodes/links
+    const { nodes, links } = useGraphData(
+        entities,
+        eventDetails,
+        entityTypeFilters,
+    );
+
+    const isLoading = entitiesLoading || eventsLoading || detailsLoading;
 
     const handleNodeClick = (nodeId: string, nodeType: 'entity' | 'event') => {
         if (!nodeId) {
@@ -108,21 +130,13 @@ function KnowledgeGraphPage() {
                             <div className="h-8 bg-card border-t flex items-center px-4 gap-4 text-xs text-muted-foreground shrink-0">
                                 <span>
                                     <strong className="text-foreground">
-                                        {
-                                            nodes.filter(
-                                                (n) => n.type === 'entity',
-                                            ).length
-                                        }
+                                        {entities?.length ?? 0}
                                     </strong>{' '}
                                     entities
                                 </span>
                                 <span>
                                     <strong className="text-foreground">
-                                        {
-                                            nodes.filter(
-                                                (n) => n.type === 'event',
-                                            ).length
-                                        }
+                                        {eventDetails?.length ?? 0}
                                     </strong>{' '}
                                     events
                                 </span>

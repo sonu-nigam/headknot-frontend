@@ -23,26 +23,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/space/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update space
-         * @description Updates the name and description of an existing space
-         */
-        put: operations["updateSpace"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/settings/workspace/{workspaceId}": {
         parameters: {
             query?: never;
@@ -199,26 +179,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/memory/{id}/blocks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update memory blocks
-         * @description Update the complete block list of a memory
-         */
-        put: operations["updateBlocks"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/billing/workspace/{workspaceId}/plan": {
         parameters: {
             query?: never;
@@ -319,24 +279,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/space": {
+    "/search/temporal": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * List spaces by workspace
-         * @description Retrieves all spaces for a workspace, optionally filtered by status
-         */
-        get: operations["listSpaces"];
+        get?: never;
         put?: never;
         /**
-         * Create space
-         * @description Creates a new space within a workspace
+         * Temporal search
+         * @description Search with temporal context — scopes results to a specific point in time.
          */
-        post: operations["createSpace"];
+        post: operations["temporalSearch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/reason": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agent-powered reasoning over the temporal knowledge graph
+         * @description Uses an LLM agent with graph traversal tools to plan, gather evidence, and synthesize answers from the temporal knowledge graph.
+         */
+        post: operations["reason"];
         delete?: never;
         options?: never;
         head?: never;
@@ -471,86 +447,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/memory": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List memories by workspace
-         * @description Retrieves memories for a workspace, optionally filtered by space
-         */
-        get: operations["listByWorkspace"];
-        put?: never;
-        /**
-         * Create memory
-         * @description Creates a new memory (note/task/decision) within a workspace
-         */
-        post: operations["createMemory"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/memory/{id}/rollback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Rollback to snapshot
-         * @description Rolls back a memory to a specific snapshot. Destructive — deletes all snapshots after the target, orphaned blocks, and triggers cleanup of associated claims, relationships, and entities.
-         */
-        post: operations["rollbackToSnapshot"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/memory/{id}/checkout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Checkout snapshot
-         * @description Loads blocks from a specific snapshot as drafts for editing. This enables branching — after checkout, editing and committing creates a divergent snapshot timeline within the same memory.
-         */
-        post: operations["checkoutSnapshot"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/memory/{id}/blocks/commit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["commitBlocks"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/knowledge/entities": {
         parameters: {
             query?: never;
@@ -635,6 +531,318 @@ export interface paths {
          * @description Records a claim linked to a knowledge entity and extracted from a memory block.
          */
         post: operations["createClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disconnect integration
+         * @description Disconnects an integration from a workspace
+         */
+        post: operations["disconnectIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Connect integration
+         * @description Connects an integration to a workspace
+         */
+        post: operations["connectIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/workspace/{workspaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List integrations
+         * @description Retrieves integrations for a workspace, optionally filtered by status or type
+         */
+        get: operations["listIntegrations"];
+        put?: never;
+        /**
+         * Initialize integrations
+         * @description Seeds integrations for a workspace and returns the list
+         */
+        post: operations["initializeIntegrations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/source-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit source request
+         * @description Submits a request for a new integration source
+         */
+        post: operations["createSourceRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Slack connection
+         * @description Tests the Slack connection and updates sync stats with channel count
+         */
+        post: operations["testConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/oauth/{provider}/initiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate OAuth connection
+         * @description Starts the OAuth flow for connecting an integration provider. Returns an authorization URL the frontend should redirect the user to. The OAuth provider will callback to the backend, which processes the token exchange and redirects the user to the frontend.
+         */
+        post: operations["initiateOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Notion connection
+         * @description Tests the Notion connection and updates sync stats
+         */
+        post: operations["testConnection_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync all Notion pages
+         * @description Fetches all accessible Notion pages, extracts content, and triggers knowledge extraction (entities, claims, and relationships). This is the main entry point for ingesting Notion content.
+         */
+        post: operations["syncAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/sync/pages/{pageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync a single Notion page
+         * @description Fetches a specific Notion page, extracts content, and triggers knowledge extraction for that page.
+         */
+        post: operations["syncPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Notion
+         * @description Searches across all pages and databases the integration has access to
+         */
+        post: operations["search"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/databases/{databaseId}/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Query Notion database
+         * @description Queries a Notion database for its entries
+         */
+        post: operations["queryDatabase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List event nodes
+         * @description Lists event nodes in a workspace
+         */
+        get: operations["list"];
+        put?: never;
+        /**
+         * Create event node
+         * @description Creates an event node and connects it to subject and object entities: (Subject) -[SUBJECT_OF]-> (EventNode) -[OBJECT_OF]-> (Object)
+         */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List entity nodes
+         * @description Lists entity vertices in a workspace
+         */
+        get: operations["list_1"];
+        put?: never;
+        /**
+         * Create entity node
+         * @description Creates a new entity vertex in the knowledge graph
+         */
+        post: operations["create_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts/{conflictId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve conflict
+         * @description Resolves a conflict with a resolution type and optional note.
+         */
+        post: operations["resolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts/{conflictId}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Acknowledge conflict
+         * @description Marks a conflict as acknowledged.
+         */
+        post: operations["acknowledge"];
         delete?: never;
         options?: never;
         head?: never;
@@ -922,7 +1130,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/space/{spaceId}": {
+    "/timeline": {
         parameters: {
             query?: never;
             header?: never;
@@ -930,10 +1138,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get space by ID
-         * @description Retrieves a specific space within a workspace
+         * Get timeline
+         * @description Returns ordered temporal events for a specific object.
          */
-        get: operations["getSpace"];
+        get: operations["getTimeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/timeline/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get changes since
+         * @description Returns all temporal events in a workspace since a given timestamp.
+         */
+        get: operations["getChangesSince"];
         put?: never;
         post?: never;
         delete?: never;
@@ -954,6 +1182,26 @@ export interface paths {
          * @description Returns all application configuration entries
          */
         get: operations["getAllAppConfigs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search workspace
+         * @description Hybrid search across memories, spaces, and other content using full-text search + vector similarity. Returns an AI-generated primary answer with source attribution, plus alternative results.
+         */
+        get: operations["search_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1066,7 +1314,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/memory/{id}": {
+    "/knowledge/temporal/entities/{entityId}/evolution": {
         parameters: {
             query?: never;
             header?: never;
@@ -1074,10 +1322,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get memory by ID
-         * @description Retrieves a specific memory with its blocks
+         * Get comprehensive entity evolution timeline
+         * @description Returns a unified chronological timeline of all events for an entity, including claim creation, invalidation, and expiry events.
          */
-        get: operations["getMemory"];
+        get: operations["getEntityEvolution"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1086,7 +1334,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/memory/{id}/snapshots": {
+    "/knowledge/temporal/entities/{entityId}/claims/history": {
         parameters: {
             query?: never;
             header?: never;
@@ -1094,10 +1342,50 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List snapshots
-         * @description Returns all snapshots for a memory, ordered by version ascending
+         * Get full temporal evolution of an entity's claims
+         * @description Returns the complete temporal history of all claims for an entity, grouped by predicate and sorted chronologically within each group.
          */
-        get: operations["listSnapshots"];
+        get: operations["getClaimHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/temporal/entities/{entityId}/claims/at": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get claims valid at a specific point in time
+         * @description Returns all claims for the given entity that were valid at the specified timestamp. A claim is valid if its validFrom is before or at the time, and its validTo is after the time or null.
+         */
+        get: operations["getClaimsValidAt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/temporal/claims/{claimId}/lineage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get invalidation lineage chain for a claim
+         * @description Traces the chain of claims that were invalidated by or derived from the specified claim, using a recursive query up to 10 levels deep.
+         */
+        get: operations["getClaimLineage"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1154,6 +1442,454 @@ export interface paths {
         post?: never;
         /** Delete claim */
         delete: operations["deleteClaim"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get integration
+         * @description Retrieves details of a specific integration
+         */
+        get: operations["getIntegration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/sync-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get sync stats
+         * @description Retrieves sync statistics for an integration
+         */
+        get: operations["getSyncStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/source-requests/workspace/{workspaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List source requests
+         * @description Retrieves source requests for a workspace
+         */
+        get: operations["listSourceRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Slack users
+         * @description Lists all users in the connected Slack workspace
+         */
+        get: operations["listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/team": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get team info
+         * @description Gets information about the connected Slack team/workspace
+         */
+        get: operations["getTeamInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Slack channels
+         * @description Lists all channels accessible by the connected Slack user
+         */
+        get: operations["listChannels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/channels/{channelId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get channel history
+         * @description Gets message history for a specific Slack channel
+         */
+        get: operations["getChannelHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/oauth/{provider}/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Handle OAuth callback
+         * @description Handles the OAuth callback from the provider. The OAuth provider redirects the user's browser here after authorization. The backend exchanges the code for tokens, connects the integration, and redirects the user back to the frontend.
+         */
+        get: operations["handleCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notion users
+         * @description Lists all users in the connected Notion workspace
+         */
+        get: operations["listUsers_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notion pages
+         * @description Lists all pages the integration has access to
+         */
+        get: operations["listPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/pages/{pageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notion page
+         * @description Retrieves a specific Notion page by ID
+         */
+        get: operations["getPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/databases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notion databases
+         * @description Lists all databases the integration has access to
+         */
+        get: operations["listDatabases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/databases/{databaseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notion database
+         * @description Retrieves a specific Notion database by ID
+         */
+        get: operations["getDatabase"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/notion/{integrationId}/blocks/{blockId}/children": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get block children
+         * @description Retrieves the content blocks of a page or block
+         */
+        get: operations["getBlockChildren"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/query/temporal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Temporal query
+         * @description Finds event nodes for an entity within a time range
+         */
+        get: operations["temporalQuery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/query/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find paths
+         * @description Finds paths between two entities through event nodes
+         */
+        get: operations["findPaths"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get event node
+         * @description Retrieves an event node with its connected subject and object entities
+         */
+        get: operations["get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete event node
+         * @description Deletes an event node and all connected edges
+         */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get entity node
+         * @description Retrieves an entity vertex by ID
+         */
+        get: operations["get_1"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete entity node
+         * @description Deletes an entity vertex and all connected edges
+         */
+        delete: operations["delete_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities/{id}/neighbors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get neighbors
+         * @description Retrieves entities connected via event nodes
+         */
+        get: operations["getNeighbors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get entity events
+         * @description Retrieves all event nodes connected to an entity
+         */
+        get: operations["getEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List conflicts
+         * @description Returns conflicts for a workspace, optionally filtered by status.
+         */
+        get: operations["listConflicts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conflicts/{conflictId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get conflict
+         * @description Returns a single conflict by ID.
+         */
+        get: operations["getConflict"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1259,26 +1995,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Search workspace
-         * @description Searches for memories, spaces, and other content within a workspace using the provided query
-         */
-        get: operations["search"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/activity/": {
         parameters: {
             query?: never;
@@ -1339,402 +2055,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/integrations/workspace/{workspaceId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List integrations
-         * @description Lists all integrations for a workspace
-         */
-        get: operations["listIntegrations"];
-        put?: never;
-        /**
-         * Connect integration
-         * @description Connects a new integration source to the workspace
-         */
-        post: operations["connectIntegration"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/integrations/{integrationId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get integration
-         * @description Gets details of a specific integration
-         */
-        get: operations["getIntegration"];
-        /**
-         * Update integration
-         * @description Updates integration settings
-         */
-        put: operations["updateIntegration"];
-        post?: never;
-        /**
-         * Disconnect integration
-         * @description Disconnects and removes an integration
-         */
-        delete: operations["disconnectIntegration"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/integrations/{integrationId}/sync": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get sync status
-         * @description Gets the current sync status of an integration
-         */
-        get: operations["getIntegrationSyncStatus"];
-        put?: never;
-        /**
-         * Trigger sync
-         * @description Triggers a manual sync for an integration
-         */
-        post: operations["triggerIntegrationSync"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/integrations/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List providers
-         * @description Lists all available integration providers
-         */
-        get: operations["listIntegrationProviders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/integrations/oauth/notion/initiate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Initiate Notion OAuth
-         * @description Starts the Notion OAuth flow and returns the authorization URL
-         */
-        post: operations["initiateNotionOAuth"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/integrations/notion/{integrationId}/sync": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Sync Notion
-         * @description Triggers a sync for the connected Notion integration
-         */
-        post: operations["syncNotion"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/timeline": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get timeline
-         * @description Returns timeline events for a specific object
-         */
-        get: operations["getTimeline"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/timeline/changes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get timeline changes
-         * @description Returns workspace change feed since a given timestamp
-         */
-        get: operations["getTimelineChanges"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List conflicts
-         * @description Returns conflicts for a workspace, optionally filtered by status
-         */
-        get: operations["listConflicts"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get conflict
-         * @description Returns conflict details by ID
-         */
-        get: operations["getConflict"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts/{id}/acknowledge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Acknowledge conflict
-         * @description Marks a conflict as acknowledged
-         */
-        post: operations["acknowledgeConflict"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts/{id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Resolve conflict
-         * @description Marks a conflict as resolved
-         */
-        post: operations["resolveConflict"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/entities": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List graph entities by workspace */
-        get: operations["listGraphEntities"];
-        put?: never;
-        /** Create graph entity vertex */
-        post: operations["createGraphEntity"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/entities/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get graph entity by ID */
-        get: operations["getGraphEntity"];
-        put?: never;
-        post?: never;
-        /** Delete graph entity (DETACH) */
-        delete: operations["deleteGraphEntity"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/entities/{id}/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get events for a graph entity */
-        get: operations["getGraphEntityEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/entities/{id}/neighbors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get connected entities (neighbors) */
-        get: operations["getGraphEntityNeighbors"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List graph events by workspace */
-        get: operations["listGraphEvents"];
-        put?: never;
-        /** Create graph event node + connect subject & object */
-        post: operations["createGraphEvent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/events/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get graph event by ID */
-        get: operations["getGraphEvent"];
-        put?: never;
-        post?: never;
-        /** Delete graph event node */
-        delete: operations["deleteGraphEvent"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/query/path": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Find paths between two entities */
-        get: operations["findGraphPath"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/query/temporal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Query events by temporal range */
-        get: operations["queryGraphTemporal"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1784,46 +2104,6 @@ export interface components {
             updatedAt?: string;
             /** @description Whether the workspace is active */
             active?: boolean;
-        };
-        /** @description Request to create a new space */
-        UpdateSpaceRequest: {
-            /**
-             * @description Space name
-             * @example New Space
-             */
-            name: string;
-            /**
-             * @description Space description
-             * @example A space for memory collection
-             */
-            description?: string;
-        };
-        /** @description Space details response */
-        SpaceResponse: {
-            /**
-             * Format: uuid
-             * @description Space ID
-             */
-            id?: string;
-            /** @description Space name */
-            name?: string;
-            /** @description Space description */
-            description?: string;
-            /**
-             * Format: uuid
-             * @description Workspace ID
-             */
-            workspaceId?: string;
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             */
-            createdAt?: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             */
-            updatedAt?: string;
         };
         UpdateWorkspaceSettingsRequest: {
             settings: {
@@ -1935,46 +2215,6 @@ export interface components {
              */
             updatedAt?: string;
         };
-        /** @description Memory content blocks */
-        BlockDto: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            parentId?: string;
-            /** Format: int32 */
-            index?: number;
-            kind?: string;
-            data?: Record<string, never>;
-            text?: string;
-        };
-        /** @description Request to update memory blocks */
-        UpdateMemoryBlocksRequest: {
-            /** @description Memory content blocks */
-            blocks: components["schemas"]["BlockDto"][];
-        };
-        /** @description Memory response with content blocks and metadata */
-        MemoryResponse: {
-            /**
-             * Format: uuid
-             * @description Memory unique identifier
-             * @example 123e4567-e89b-12d3-a456-426614174000
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Workspace identifier
-             * @example 123e4567-e89b-12d3-a456-426614174001
-             */
-            workspaceId?: string;
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             * @example 2025-12-15T10:00:00Z
-             */
-            createdAt?: string;
-            /** @description Memory content blocks */
-            blocks?: components["schemas"]["BlockDto"][];
-        };
         /** @description Change subscription plan request */
         ChangePlanRequest: {
             /**
@@ -2044,18 +2284,65 @@ export interface components {
              */
             memberId: string;
         };
-        /** @description Request to create a new space */
-        CreateSpaceRequest: {
-            /**
-             * @description space name
-             * @example New space
-             */
-            name: string;
-            /**
-             * @description space description
-             * @example A space for memory collection
-             */
-            description?: string;
+        TemporalSearchRequest: {
+            query?: string;
+            /** Format: date-time */
+            temporalContext?: string;
+            /** Format: int32 */
+            limit?: number;
+            /** Format: int32 */
+            offset?: number;
+        };
+        AnswerResult: {
+            text?: string;
+            responseType?: string;
+            sources?: components["schemas"]["SearchResultItem"][];
+            data?: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        SearchResponse: {
+            answer?: components["schemas"]["AnswerResult"];
+            alternatives?: components["schemas"]["SearchResultItem"][];
+        };
+        SearchResultItem: {
+            entityType?: string;
+            /** Format: uuid */
+            entityId?: string;
+            entitySubtype?: string;
+            title?: string;
+            snippet?: string;
+            responseType?: string;
+        };
+        ReasoningRequest: {
+            query?: string;
+            /** Format: date-time */
+            temporalContext?: string;
+            /** Format: int32 */
+            maxHops?: number;
+            reasoningStyle?: string;
+        };
+        ReasoningResponse: {
+            answer?: string;
+            sources?: components["schemas"]["SourceReference"][];
+            reasoningTrace?: string[];
+            unresolvedConflicts?: components["schemas"]["UnresolvedConflict"][];
+        };
+        SourceReference: {
+            /** Format: uuid */
+            claimId?: string;
+            claimText?: string;
+            sourceApp?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+        };
+        UnresolvedConflict: {
+            /** Format: uuid */
+            conflictId?: string;
+            claim1Text?: string;
+            claim2Text?: string;
         };
         /** @description Request to create a new relationship between claims */
         CreateRelationshipRequest: {
@@ -2113,6 +2400,13 @@ export interface components {
              * @enum {string}
              */
             source?: "SYSTEM" | "USER";
+            /**
+             * Format: uuid
+             * @description Source ID for content provenance
+             */
+            sourceId?: string;
+            /** @description Source application name */
+            sourceApp?: string;
             /**
              * Format: date-time
              * @description Creation timestamp
@@ -2182,80 +2476,6 @@ export interface components {
             lastName?: string;
             email: string;
         };
-        /** @description Request to create a new memory */
-        CreateMemoryRequest: {
-            /**
-             * Format: uuid
-             * @description Workspace identifier
-             * @example 123e4567-e89b-12d3-a456-426614174000
-             */
-            workspaceId: string;
-            /**
-             * Format: uuid
-             * @description Space identifier (optional, defaults to Unassigned space)
-             * @example 123e4567-e89b-12d3-a456-426614174001
-             */
-            spaceId?: string | null;
-            /** @description Memory content blocks */
-            blocks: components["schemas"]["BlockDto"][];
-        };
-        /** @description Request to rollback a memory to a specific snapshot */
-        RollbackSnapshotRequest: {
-            /**
-             * Format: uuid
-             * @description Snapshot ID to rollback to
-             */
-            snapshotId: string;
-        };
-        /** @description Memory response rendered from a snapshot with content blocks */
-        MemoryViewResponse: {
-            /**
-             * Format: uuid
-             * @description Memory unique identifier
-             * @example 123e4567-e89b-12d3-a456-426614174000
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Workspace identifier
-             * @example 123e4567-e89b-12d3-a456-426614174001
-             */
-            workspaceId?: string;
-            /**
-             * Format: uuid
-             * @description Snapshot identifier used to render this memory
-             * @example 223e4567-e89b-12d3-a456-426614174999
-             */
-            snapshotId?: string;
-            /**
-             * Format: int32
-             * @description Snapshot version
-             * @example 3
-             */
-            snapshotVersion?: number;
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             * @example 2025-12-15T10:00:00Z
-             */
-            createdAt?: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             * @example 2025-12-15T11:30:00Z
-             */
-            updatedAt?: string;
-            /** @description Memory content blocks from the snapshot */
-            blocks?: components["schemas"]["BlockDto"][];
-        };
-        /** @description Request to checkout a specific snapshot for editing */
-        CheckoutSnapshotRequest: {
-            /**
-             * Format: uuid
-             * @description Snapshot ID to checkout
-             */
-            snapshotId: string;
-        };
         CreateEntityRequest: {
             name: string;
             /** @enum {string} */
@@ -2278,6 +2498,9 @@ export interface components {
             aliases?: string[];
             /** Format: uuid */
             workspaceId?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceApp?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -2314,6 +2537,12 @@ export interface components {
             polarity?: string;
             /** Format: double */
             confidence?: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            temporalType?: string;
+            statementType?: string;
         };
         ClaimResponse: {
             /** Format: uuid */
@@ -2333,13 +2562,236 @@ export interface components {
             metadata?: {
                 [key: string]: Record<string, never>;
             };
+            /** Format: uuid */
+            sourceId?: string;
+            sourceApp?: string;
+            lifecycleStatus?: string;
             /** Format: date-time */
             createdAt?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            temporalType?: string;
+            statementType?: string;
+            /** Format: uuid */
+            invalidatedBy?: string;
+            /** Format: date-time */
+            expiredAt?: string;
+        };
+        /** @description Connect integration request */
+        ConnectIntegrationRequest: {
             /**
-             * @description Lifecycle status of the claim
-             * @enum {string}
+             * Format: uuid
+             * @description Workspace ID
              */
-            lifecycleStatus?: "DRAFT" | "ACTIVE" | "DISPUTED" | "SUPERSEDED" | "ARCHIVED";
+            workspaceId: string;
+            /** @description Authentication method (OAUTH2 or API_KEY) */
+            authMethod?: string;
+            /** @description Connection configuration */
+            config?: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        /** @description Integration details response */
+        IntegrationResponse: {
+            /**
+             * Format: uuid
+             * @description Integration ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /** @description Integration type */
+            type?: string;
+            /** @description Integration status */
+            status?: string;
+            /** @description Authentication method */
+            authMethod?: string;
+            /** @description Display name */
+            displayName?: string;
+            /** @description Description */
+            description?: string;
+            /** @description Icon URL */
+            iconUrl?: string;
+            /** @description Connection configuration */
+            config?: {
+                [key: string]: Record<string, never>;
+            };
+            /**
+             * Format: uuid
+             * @description User who connected this integration
+             */
+            connectedBy?: string;
+            /**
+             * Format: date-time
+             * @description When the integration was connected
+             */
+            connectedAt?: string;
+            /**
+             * Format: date-time
+             * @description Last sync timestamp
+             */
+            lastSyncedAt?: string;
+            /**
+             * Format: int64
+             * @description Number of items indexed
+             */
+            itemsIndexed?: number;
+            /** @description Sync status message */
+            syncStatusMessage?: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updatedAt?: string;
+        };
+        /** @description Create source request */
+        CreateSourceRequestRequest: {
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId: string;
+            /** @description Name of the requested integration source */
+            sourceName: string;
+            /** @description Description of why this source is needed */
+            description?: string;
+        };
+        /** @description Source request details response */
+        SourceRequestResponse: {
+            /**
+             * Format: uuid
+             * @description Source request ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /**
+             * Format: uuid
+             * @description User who requested
+             */
+            requestedBy?: string;
+            /** @description Name of the requested source */
+            sourceName?: string;
+            /** @description Description */
+            description?: string;
+            /** @description Request status */
+            status?: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+        };
+        /** @description OAuth initiation response */
+        OAuthInitiateResponse: {
+            /** @description Authorization URL to redirect the user to */
+            authorizationUrl?: string;
+            /** @description State parameter for CSRF verification */
+            state?: string;
+        };
+        CreateEventNodeRequest: {
+            /** Format: uuid */
+            subjectId: string;
+            /** Format: uuid */
+            objectId: string;
+            /** @enum {string} */
+            eventType: "WORKS_AT" | "FOUNDED" | "ACQUIRED" | "MEMBER_OF" | "LOCATED_IN" | "RELATED_TO" | "CAUSED" | "PARTICIPATED_IN" | "PRODUCED" | "USES" | "CUSTOM";
+            description?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: double */
+            confidence?: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            /** @enum {string} */
+            temporalType: "ATEMPORAL" | "STATIC" | "DYNAMIC";
+            /** Format: uuid */
+            workspaceId: string;
+        };
+        EventNodeDetailResponse: {
+            /** Format: uuid */
+            id?: string;
+            eventType?: string;
+            description?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: double */
+            confidence?: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            temporalType?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            subject?: components["schemas"]["GraphEntityResponse"];
+            object?: components["schemas"]["GraphEntityResponse"];
+        };
+        GraphEntityResponse: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            entityType?: string;
+            attributes?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        CreateGraphEntityRequest: {
+            name: string;
+            entityType: string;
+            attributes?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: uuid */
+            workspaceId: string;
+        };
+        ResolveConflictRequest: {
+            resolutionType: string;
+            resolutionNote?: string;
+        };
+        ConflictResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            claimAId?: string;
+            /** Format: uuid */
+            claimBId?: string;
+            /** Format: uuid */
+            relationshipId?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            status?: string;
+            resolutionType?: string;
+            resolutionNote?: string;
+            /** Format: uuid */
+            resolvedBy?: string;
+            /** Format: date-time */
+            resolvedAt?: string;
+            /** Format: date-time */
+            detectedAt?: string;
         };
         /** @description Subscribe workspace to a plan request */
         SubscribeRequest: {
@@ -2413,6 +2865,23 @@ export interface components {
             /** Format: date-time */
             occurredAt?: string;
         };
+        TemporalEventResponse: {
+            /** Format: uuid */
+            id?: string;
+            objectType?: string;
+            /** Format: uuid */
+            objectId?: string;
+            eventType?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: uuid */
+            actorId?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: date-time */
+            occurredAt?: string;
+        };
         /** @description Notification details response */
         NotificationResponse: {
             /**
@@ -2465,38 +2934,124 @@ export interface components {
             /** Format: int64 */
             timeout?: number;
         };
-        /** @description Memory snapshot summary */
-        SnapshotResponse: {
+        EntityEvolutionResponse: {
+            /** Format: uuid */
+            entityId?: string;
+            entityName?: string;
+            entityType?: string;
+            events?: components["schemas"]["EvolutionEvent"][];
+        };
+        EvolutionEvent: {
+            /** Format: date-time */
+            occurredAt?: string;
+            eventType?: string;
+            description?: string;
+            /** Format: uuid */
+            claimId?: string;
+            claimText?: string;
+            sourceApp?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        PredicateTimeline: {
+            predicate?: string;
+            entries?: components["schemas"]["TemporalClaimEntry"][];
+        };
+        TemporalClaimEntry: {
+            /** Format: uuid */
+            claimId?: string;
+            claimText?: string;
+            objectValue?: string;
+            temporalType?: string;
+            statementType?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            /** Format: uuid */
+            invalidatedBy?: string;
+            lifecycleStatus?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceApp?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        TemporalClaimHistoryResponse: {
+            /** Format: uuid */
+            entityId?: string;
+            entityName?: string;
+            timelines?: components["schemas"]["PredicateTimeline"][];
+        };
+        ClaimLineageNode: {
+            /** Format: uuid */
+            claimId?: string;
+            claimText?: string;
+            predicate?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            /** Format: uuid */
+            invalidatedBy?: string;
+            lifecycleStatus?: string;
+            sourceApp?: string;
+            /** Format: int32 */
+            depth?: number;
+        };
+        ClaimLineageResponse: {
+            /** Format: uuid */
+            rootClaimId?: string;
+            chain?: components["schemas"]["ClaimLineageNode"][];
+        };
+        /** @description Integration sync stats response */
+        SyncStatsResponse: {
             /**
              * Format: uuid
-             * @description Snapshot ID
+             * @description Integration ID
              */
-            id?: string;
+            integrationId?: string;
+            /** @description Integration type */
+            type?: string;
+            /** @description Integration status */
+            status?: string;
             /**
-             * Format: uuid
-             * @description Memory ID
+             * Format: int64
+             * @description Number of items indexed
              */
-            memoryId?: string;
-            /**
-             * Format: int32
-             * @description Version number
-             */
-            version?: number;
-            /**
-             * Format: int32
-             * @description Number of blocks in this snapshot
-             */
-            blockCount?: number;
-            /**
-             * Format: uuid
-             * @description Parent snapshot ID (for branch lineage)
-             */
-            parentSnapshotId?: string;
+            itemsIndexed?: number;
+            /** @description Sync status message */
+            syncStatusMessage?: string;
             /**
              * Format: date-time
-             * @description When this snapshot was committed
+             * @description Last sync timestamp
              */
-            committedAt?: string;
+            lastSyncedAt?: string;
+        };
+        EventNodeResponse: {
+            /** Format: uuid */
+            id?: string;
+            eventType?: string;
+            description?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: double */
+            confidence?: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            temporalType?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        GraphPathResponse: {
+            entities?: components["schemas"]["GraphEntityResponse"][];
+            eventNodes?: components["schemas"]["EventNodeResponse"][];
         };
         /** @description Usage record details response */
         UsageResponse: {
@@ -2589,471 +3144,6 @@ export interface components {
              * @description Last update timestamp
              */
             updatedAt?: string;
-        };
-        SearchResponse: {
-            /** @description Primary synthesized answer */
-            answer?: {
-                /** @description Synthesized answer text */
-                text?: string;
-                /** @description Response type determining which UI to render (KNOWLEDGE, CAUSAL, PROCEDURAL, COMPARATIVE, IMPACT, REASONING) */
-                responseType?: string;
-                /** @description Sources referenced in the answer */
-                sources?: components["schemas"]["SearchResultItem"][];
-                /** @description Response-type-specific structured data */
-                data?: components["schemas"]["SearchAnswerData"];
-            };
-            /** @description Alternative results */
-            alternatives?: components["schemas"]["SearchResultItem"][];
-            /** @description Search result items */
-            items?: components["schemas"]["SearchResultItem"][];
-        };
-        /** @description Response-type-specific structured data for search answers */
-        SearchAnswerData: {
-            /** @description KNOWLEDGE: Follow-up question suggestions */
-            suggestions?: string[];
-            /** @description CAUSAL: Ordered causal chain stages */
-            causalStages?: {
-                label?: string;
-                title?: string;
-                description?: string;
-                sourceTag?: string;
-                sourceLabel?: string;
-            }[];
-            /** @description CAUSAL: Active and resolved conflicts */
-            conflicts?: {
-                type?: string;
-                label?: string;
-                title?: string;
-                description?: string;
-                timeAgo?: string;
-            }[];
-            /** @description CAUSAL/IMPACT: Evidence items */
-            evidence?: {
-                source?: string;
-                date?: string;
-                quote?: string;
-                author?: string;
-                hookLabel?: string;
-                attachment?: string;
-                badge?: string;
-                title?: string;
-                description?: string;
-            }[];
-            /** @description CAUSAL: Summary statistics */
-            stats?: {
-                reasoningDepth?: number;
-                causalConfidence?: number;
-                activeConflicts?: number;
-                knowledgeNodes?: number;
-            };
-            /** @description PROCEDURAL: Estimated time */
-            estimatedTime?: string;
-            /** @description PROCEDURAL: Execution steps */
-            steps?: {
-                number?: number;
-                title?: string;
-                description?: string;
-                codeSnippet?: string;
-                tags?: string[];
-            }[];
-            /** @description PROCEDURAL: Documentation links */
-            documentation?: {
-                title?: string;
-                description?: string;
-            }[];
-            /** @description PROCEDURAL: Source verification per step */
-            sourceVerification?: {
-                stepLabel?: string;
-                sourceType?: string;
-                title?: string;
-                meta?: string;
-            }[];
-            /** @description PROCEDURAL: Prerequisite checklist */
-            prerequisites?: {
-                label?: string;
-                checked?: boolean;
-            }[];
-            /** @description PROCEDURAL: Troubleshooting items */
-            troubleshooting?: {
-                title?: string;
-                description?: string;
-            }[];
-            /** @description COMPARATIVE: Synthesis recommendation */
-            recommendation?: {
-                title?: string;
-                confidence?: number;
-                description?: string;
-                badges?: string[];
-            };
-            /** @description COMPARATIVE: Options being compared */
-            options?: string[];
-            /** @description COMPARATIVE: Recommended option */
-            winner?: string;
-            /** @description COMPARATIVE: Trade-off matrix rows */
-            matrix?: {
-                attribute?: string;
-                linkCount?: number;
-                values?: {
-                    label?: string;
-                    description?: string;
-                }[];
-            }[];
-            /** @description COMPARATIVE: Pros per option */
-            pros?: {
-                option?: string;
-                title?: string;
-                description?: string;
-            }[];
-            /** @description COMPARATIVE: Cons per option */
-            cons?: {
-                option?: string;
-                title?: string;
-                description?: string;
-            }[];
-            /** @description IMPACT: Risk score */
-            riskScore?: {
-                score?: number;
-                maxScore?: number;
-                stabilityChange?: number;
-                description?: string;
-            };
-            /** @description IMPACT: Affected entity statistics */
-            affectedEntities?: {
-                icon?: string;
-                value?: string;
-                label?: string;
-            }[];
-            /** @description IMPACT: Causality dependency map */
-            causalityMap?: {
-                entryPoint?: { label?: string; title?: string };
-                dependencies?: { label?: string; title?: string }[];
-                failurePoints?: { label?: string; title?: string; detail?: string }[];
-                evidenceNodes?: { source?: string; detail?: string }[];
-            };
-            /** @description IMPACT: Structural contradictions */
-            contradictions?: {
-                tag?: string;
-                title?: string;
-                claim?: string;
-                contradiction?: string;
-                impactedOrg?: string;
-            }[];
-            /** @description REASONING: Ordered reasoning steps */
-            reasoningSteps?: {
-                stepNumber?: string;
-                stepLabel?: string;
-                title?: string;
-                description?: string;
-                highlighted?: boolean;
-            }[];
-            /** @description REASONING: Chronological claims timeline */
-            timeline?: {
-                date?: string;
-                source?: string;
-                badge?: string;
-                quote?: string;
-                tags?: string[];
-            }[];
-            /** @description REASONING: Relational cluster graph */
-            relationalCluster?: {
-                centralNode?: string;
-                relatedNodes?: string[];
-                targetNode?: string;
-            };
-            /** @description REASONING: Evidence metrics */
-            metrics?: {
-                label?: string;
-                value?: string;
-                percent?: number;
-            }[];
-            /** @description REASONING: Source references */
-            references?: string[];
-        };
-        SearchResultItem: {
-            entityType?: string;
-            /** Format: uuid */
-            entityId?: string;
-            entitySubtype?: string;
-            title?: string;
-            snippet?: string;
-        };
-        /** @description Integration source response */
-        IntegrationResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** @description Integration type (e.g. GOOGLE_DRIVE, SLACK, NOTION, GITHUB, JIRA, CONFLUENCE) */
-            type?: string;
-            /** @description Integration status (CONNECTED, DISCONNECTED, SYNCING) */
-            status?: string;
-            /** @description Auth method used */
-            authMethod?: string;
-            /** @description Display name of the integration */
-            displayName?: string;
-            /** @description Description of the integration */
-            description?: string;
-            /** @description Icon URL */
-            iconUrl?: string;
-            /** @description Integration configuration */
-            config?: Record<string, never>;
-            /** Format: uuid */
-            connectedBy?: string;
-            /** Format: date-time */
-            connectedAt?: string;
-            /** Format: date-time */
-            lastSyncedAt?: string;
-            /** @description Number of items indexed */
-            itemsIndexed?: number;
-            /** @description Sync status message */
-            syncStatusMessage?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-        };
-        /** @description Request to connect a new integration */
-        ConnectIntegrationRequest: {
-            /** @description Integration provider name */
-            provider: string;
-            /** @description OAuth authorization code or API key */
-            authCode?: string;
-            /** @description Additional configuration */
-            config?: Record<string, never>;
-        };
-        /** @description Request to update integration settings */
-        UpdateIntegrationRequest: {
-            /** @description Updated display name */
-            name?: string;
-            /** @description Updated configuration */
-            config?: Record<string, never>;
-        };
-        /** @description Integration sync status response */
-        IntegrationSyncResponse: {
-            /** Format: uuid */
-            integrationId?: string;
-            /** @description Sync status */
-            status?: string;
-            /** @description Number of items synced */
-            itemsSynced?: number;
-            /** @description Total items to sync */
-            totalItems?: number;
-            /** Format: date-time */
-            startedAt?: string;
-            /** Format: date-time */
-            completedAt?: string;
-        };
-        /** @description Available integration provider */
-        IntegrationProviderResponse: {
-            /** @description Provider identifier */
-            provider?: string;
-            /** @description Display name */
-            name?: string;
-            /** @description Provider description */
-            description?: string;
-            /** @description Whether this provider is available */
-            available?: boolean;
-            /** @description OAuth authorization URL */
-            authUrl?: string;
-        };
-        /** @description OAuth initiation response */
-        OAuthInitiateResponse: {
-            /** @description Authorization URL to redirect the user to */
-            authorizationUrl?: string;
-            /** @description State parameter for CSRF protection */
-            state?: string;
-        };
-        /** @description A timeline event for any tracked object */
-        TimelineEventResponse: {
-            /**
-             * Format: uuid
-             * @description Event ID
-             */
-            id?: string;
-            /**
-             * @description Type of the object this event relates to
-             * @enum {string}
-             */
-            objectType?: "CLAIM" | "ENTITY" | "MEMORY" | "RELATIONSHIP";
-            /**
-             * Format: uuid
-             * @description ID of the object this event relates to
-             */
-            objectId?: string;
-            /** @description Type of event (e.g. CREATED, UPDATED, CONFLICT_DETECTED) */
-            eventType?: string;
-            /**
-             * Format: date-time
-             * @description When the event occurred
-             */
-            timestamp?: string;
-            /**
-             * Format: uuid
-             * @description ID of the actor who triggered the event
-             */
-            actorId?: string;
-            /** @description Display name of the actor */
-            actorName?: string;
-            /** @description Additional event-specific details */
-            details?: {
-                [key: string]: Record<string, never>;
-            };
-        };
-        /** @description Paginated timeline changes response */
-        TimelineChangesResponse: {
-            /** @description List of timeline events */
-            events?: components["schemas"]["TimelineEventResponse"][];
-            /** @description Cursor for fetching the next page */
-            cursor?: string;
-        };
-        /** @description A detected conflict between claims */
-        ConflictResponse: {
-            /**
-             * Format: uuid
-             * @description Conflict ID
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Workspace this conflict belongs to
-             */
-            workspaceId?: string;
-            /**
-             * @description Current status of the conflict
-             * @enum {string}
-             */
-            status?: "ACTIVE" | "ACKNOWLEDGED" | "RESOLVED";
-            /** @description Human-readable description of the conflict */
-            description?: string;
-            /**
-             * Format: uuid
-             * @description ID of the source claim
-             */
-            sourceClaimId?: string;
-            /**
-             * Format: uuid
-             * @description ID of the target claim
-             */
-            targetClaimId?: string;
-            /**
-             * Format: uuid
-             * @description ID of the relationship that detected this conflict
-             */
-            relationshipId?: string;
-            /**
-             * Format: double
-             * @description Confidence score (0.0-1.0)
-             */
-            confidence?: number;
-            /**
-             * Format: date-time
-             * @description When the conflict was detected
-             */
-            createdAt?: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             */
-            updatedAt?: string;
-            /**
-             * Format: date-time
-             * @description When the conflict was acknowledged
-             */
-            acknowledgedAt?: string;
-            /**
-             * Format: uuid
-             * @description User who acknowledged the conflict
-             */
-            acknowledgedBy?: string;
-            /**
-             * Format: date-time
-             * @description When the conflict was resolved
-             */
-            resolvedAt?: string;
-            /**
-             * Format: uuid
-             * @description User who resolved the conflict
-             */
-            resolvedBy?: string;
-        };
-        /** @description Graph entity vertex response */
-        GraphEntityResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** @description Entity name */
-            name?: string;
-            /** @enum {string} */
-            entityType?: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
-            /** @description Additional properties */
-            properties?: Record<string, unknown>;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-        };
-        /** @description Request to create a graph entity vertex */
-        CreateGraphEntityRequest: {
-            name: string;
-            /** @enum {string} */
-            entityType: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
-            properties?: Record<string, unknown>;
-            /** Format: uuid */
-            workspaceId: string;
-        };
-        /** @description Graph event node response */
-        GraphEventResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** @description Event label */
-            label?: string;
-            /** @description Event description */
-            description?: string;
-            /** Format: date-time */
-            occurredAt?: string;
-            /** @description Additional properties */
-            properties?: Record<string, unknown>;
-            /** Format: uuid */
-            subjectId?: string;
-            /** Format: uuid */
-            objectId?: string;
-            /** @description Subject entity (populated on detail fetch) */
-            subject?: components["schemas"]["GraphEntityResponse"];
-            /** @description Object entity (populated on detail fetch) */
-            object?: components["schemas"]["GraphEntityResponse"];
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        /** @description Request to create a graph event node */
-        CreateGraphEventRequest: {
-            label: string;
-            description?: string;
-            /** Format: date-time */
-            occurredAt?: string;
-            properties?: Record<string, unknown>;
-            /** Format: uuid */
-            subjectId: string;
-            /** Format: uuid */
-            objectId: string;
-            /** Format: uuid */
-            workspaceId: string;
-        };
-        /** @description Path query response */
-        GraphPathResponse: {
-            paths?: {
-                nodes?: components["schemas"]["GraphEntityResponse"][];
-                edges?: components["schemas"]["GraphEventResponse"][];
-            }[];
-        };
-        /** @description Neighbor entity response */
-        GraphNeighborResponse: {
-            entity?: components["schemas"]["GraphEntityResponse"];
-            /** @description Relationship direction/label */
-            relationship?: string;
-            event?: components["schemas"]["GraphEventResponse"];
         };
     };
     responses: never;
@@ -3163,46 +3253,6 @@ export interface operations {
             };
             /** @description Name already exists */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateSpace: {
-        parameters: {
-            query: {
-                workspaceId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateSpaceRequest"];
-            };
-        };
-        responses: {
-            /** @description Space updated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SpaceResponse"];
-                };
-            };
-            /** @description Invalid request payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Space not found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3748,46 +3798,6 @@ export interface operations {
             };
         };
     };
-    updateBlocks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMemoryBlocksRequest"];
-            };
-        };
-        responses: {
-            /** @description Blocks replaced successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-            /** @description Invalid request payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Memory not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     changeWorkspacePlan: {
         parameters: {
             query?: never;
@@ -4018,24 +4028,29 @@ export interface operations {
             };
         };
     };
-    listSpaces: {
+    temporalSearch: {
         parameters: {
             query: {
+                /** @description Workspace ID to search within */
                 workspaceId: string;
             };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemporalSearchRequest"];
+            };
+        };
         responses: {
-            /** @description Spaces retrieved successfully */
+            /** @description Temporal search completed successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SpaceResponse"][];
+                    "application/json": components["schemas"]["SearchResponse"];
                 };
             };
             /** @description Invalid request parameters */
@@ -4047,9 +4062,10 @@ export interface operations {
             };
         };
     };
-    createSpace: {
+    reason: {
         parameters: {
             query: {
+                /** @description Workspace ID */
                 workspaceId: string;
             };
             header?: never;
@@ -4058,28 +4074,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateSpaceRequest"];
+                "application/json": components["schemas"]["ReasoningRequest"];
             };
         };
         responses: {
-            /** @description Space created successfully */
-            201: {
+            /** @description Reasoning completed successfully */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SpaceResponse"];
+                    "application/json": components["schemas"]["ReasoningResponse"];
                 };
             };
-            /** @description Invalid request payload */
+            /** @description Invalid request parameters */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Access denied to workspace */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4346,174 +4355,6 @@ export interface operations {
             };
         };
     };
-    listByWorkspace: {
-        parameters: {
-            query: {
-                workspaceId: string;
-                spaceId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Memories retrieved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"][];
-                };
-            };
-            /** @description Invalid request params */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    createMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMemoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Memory created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
-                };
-            };
-            /** @description Invalid request payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Access denied to workspace */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    rollbackToSnapshot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RollbackSnapshotRequest"];
-            };
-        };
-        responses: {
-            /** @description Memory rolled back successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryViewResponse"];
-                };
-            };
-            /** @description Access denied to workspace */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Memory or snapshot not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    checkoutSnapshot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CheckoutSnapshotRequest"];
-            };
-        };
-        responses: {
-            /** @description Snapshot checked out successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryViewResponse"];
-                };
-            };
-            /** @description Access denied to workspace */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Memory or snapshot not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    commitBlocks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     listEntities: {
         parameters: {
             query: {
@@ -4689,8 +4530,6 @@ export interface operations {
                 entityId?: string;
                 /** @description Filter by block ID */
                 blockId?: string;
-                /** @description Filter by snapshot ID */
-                snapshotId?: string;
             };
             header?: never;
             path?: never;
@@ -4747,6 +4586,547 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClaimResponse"];
+                };
+            };
+        };
+    };
+    disconnectIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration disconnected */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    connectIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectIntegrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Integration connected successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listIntegrations: {
+        parameters: {
+            query?: {
+                status?: string;
+                type?: string;
+            };
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integrations retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"][];
+                };
+            };
+        };
+    };
+    initializeIntegrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integrations initialized successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"][];
+                };
+            };
+        };
+    };
+    createSourceRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSourceRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description Source request created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceRequestResponse"];
+                };
+            };
+        };
+    };
+    testConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connection test passed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Connection test failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    initiateOAuth: {
+        parameters: {
+            query?: {
+                integrationId?: string;
+                workspaceId?: string;
+            };
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OAuth flow initiated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthInitiateResponse"];
+                };
+            };
+            /** @description Invalid provider or config */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    testConnection_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connection test passed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Connection test failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    syncAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync started and content published for extraction */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Not connected */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    syncPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+                pageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Page synced and content published for extraction */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Not connected */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration or page not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query?: {
+                query?: string;
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Search results retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    queryDatabase: {
+        parameters: {
+            query?: {
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                integrationId: string;
+                databaseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Query results retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Database or integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query: {
+                workspaceId: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventNodeResponse"][];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEventNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventNodeDetailResponse"];
+                };
+            };
+        };
+    };
+    list_1: {
+        parameters: {
+            query?: {
+                workspaceId?: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"][];
+                };
+            };
+        };
+    };
+    create_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGraphEntityRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"];
+                };
+            };
+        };
+    };
+    resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conflictId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveConflictRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"];
+                };
+            };
+        };
+    };
+    acknowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conflictId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"];
                 };
             };
         };
@@ -5236,10 +5616,11 @@ export interface operations {
             };
         };
     };
-    getSpace: {
+    getTimeline: {
         parameters: {
             query: {
-                workspaceId: string;
+                objectType: string;
+                objectId: string;
             };
             header?: never;
             path?: never;
@@ -5247,21 +5628,37 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Space found */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SpaceResponse"];
+                    "application/json": components["schemas"]["TemporalEventResponse"][];
                 };
             };
-            /** @description Space not found or access denied */
-            404: {
+        };
+    };
+    getChangesSince: {
+        parameters: {
+            query: {
+                workspaceId: string;
+                since: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TemporalEventResponse"][];
+                };
             };
         };
     };
@@ -5285,6 +5682,56 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search_1: {
+        parameters: {
+            query: {
+                /** @description Workspace ID to search within */
+                workspaceId: string;
+                /** @description Search query string */
+                query: string;
+                /** @description Maximum number of alternative results to return */
+                limit?: number;
+                /** @description Number of alternative results to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Search completed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access denied to workspace */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5434,61 +5881,125 @@ export interface operations {
             };
         };
     };
-    getMemory: {
+    getEntityEvolution: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                /** @description Entity ID */
+                entityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Memory found */
+            /** @description Evolution timeline retrieved */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MemoryResponse"];
+                    "application/json": components["schemas"]["EntityEvolutionResponse"];
                 };
             };
-            /** @description Memory not found or access denied */
+            /** @description Entity not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["EntityEvolutionResponse"];
+                };
             };
         };
     };
-    listSnapshots: {
+    getClaimHistory: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                /** @description Entity ID */
+                entityId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Snapshots retrieved */
+            /** @description History retrieved */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SnapshotResponse"][];
+                    "application/json": components["schemas"]["TemporalClaimHistoryResponse"];
                 };
             };
-            /** @description Memory not found */
+            /** @description Entity not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TemporalClaimHistoryResponse"];
+                };
+            };
+        };
+    };
+    getClaimsValidAt: {
+        parameters: {
+            query: {
+                /** @description Point in time (ISO-8601) */
+                time: string;
+            };
+            header?: never;
+            path: {
+                /** @description Entity ID */
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claims retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"][];
+                };
+            };
+            /** @description Invalid time format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"][];
+                };
+            };
+        };
+    };
+    getClaimLineage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Claim ID */
+                claimId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lineage retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimLineageResponse"];
+                };
             };
         };
     };
@@ -5627,6 +6138,721 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSyncStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync stats retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncStatsResponse"];
+                };
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listSourceRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Source requests retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceRequestResponse"][];
+                };
+            };
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Users retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getTeamInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Team info retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listChannels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Channels retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getChannelHistory: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                integrationId: string;
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Messages retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handleCallback: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+            };
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to frontend with error */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listUsers_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Users retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listPages: {
+        parameters: {
+            query?: {
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pages retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+                pageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Page retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Page or integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listDatabases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Databases retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getDatabase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+                databaseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Database retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Database or integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getBlockChildren: {
+        parameters: {
+            query?: {
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                integrationId: string;
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Block children retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: Record<string, never>;
+                    }[];
+                };
+            };
+            /** @description Not connected or token invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Block or integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    temporalQuery: {
+        parameters: {
+            query: {
+                entityId: string;
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventNodeResponse"][];
+                };
+            };
+        };
+    };
+    findPaths: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                maxDepth?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphPathResponse"][];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventNodeDetailResponse"];
+                };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"];
+                };
+            };
+        };
+    };
+    delete_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getNeighbors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"][];
+                };
+            };
+        };
+    };
+    getEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventNodeResponse"][];
+                };
+            };
+        };
+    };
+    listConflicts: {
+        parameters: {
+            query: {
+                workspaceId: string;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"][];
+                };
+            };
+        };
+    };
+    getConflict: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conflictId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResponse"];
+                };
             };
         };
     };
@@ -5791,56 +7017,6 @@ export interface operations {
             };
         };
     };
-    search: {
-        parameters: {
-            query: {
-                /** @description Workspace ID to search within */
-                workspaceId: string;
-                /** @description Search query string */
-                query: string;
-                /** @description Maximum number of results to return */
-                limit?: number;
-                /** @description Number of results to skip */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Search completed successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchResponse"];
-                };
-            };
-            /** @description Invalid request parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Access denied to workspace */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     getActivityLogList: {
         parameters: {
             query?: {
@@ -5946,763 +7122,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    listIntegrations: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workspaceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of integrations */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationResponse"][];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    connectIntegration: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                workspaceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConnectIntegrationRequest"];
-            };
-        };
-        responses: {
-            /** @description Integration connected */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationResponse"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getIntegration: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                integrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Integration details */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationResponse"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateIntegration: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                integrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateIntegrationRequest"];
-            };
-        };
-        responses: {
-            /** @description Integration updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationResponse"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    disconnectIntegration: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                integrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Integration disconnected */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getIntegrationSyncStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                integrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Sync status */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationSyncResponse"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerIntegrationSync: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                integrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Sync triggered */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationSyncResponse"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listIntegrationProviders: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of available providers */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationProviderResponse"][];
-                };
-            };
-        };
-    };
-    initiateNotionOAuth: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OAuth initiation response with authorization URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OAuthInitiateResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    syncNotion: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                integrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Notion sync triggered */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IntegrationSyncResponse"];
-                };
-            };
-            /** @description Notion not connected */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getTimeline: {
-        parameters: {
-            query: {
-                /** @description Type of object to get timeline for */
-                objectType: string;
-                /** @description ID of the object */
-                objectId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Timeline events retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TimelineEventResponse"][];
-                };
-            };
-            /** @description Invalid request parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Object not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getTimelineChanges: {
-        parameters: {
-            query: {
-                /** @description Workspace ID */
-                workspaceId: string;
-                /**
-                 * Format: date-time
-                 * @description ISO 8601 timestamp to fetch changes since
-                 */
-                since: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Changes retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TimelineEventResponse"][];
-                };
-            };
-            /** @description Invalid request parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listConflicts: {
-        parameters: {
-            query: {
-                /** @description Workspace ID */
-                workspaceId: string;
-                /** @description Filter by conflict status */
-                status?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Conflicts retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"][];
-                };
-            };
-            /** @description Invalid request parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getConflict: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Conflict ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Conflict found */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    acknowledgeConflict: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Conflict ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Conflict acknowledged */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid state transition */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    resolveConflict: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Conflict ID */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Conflict resolved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid state transition */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listGraphEntities: {
-        parameters: {
-            query: { workspaceId: string };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEntityResponse"][];
-                };
-            };
-        };
-    };
-    createGraphEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateGraphEntityRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEntityResponse"];
-                };
-            };
-        };
-    };
-    getGraphEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: { id: string };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEntityResponse"];
-                };
-            };
-        };
-    };
-    deleteGraphEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: { id: string };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: { [name: string]: unknown };
-                content?: never;
-            };
-        };
-    };
-    getGraphEntityEvents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: { id: string };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEventResponse"][];
-                };
-            };
-        };
-    };
-    getGraphEntityNeighbors: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: { id: string };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphNeighborResponse"][];
-                };
-            };
-        };
-    };
-    listGraphEvents: {
-        parameters: {
-            query: { workspaceId: string };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEventResponse"][];
-                };
-            };
-        };
-    };
-    createGraphEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateGraphEventRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEventResponse"];
-                };
-            };
-        };
-    };
-    getGraphEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: { id: string };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEventResponse"];
-                };
-            };
-        };
-    };
-    deleteGraphEvent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: { id: string };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: { [name: string]: unknown };
-                content?: never;
-            };
-        };
-    };
-    findGraphPath: {
-        parameters: {
-            query: { from: string; to: string };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphPathResponse"];
-                };
-            };
-        };
-    };
-    queryGraphTemporal: {
-        parameters: {
-            query: { entityId: string; from: string; to: string };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "application/json": components["schemas"]["GraphEventResponse"][];
-                };
             };
         };
     };

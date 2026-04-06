@@ -6,7 +6,7 @@ export function useCreateGraphEvent() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: Schemas['CreateGraphEventRequest']) => {
+        mutationFn: async (data: Schemas['CreateEventNodeRequest']) => {
             const { data: result, error } = await api.POST('/graph/events', {
                 body: data,
             });
@@ -14,8 +14,7 @@ export function useCreateGraphEvent() {
             return result;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['graph', 'events'] });
-            queryClient.invalidateQueries({ queryKey: ['graph', 'entity'] });
+            queryClient.invalidateQueries({ queryKey: ['graph'] });
         },
     });
 }

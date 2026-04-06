@@ -50,12 +50,13 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
     };
 
     // When path data arrives, highlight it
-    const firstPath = pathResult?.paths?.[0];
+    // pathResult is GraphPathResponse[] — each has { entities, eventNodes }
+    const firstPath = pathResult?.[0];
     const pathNodeIds =
         firstPath
             ? [
-                  ...(firstPath.nodes?.map((n) => n.id).filter((id): id is string => !!id) ?? []),
-                  ...(firstPath.edges?.map((e) => e.id).filter((id): id is string => !!id) ?? []),
+                  ...(firstPath.entities?.map((n) => n.id).filter((id): id is string => !!id) ?? []),
+                  ...(firstPath.eventNodes?.map((e) => e.id).filter((id): id is string => !!id) ?? []),
               ]
             : null;
 
@@ -166,7 +167,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                 Path Found
                             </h4>
                             <div className="space-y-1">
-                                {firstPath.nodes?.map((node, idx) => (
+                                {firstPath.entities?.map((node, idx) => (
                                     <div key={node.id ?? idx}>
                                         {/* Entity node */}
                                         <div className="flex items-center gap-2 rounded-md border px-3 py-2">
@@ -175,7 +176,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                                 style={{
                                                     backgroundColor:
                                                         ENTITY_COLORS[
-                                                            node.entityType ?? 'other'
+                                                            (node.entityType ?? 'other').toLowerCase()
                                                         ] ?? ENTITY_COLORS.other,
                                                 }}
                                             />
@@ -184,8 +185,8 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                             </span>
                                         </div>
 
-                                        {/* Edge between this node and next */}
-                                        {firstPath.edges?.[idx] && (
+                                        {/* Event between this entity and next */}
+                                        {firstPath.eventNodes?.[idx] && (
                                             <div className="flex items-center gap-2 py-1 pl-4">
                                                 <ArrowDown className="size-3 text-muted-foreground" />
                                                 <div className="flex items-center gap-1.5">
@@ -194,7 +195,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                                         style={{ backgroundColor: EVENT_NODE_COLOR }}
                                                     />
                                                     <span className="text-[10px] text-muted-foreground">
-                                                        {firstPath.edges?.[idx]?.label ?? 'Event'}
+                                                        {firstPath.eventNodes?.[idx]?.eventType ?? 'Event'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -210,7 +211,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                     !pathLoading &&
                     !pathError &&
                     pathResult &&
-                    (!pathResult.paths || pathResult.paths.length === 0) && (
+                    pathResult.length === 0 && (
                         <p className="text-xs text-muted-foreground text-center py-2">
                             No path found between these entities.
                         </p>

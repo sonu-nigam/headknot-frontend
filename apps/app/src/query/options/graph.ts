@@ -29,7 +29,7 @@ export const graphEntityByIdQueryOptions = (id: string) =>
     });
 
 export const graphEntityEventsQueryOptions = (id: string) =>
-    queryOptions<Schemas['GraphEventResponse'][]>({
+    queryOptions<Schemas['EventNodeResponse'][]>({
         queryKey: ['graph', 'entity', id, 'events'],
         enabled: !!id,
         queryFn: async () => {
@@ -42,7 +42,7 @@ export const graphEntityEventsQueryOptions = (id: string) =>
     });
 
 export const graphEntityNeighborsQueryOptions = (id: string) =>
-    queryOptions<Schemas['GraphNeighborResponse'][]>({
+    queryOptions<Schemas['GraphEntityResponse'][]>({
         queryKey: ['graph', 'entity', id, 'neighbors'],
         enabled: !!id,
         queryFn: async () => {
@@ -55,7 +55,7 @@ export const graphEntityNeighborsQueryOptions = (id: string) =>
     });
 
 export const graphEventsQueryOptions = (workspaceId: string) =>
-    queryOptions<Schemas['GraphEventResponse'][]>({
+    queryOptions<Schemas['EventNodeResponse'][]>({
         queryKey: ['graph', 'events', workspaceId],
         enabled: !!workspaceId,
         queryFn: async () => {
@@ -68,7 +68,7 @@ export const graphEventsQueryOptions = (workspaceId: string) =>
     });
 
 export const graphEventByIdQueryOptions = (id: string) =>
-    queryOptions<Schemas['GraphEventResponse']>({
+    queryOptions<Schemas['EventNodeDetailResponse']>({
         queryKey: ['graph', 'event', id],
         enabled: !!id,
         queryFn: async () => {
@@ -87,7 +87,7 @@ export const graphPathQueryOptions = ({
     from: string;
     to: string;
 }) =>
-    queryOptions<Schemas['GraphPathResponse']>({
+    queryOptions<Schemas['GraphPathResponse'][]>({
         queryKey: ['graph', 'path', from, to],
         enabled: !!from && !!to,
         queryFn: async () => {
@@ -108,7 +108,7 @@ export const graphTemporalQueryOptions = ({
     from: string;
     to: string;
 }) =>
-    queryOptions<Schemas['GraphEventResponse'][]>({
+    queryOptions<Schemas['EventNodeResponse'][]>({
         queryKey: ['graph', 'temporal', entityId, from, to],
         enabled: !!entityId && !!from && !!to,
         queryFn: async () => {
@@ -117,5 +117,29 @@ export const graphTemporalQueryOptions = ({
             });
             if (res.error) throw new Error('Failed to query temporal');
             return res.data;
+        },
+    });
+
+/**
+ * Fetch all event details (with subject/object) for building the graph.
+ * The list endpoint doesn't return subject/object, so we fetch each detail.
+ */
+export const graphEventDetailsQueryOptions = (eventIds: string[]) =>
+    queryOptions<Schemas['EventNodeDetailResponse'][]>({
+        queryKey: ['graph', 'event-details', ...eventIds],
+        enabled: eventIds.length > 0,
+        queryFn: async () => {
+            const results = await Promise.all(
+                eventIds.map(async (id) => {
+                    const res = await api.GET('/graph/events/{id}', {
+                        params: { path: { id } },
+                    });
+                    if (res.error) return null;
+                    return res.data;
+                }),
+            );
+            return results.filter(
+                (r: Schemas['EventNodeDetailResponse'] | null): r is Schemas['EventNodeDetailResponse'] => r !== null,
+            );
         },
     });

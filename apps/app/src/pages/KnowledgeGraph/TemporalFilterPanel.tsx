@@ -162,24 +162,18 @@ export function TemporalFilterPanel({ onClose }: TemporalFilterPanelProps) {
                                             className="rounded-lg border px-3 py-2"
                                         >
                                             <p className="text-xs font-medium truncate">
-                                                {event.label ?? 'Untitled Event'}
+                                                {event.eventType ?? 'Event'}
                                             </p>
-                                            {event.occurredAt && (
+                                            {event.validFrom && (
                                                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                                                    {new Date(event.occurredAt).toLocaleDateString()}
+                                                    {new Date(event.validFrom).toLocaleDateString()}
                                                 </p>
                                             )}
-                                            <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
-                                                {event.subject?.name && (
-                                                    <span>{event.subject.name}</span>
-                                                )}
-                                                {event.subject?.name && event.object?.name && (
-                                                    <span>-</span>
-                                                )}
-                                                {event.object?.name && (
-                                                    <span>{event.object.name}</span>
-                                                )}
-                                            </div>
+                                            {event.description && (
+                                                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                                                    {event.description}
+                                                </p>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
