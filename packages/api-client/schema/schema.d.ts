@@ -1595,6 +1595,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/graph/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List graph entities by workspace */
+        get: operations["listGraphEntities"];
+        put?: never;
+        /** Create graph entity vertex */
+        post: operations["createGraphEntity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get graph entity by ID */
+        get: operations["getGraphEntity"];
+        put?: never;
+        post?: never;
+        /** Delete graph entity (DETACH) */
+        delete: operations["deleteGraphEntity"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get events for a graph entity */
+        get: operations["getGraphEntityEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/entities/{id}/neighbors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get connected entities (neighbors) */
+        get: operations["getGraphEntityNeighbors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List graph events by workspace */
+        get: operations["listGraphEvents"];
+        put?: never;
+        /** Create graph event node + connect subject & object */
+        post: operations["createGraphEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get graph event by ID */
+        get: operations["getGraphEvent"];
+        put?: never;
+        post?: never;
+        /** Delete graph event node */
+        delete: operations["deleteGraphEvent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/query/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find paths between two entities */
+        get: operations["findGraphPath"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph/query/temporal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Query events by temporal range */
+        get: operations["queryGraphTemporal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2835,6 +2975,85 @@ export interface components {
              * @description User who resolved the conflict
              */
             resolvedBy?: string;
+        };
+        /** @description Graph entity vertex response */
+        GraphEntityResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** @description Entity name */
+            name?: string;
+            /** @enum {string} */
+            entityType?: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
+            /** @description Additional properties */
+            properties?: Record<string, unknown>;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @description Request to create a graph entity vertex */
+        CreateGraphEntityRequest: {
+            name: string;
+            /** @enum {string} */
+            entityType: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
+            properties?: Record<string, unknown>;
+            /** Format: uuid */
+            workspaceId: string;
+        };
+        /** @description Graph event node response */
+        GraphEventResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** @description Event label */
+            label?: string;
+            /** @description Event description */
+            description?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            /** @description Additional properties */
+            properties?: Record<string, unknown>;
+            /** Format: uuid */
+            subjectId?: string;
+            /** Format: uuid */
+            objectId?: string;
+            /** @description Subject entity (populated on detail fetch) */
+            subject?: components["schemas"]["GraphEntityResponse"];
+            /** @description Object entity (populated on detail fetch) */
+            object?: components["schemas"]["GraphEntityResponse"];
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        /** @description Request to create a graph event node */
+        CreateGraphEventRequest: {
+            label: string;
+            description?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+            properties?: Record<string, unknown>;
+            /** Format: uuid */
+            subjectId: string;
+            /** Format: uuid */
+            objectId: string;
+            /** Format: uuid */
+            workspaceId: string;
+        };
+        /** @description Path query response */
+        GraphPathResponse: {
+            paths?: {
+                nodes?: components["schemas"]["GraphEntityResponse"][];
+                edges?: components["schemas"]["GraphEventResponse"][];
+            }[];
+        };
+        /** @description Neighbor entity response */
+        GraphNeighborResponse: {
+            entity?: components["schemas"]["GraphEntityResponse"];
+            /** @description Relationship direction/label */
+            relationship?: string;
+            event?: components["schemas"]["GraphEventResponse"];
         };
     };
     responses: never;
@@ -6276,6 +6495,214 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listGraphEntities: {
+        parameters: {
+            query: { workspaceId: string };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"][];
+                };
+            };
+        };
+    };
+    createGraphEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGraphEntityRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"];
+                };
+            };
+        };
+    };
+    getGraphEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEntityResponse"];
+                };
+            };
+        };
+    };
+    deleteGraphEntity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+        };
+    };
+    getGraphEntityEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEventResponse"][];
+                };
+            };
+        };
+    };
+    getGraphEntityNeighbors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphNeighborResponse"][];
+                };
+            };
+        };
+    };
+    listGraphEvents: {
+        parameters: {
+            query: { workspaceId: string };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEventResponse"][];
+                };
+            };
+        };
+    };
+    createGraphEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGraphEventRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEventResponse"];
+                };
+            };
+        };
+    };
+    getGraphEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEventResponse"];
+                };
+            };
+        };
+    };
+    deleteGraphEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+        };
+    };
+    findGraphPath: {
+        parameters: {
+            query: { from: string; to: string };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphPathResponse"];
+                };
+            };
+        };
+    };
+    queryGraphTemporal: {
+        parameters: {
+            query: { entityId: string; from: string; to: string };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "application/json": components["schemas"]["GraphEventResponse"][];
+                };
             };
         };
     };
