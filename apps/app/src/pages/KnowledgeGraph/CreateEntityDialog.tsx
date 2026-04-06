@@ -50,6 +50,7 @@ export function CreateEntityDialog({
         register,
         handleSubmit,
         reset,
+        setError,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -68,6 +69,9 @@ export function CreateEntityDialog({
             try {
                 properties = JSON.parse(values.properties);
             } catch {
+                setError('properties', {
+                    message: 'Invalid JSON. Please check the syntax.',
+                });
                 return;
             }
         }
@@ -149,6 +153,11 @@ export function CreateEntityDialog({
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                             {...register('properties')}
                         />
+                        {errors.properties && (
+                            <p className="text-xs text-destructive">
+                                {errors.properties.message}
+                            </p>
+                        )}
                     </div>
 
                     <DialogFooter>

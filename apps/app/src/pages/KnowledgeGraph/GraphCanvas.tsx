@@ -1,5 +1,6 @@
 import {
     forwardRef,
+    useCallback,
     useEffect,
     useImperativeHandle,
     useRef,
@@ -7,7 +8,7 @@ import {
 } from 'react';
 import * as d3 from 'd3';
 import type { GraphNode, GraphLink } from '@/hooks/graph/useGraphData';
-import { ForceGraph } from './ForceGraph';
+import { ForceGraph, ZoomContext } from './ForceGraph';
 
 export interface GraphCanvasProps {
     nodes: GraphNode[];
@@ -29,9 +30,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         ref,
     ) {
         const containerRef = useRef<HTMLDivElement>(null);
+        const zoomCtxRef = useRef<ZoomContext | null>(null);
         const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-        // Track container size via ResizeObserver
         useEffect(() => {
             const el = containerRef.current;
             if (!el) return;
@@ -47,37 +48,36 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
             return () => observer.disconnect();
         }, []);
 
-        // Helper to get the zoom behaviour + svg from ForceGraph's SVG element
-        const getZoomAccessor = () => {
-            const svg = containerRef.current?.querySelector('svg');
-            if (!svg) return null;
-            const accessor = (svg as any).__zoomAccessor;
-            return accessor ? accessor() : null;
-        };
+        const handleZoomReady = useCallback((ctx: ZoomContext) => {
+            zoomCtxRef.current = ctx;
+        }, []);
 
         useImperativeHandle(ref, () => ({
             zoomIn() {
-                const ctx = getZoomAccessor();
-                if (!ctx?.zoomBehavior || !ctx.svgElement) return;
+                const ctx = zoomCtxRef.current;
+                if (!ctx) return;
                 const svg = d3.select<SVGSVGElement, unknown>(ctx.svgElement);
                 ctx.zoomBehavior.scaleBy(svg.transition().duration(300), 1.3);
             },
             zoomOut() {
-                const ctx = getZoomAccessor();
-                if (!ctx?.zoomBehavior || !ctx.svgElement) return;
+                const ctx = zoomCtxRef.current;
+                if (!ctx) return;
                 const svg = d3.select<SVGSVGElement, unknown>(ctx.svgElement);
                 ctx.zoomBehavior.scaleBy(svg.transition().duration(300), 1 / 1.3);
             },
             fitToScreen() {
-                const ctx = getZoomAccessor();
-                if (!ctx?.zoomBehavior || !ctx.svgElement) return;
+                const ctx = zoomCtxRef.current;
+                if (!ctx) return;
                 const svg = d3.select<SVGSVGElement, unknown>(ctx.svgElement);
                 const { width, height } = dimensions;
                 svg.transition()
                     .duration(500)
                     .call(
                         ctx.zoomBehavior.transform,
-                        d3.zoomIdentity.translate(width / 2, height / 2).scale(1).translate(-width / 2, -height / 2),
+                        d3.zoomIdentity
+                            .translate(width / 2, height / 2)
+                            .scale(1)
+                            .translate(-width / 2, -height / 2),
                     );
             },
         }));
@@ -99,6 +99,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
                         selectedNodeId={selectedNodeId}
                         highlightedPath={highlightedPath}
                         onNodeClick={onNodeClick}
+                        onZoomReady={handleZoomReady}
                         width={dimensions.width}
                         height={dimensions.height}
                     />

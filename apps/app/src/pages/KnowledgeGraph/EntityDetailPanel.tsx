@@ -62,7 +62,7 @@ export function EntityDetailPanel({
                         </div>
                     ) : (
                         <h2 className="text-sm font-semibold truncate">
-                            {entity?.name}
+                            {entity?.name ?? 'Unnamed Entity'}
                         </h2>
                     )}
                 </div>
@@ -138,7 +138,7 @@ export function EntityDetailPanel({
                                         className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted transition-colors"
                                     >
                                         <p className="text-xs font-medium truncate">
-                                            {event.label}
+                                            {event.label ?? 'Untitled Event'}
                                         </p>
                                         {event.occurredAt && (
                                             <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -188,7 +188,7 @@ export function EntityDetailPanel({
                                                 }}
                                             />
                                             <p className="text-xs font-medium truncate">
-                                                {neighbor.entity?.name}
+                                                {neighbor.entity?.name ?? 'Unnamed'}
                                             </p>
                                         </div>
                                         {neighbor.relationship && (

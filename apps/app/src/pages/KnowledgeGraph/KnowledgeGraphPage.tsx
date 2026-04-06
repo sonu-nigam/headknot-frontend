@@ -60,6 +60,10 @@ function KnowledgeGraphPage() {
     const isLoading = entitiesLoading || eventsLoading;
 
     const handleNodeClick = (nodeId: string, nodeType: 'entity' | 'event') => {
+        if (!nodeId) {
+            clearSelection();
+            return;
+        }
         selectNode(nodeId, nodeType);
     };
 

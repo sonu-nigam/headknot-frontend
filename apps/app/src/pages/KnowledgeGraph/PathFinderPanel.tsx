@@ -54,8 +54,8 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
     const pathNodeIds =
         firstPath
             ? [
-                  ...(firstPath.nodes?.map((n) => n.id).filter(Boolean) as string[] ?? []),
-                  ...(firstPath.edges?.map((e) => e.id).filter(Boolean) as string[] ?? []),
+                  ...(firstPath.nodes?.map((n) => n.id).filter((id): id is string => !!id) ?? []),
+                  ...(firstPath.edges?.map((e) => e.id).filter((id): id is string => !!id) ?? []),
               ]
             : null;
 
@@ -180,7 +180,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                                 }}
                                             />
                                             <span className="text-xs font-medium truncate">
-                                                {node.name}
+                                                {node.name ?? 'Unnamed'}
                                             </span>
                                         </div>
 
@@ -194,7 +194,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                                         style={{ backgroundColor: EVENT_NODE_COLOR }}
                                                     />
                                                     <span className="text-[10px] text-muted-foreground">
-                                                        {firstPath.edges[idx].label}
+                                                        {firstPath.edges?.[idx]?.label ?? 'Event'}
                                                     </span>
                                                 </div>
                                             </div>

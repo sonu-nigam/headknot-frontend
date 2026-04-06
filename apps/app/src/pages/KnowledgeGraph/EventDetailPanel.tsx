@@ -49,7 +49,7 @@ export function EventDetailPanel({
                         </div>
                     ) : (
                         <h2 className="text-sm font-semibold truncate">
-                            {event?.label}
+                            {event?.label ?? 'Untitled Event'}
                         </h2>
                     )}
                 </div>
@@ -112,7 +112,7 @@ export function EventDetailPanel({
                                         }}
                                     />
                                     <p className="text-xs font-medium truncate">
-                                        {event.subject.name}
+                                        {event.subject.name ?? 'Unnamed'}
                                     </p>
                                     <Badge
                                         variant="outline"
@@ -165,7 +165,7 @@ export function EventDetailPanel({
                                         }}
                                     />
                                     <p className="text-xs font-medium truncate">
-                                        {event.object.name}
+                                        {event.object.name ?? 'Unnamed'}
                                     </p>
                                     <Badge
                                         variant="outline"
