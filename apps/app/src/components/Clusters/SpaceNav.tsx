@@ -32,7 +32,7 @@ export function SpaceNav() {
             workspaceId: selectedWorkspaceId as string,
             status: 'ACTIVE',
         }),
-        enabled: !!selectedWorkspaceId,
+        enabled: false, // disabled: space API temporarily disabled
     });
 
     const spaces = workspaceSpaces?.map((space) => ({

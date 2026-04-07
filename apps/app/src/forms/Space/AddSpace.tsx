@@ -111,22 +111,12 @@ function useCreateSpaceMutation() {
     const workspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
     const { mutate: createSpace, isPending: isCreating } = useMutation({
-        mutationFn: async (values: SpaceFormValues) => {
-            const res = await api.POST('/space', {
-                body: values,
-                params: {
-                    query: {
-                        workspaceId,
-                    },
-                },
+        mutationFn: async (_values: SpaceFormValues) => {
+            // Space API temporarily disabled
+            return Promise.reject({
+                message: 'Space creation is temporarily disabled',
+                type: 'server',
             });
-            if (res.error) {
-                return Promise.reject({
-                    message: res.error.message || 'Failed to create space',
-                    type: 'server',
-                });
-            }
-            return res.data;
         },
         onSuccess: () => {
             setVisible(false);

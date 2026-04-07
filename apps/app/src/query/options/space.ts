@@ -14,6 +14,7 @@ export const spaceQueryOptions = ({
 }) =>
     queryOptions<Response>({
         queryKey: ['spaces', workspaceId, status],
+        enabled: false,
         queryFn: async () => {
             const res = await api.GET('/space', {
                 params: {
