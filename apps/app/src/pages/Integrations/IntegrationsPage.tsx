@@ -26,17 +26,9 @@ import {
     Database,
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
-import {
-    integrationsQueryOptions,
-    integrationProvidersQueryOptions,
-} from '@/query/options/integrations';
+import { integrationsQueryOptions } from '@/query/options/integrations';
 import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
-import { useConnectNotion } from '@/hooks/integrations/useConnectNotion';
 import { Schemas } from '@/types/api';
-
-// --- OAuth providers that use redirect flow ---
-
-const OAUTH_PROVIDERS = new Set(['NOTION']);
 
 // --- Provider icon mapping ---
 
@@ -72,11 +64,7 @@ function formatLastSync(dateStr?: string) {
 // --- Merged catalog item ---
 
 interface CatalogItem {
-    /** Set when already connected to the workspace */
     integration?: Schemas['IntegrationResponse'];
-    /** Provider metadata from the catalog */
-    provider?: Schemas['IntegrationProviderResponse'];
-    /** Resolved key (integration.type or provider.provider) */
     type: string;
     displayName: string;
     description: string;
@@ -85,41 +73,21 @@ interface CatalogItem {
 
 function mergeCatalog(
     integrations?: Schemas['IntegrationResponse'][],
-    providers?: Schemas['IntegrationProviderResponse'][],
 ): CatalogItem[] {
-    const byType = new Map<string, CatalogItem>();
-
-    // Seed from providers so we always show the full catalog
-    for (const p of providers ?? []) {
-        const key = p.provider ?? '';
-        if (!key) continue;
-        byType.set(key, {
-            provider: p,
-            type: key,
-            displayName: p.name ?? key,
-            description: p.description ?? '',
-            isConnected: false,
-        });
-    }
-
-    // Overlay connected integrations
+    const items: CatalogItem[] = [];
     for (const i of integrations ?? []) {
         const key = i.type ?? '';
         if (!key) continue;
-        const existing = byType.get(key);
         const status = (i.status ?? '').toUpperCase();
-        byType.set(key, {
-            ...(existing ?? {}),
+        items.push({
             integration: i,
             type: key,
-            displayName: i.displayName ?? existing?.displayName ?? key,
-            description: i.description ?? existing?.description ?? '',
+            displayName: i.displayName ?? key,
+            description: i.description ?? '',
             isConnected: status === 'CONNECTED' || status === 'SYNCING',
         });
     }
-
-    // Sort: connected first, then alphabetical
-    return Array.from(byType.values()).sort((a, b) => {
+    return items.sort((a, b) => {
         if (a.isConnected !== b.isConnected) return a.isConnected ? -1 : 1;
         return a.displayName.localeCompare(b.displayName);
     });
@@ -273,47 +241,27 @@ export function IntegrationsPage() {
         isLoading: integrationsLoading,
     } = useQuery(integrationsQueryOptions(selectedWorkspaceId ?? ''));
 
-    const {
-        data: providers,
-        isLoading: providersLoading,
-    } = useQuery(integrationProvidersQueryOptions);
-
     const connectMutation = useConnectIntegration();
-    const connectNotionMutation = useConnectNotion();
 
-    const isLoading = integrationsLoading || providersLoading;
+    const isLoading = integrationsLoading;
 
-    const catalog = mergeCatalog(integrations, providers);
+    const catalog = mergeCatalog(integrations);
     const connectedCount = catalog.filter((c) => c.isConnected).length;
     const totalItems = (integrations ?? []).reduce(
         (sum, i) => sum + (i.itemsIndexed ?? 0),
         0,
     );
 
-    const handleConnect = (type: string) => {
+    const handleConnect = (item: CatalogItem) => {
         if (!selectedWorkspaceId) return;
 
-        if (OAUTH_PROVIDERS.has(type)) {
-            if (type === 'NOTION') {
-                connectNotionMutation.mutate();
-            }
-            return;
-        }
+        const integrationId = item.integration?.id;
+        if (!integrationId) return;
 
         connectMutation.mutate({
-            workspaceId: selectedWorkspaceId,
-            body: { provider: type },
+            integrationId,
+            body: { workspaceId: selectedWorkspaceId },
         });
-    };
-
-    const isTypeConnecting = (type: string) => {
-        if (OAUTH_PROVIDERS.has(type)) {
-            return type === 'NOTION' && connectNotionMutation.isPending;
-        }
-        return (
-            connectMutation.isPending &&
-            connectMutation.variables?.body.provider === type
-        );
     };
 
     return (
@@ -377,8 +325,8 @@ export function IntegrationsPage() {
                                 <CatalogCard
                                     key={item.type}
                                     item={item}
-                                    onConnect={() => handleConnect(item.type)}
-                                    isConnecting={isTypeConnecting(item.type)}
+                                    onConnect={() => handleConnect(item)}
+                                    isConnecting={connectMutation.isPending}
                                 />
                             ))}
                         </div>

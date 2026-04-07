@@ -7,22 +7,26 @@ export function useConnectIntegration() {
 
     return useMutation({
         mutationFn: async ({
-            workspaceId,
+            integrationId,
             body,
         }: {
-            workspaceId: string;
+            integrationId: string;
             body: Schemas['ConnectIntegrationRequest'];
         }) => {
             const { data, error } = await api.POST(
-                '/integrations/workspace/{workspaceId}',
-                { params: { path: { workspaceId } }, body }
+                '/integrations/{id}/connect',
+                { params: { path: { id: integrationId } }, body }
             );
             if (error) throw new Error('Failed to connect integration');
             return data;
         },
-        onSuccess: (_data, variables) => {
+        onSuccess: (data) => {
+            if (data.oauthRequired && data.authorizationUrl) {
+                window.location.href = data.authorizationUrl;
+                return;
+            }
             queryClient.invalidateQueries({
-                queryKey: ['integrations', variables.workspaceId],
+                queryKey: ['integrations'],
             });
         },
     });

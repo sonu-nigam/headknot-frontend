@@ -6,9 +6,9 @@ export function useDisconnectIntegration() {
 
     return useMutation({
         mutationFn: async ({ integrationId }: { integrationId: string }) => {
-            const { error } = await api.DELETE(
-                '/integrations/{integrationId}',
-                { params: { path: { integrationId } } }
+            const { error } = await api.POST(
+                '/integrations/{id}/disconnect',
+                { params: { path: { id: integrationId } } }
             );
             if (error) throw new Error('Failed to disconnect integration');
         },

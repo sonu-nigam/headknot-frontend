@@ -537,6 +537,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/{id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync integration
+         * @description Triggers a sync for the integration, auto-detecting the provider type
+         */
+        post: operations["syncIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/{id}/disconnect": {
         parameters: {
             query?: never;
@@ -568,7 +588,7 @@ export interface paths {
         put?: never;
         /**
          * Connect integration
-         * @description Connects an integration to a workspace
+         * @description Connects an integration. For OAuth integrations, initiates the OAuth flow and returns an authorization URL. For API_KEY integrations, connects directly.
          */
         post: operations["connectIntegration"];
         delete?: never;
@@ -2579,20 +2599,6 @@ export interface components {
             /** Format: date-time */
             expiredAt?: string;
         };
-        /** @description Connect integration request */
-        ConnectIntegrationRequest: {
-            /**
-             * Format: uuid
-             * @description Workspace ID
-             */
-            workspaceId: string;
-            /** @description Authentication method (OAUTH2 or API_KEY) */
-            authMethod?: string;
-            /** @description Connection configuration */
-            config?: {
-                [key: string]: Record<string, never>;
-            };
-        };
         /** @description Integration details response */
         IntegrationResponse: {
             /**
@@ -2653,6 +2659,30 @@ export interface components {
              * @description Last update timestamp
              */
             updatedAt?: string;
+        };
+        /** @description Connect integration request */
+        ConnectIntegrationRequest: {
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId: string;
+            /** @description Authentication method (OAUTH2 or API_KEY) */
+            authMethod?: string;
+            /** @description Connection configuration */
+            config?: {
+                [key: string]: Record<string, never>;
+            };
+        };
+        /** @description Connect integration response */
+        ConnectIntegrationResponse: {
+            /** @description Whether the connection requires OAuth redirect */
+            oauthRequired?: boolean;
+            /** @description Authorization URL to redirect the user to (OAuth flows) */
+            authorizationUrl?: string;
+            /** @description State parameter for CSRF verification (OAuth flows) */
+            state?: string;
+            integration?: components["schemas"]["IntegrationResponse"];
         };
         /** @description Create source request */
         CreateSourceRequestRequest: {
@@ -4590,6 +4620,35 @@ export interface operations {
             };
         };
     };
+    syncIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration synced successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     disconnectIntegration: {
         parameters: {
             query?: never;
@@ -4632,13 +4691,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Integration connected successfully */
+            /** @description Integration connected or OAuth flow initiated */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IntegrationResponse"];
+                    "application/json": components["schemas"]["ConnectIntegrationResponse"];
                 };
             };
             /** @description Integration not found */

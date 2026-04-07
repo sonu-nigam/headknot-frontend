@@ -30,12 +30,12 @@ export const integrationQueryOptions = (integrationId: string) =>
     });
 
 export const integrationSyncStatusQueryOptions = (integrationId: string) =>
-    queryOptions<Schemas['IntegrationSyncResponse']>({
+    queryOptions({
         queryKey: ['integrations', 'sync', integrationId],
         queryFn: async () => {
             const res = await api.GET(
-                '/integrations/{integrationId}/sync',
-                { params: { path: { integrationId } } }
+                '/integrations/{id}/sync-stats',
+                { params: { path: { id: integrationId } } }
             );
             if (res.error) throw new Error('Failed to fetch sync status');
             return res.data;
@@ -43,13 +43,3 @@ export const integrationSyncStatusQueryOptions = (integrationId: string) =>
         enabled: !!integrationId,
     });
 
-export const integrationProvidersQueryOptions = queryOptions<
-    Schemas['IntegrationProviderResponse'][]
->({
-    queryKey: ['integrations', 'providers'],
-    queryFn: async () => {
-        const res = await api.GET('/integrations/providers');
-        if (res.error) throw new Error('Failed to fetch providers');
-        return res.data;
-    },
-});

@@ -7,8 +7,8 @@ export function useTriggerSync() {
     return useMutation({
         mutationFn: async ({ integrationId }: { integrationId: string }) => {
             const { data, error } = await api.POST(
-                '/integrations/{integrationId}/sync',
-                { params: { path: { integrationId } } }
+                '/integrations/{id}/sync',
+                { params: { path: { id: integrationId } } }
             );
             if (error) throw new Error('Failed to trigger sync');
             return data;
