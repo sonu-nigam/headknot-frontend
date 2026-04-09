@@ -20,10 +20,7 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
     other: 'Other',
 };
 
-export const LINK_COLORS: Record<string, string> = {
-    SUBJECT_OF: '#8b5cf6',
-    OBJECT_OF: '#06b6d4',
-};
+export const EVENT_EDGE_COLOR = '#8b5cf6';
 
 /** Normalize entity type from backend (PERSON → person) for color/label lookup */
 export function normalizeEntityType(type?: string): string {

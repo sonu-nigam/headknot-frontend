@@ -4,15 +4,17 @@ import { Schemas } from '@/types/api';
 export interface GraphNode {
     id: string;
     label: string;
-    type: 'entity' | 'event';
+    type: 'entity';
     entityType?: string;
-    data: Schemas['GraphEntityResponse'] | Schemas['EventNodeDetailResponse'];
+    data: Schemas['GraphEntityResponse'];
 }
 
 export interface GraphLink {
     source: string;
     target: string;
-    type: 'SUBJECT_OF' | 'OBJECT_OF';
+    eventId: string;
+    eventLabel: string;
+    eventData: Schemas['EventNodeDetailResponse'];
 }
 
 export function useGraphData(
@@ -63,22 +65,12 @@ export function useGraphData(
 
             addedEvents.add(event.id);
 
-            nodes.push({
-                id: event.id,
-                label: event.eventType ?? 'Event',
-                type: 'event',
-                data: event,
-            });
-
             links.push({
                 source: subjectId,
-                target: event.id,
-                type: 'SUBJECT_OF',
-            });
-            links.push({
-                source: event.id,
                 target: objectId,
-                type: 'OBJECT_OF',
+                eventId: event.id,
+                eventLabel: event.eventType ?? 'Event',
+                eventData: event,
             });
         }
 

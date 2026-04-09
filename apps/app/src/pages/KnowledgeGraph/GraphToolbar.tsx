@@ -10,7 +10,7 @@ import {
     Link,
 } from 'lucide-react';
 import { useGraphStore } from '@/state/graphStore';
-import { ENTITY_COLORS, EVENT_NODE_COLOR, ENTITY_TYPE_LABELS } from './constants';
+import { ENTITY_COLORS, EVENT_EDGE_COLOR, ENTITY_TYPE_LABELS } from './constants';
 
 interface GraphToolbarProps {
     onZoomIn: () => void;
@@ -128,11 +128,11 @@ export function GraphToolbar({
                 ))}
                 <div
                     className="flex items-center gap-1.5"
-                    title="Event"
+                    title="Event (edge)"
                 >
                     <div
-                        className="size-2 rotate-45 shrink-0"
-                        style={{ backgroundColor: EVENT_NODE_COLOR }}
+                        className="w-4 h-0.5 shrink-0"
+                        style={{ backgroundColor: EVENT_EDGE_COLOR }}
                     />
                 </div>
             </div>

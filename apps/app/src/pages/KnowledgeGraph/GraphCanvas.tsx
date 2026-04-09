@@ -15,7 +15,8 @@ export interface GraphCanvasProps {
     links: GraphLink[];
     selectedNodeId: string | null;
     highlightedPath: string[] | null;
-    onNodeClick: (nodeId: string, nodeType: 'entity' | 'event') => void;
+    onNodeClick: (nodeId: string) => void;
+    onEdgeClick: (eventId: string) => void;
 }
 
 export interface GraphCanvasHandle {
@@ -26,7 +27,7 @@ export interface GraphCanvasHandle {
 
 export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
     function GraphCanvas(
-        { nodes, links, selectedNodeId, highlightedPath, onNodeClick },
+        { nodes, links, selectedNodeId, highlightedPath, onNodeClick, onEdgeClick },
         ref,
     ) {
         const containerRef = useRef<HTMLDivElement>(null);
@@ -99,6 +100,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
                         selectedNodeId={selectedNodeId}
                         highlightedPath={highlightedPath}
                         onNodeClick={onNodeClick}
+                        onEdgeClick={onEdgeClick}
                         onZoomReady={handleZoomReady}
                         width={dimensions.width}
                         height={dimensions.height}

@@ -81,12 +81,16 @@ function KnowledgeGraphPage() {
 
     const isLoading = entitiesLoading || eventsLoading || detailsLoading;
 
-    const handleNodeClick = (nodeId: string, nodeType: 'entity' | 'event') => {
+    const handleNodeClick = (nodeId: string) => {
         if (!nodeId) {
             clearSelection();
             return;
         }
-        selectNode(nodeId, nodeType);
+        selectNode(nodeId, 'entity');
+    };
+
+    const handleEdgeClick = (eventId: string) => {
+        selectNode(eventId, 'event');
     };
 
     return (
@@ -124,6 +128,7 @@ function KnowledgeGraphPage() {
                                 selectedNodeId={selectedNodeId}
                                 highlightedPath={highlightedPath}
                                 onNodeClick={handleNodeClick}
+                                onEdgeClick={handleEdgeClick}
                             />
 
                             {/* Status Bar */}
@@ -164,14 +169,14 @@ function KnowledgeGraphPage() {
                     <EntityDetailPanel
                         entityId={selectedNodeId}
                         onClose={clearSelection}
-                        onSelectNode={handleNodeClick}
+                        onSelectNode={(id, type) => selectNode(id, type)}
                     />
                 )}
                 {selectedNodeId && selectedNodeType === 'event' && (
                     <EventDetailPanel
                         eventId={selectedNodeId}
                         onClose={clearSelection}
-                        onSelectNode={handleNodeClick}
+                        onSelectNode={(id, type) => selectNode(id, type)}
                     />
                 )}
 
