@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
-import { X, Loader2, Trash2, ArrowRight } from 'lucide-react';
+import { X, Loader2, Trash2, FileText } from 'lucide-react';
 import {
     graphEntityByIdQueryOptions,
     graphEntityEventsQueryOptions,
     graphEntityNeighborsQueryOptions,
+    graphEntityChunksQueryOptions,
 } from '@/query/options/graph';
 import { useDeleteGraphEntity } from '@/hooks/graph/useDeleteGraphEntity';
 import { ENTITY_COLORS, ENTITY_TYPE_LABELS, normalizeEntityType } from './constants';
@@ -33,6 +34,9 @@ export function EntityDetailPanel({
     );
     const { data: neighbors, isLoading: neighborsLoading } = useQuery(
         graphEntityNeighborsQueryOptions(entityId),
+    );
+    const { data: chunks, isLoading: chunksLoading } = useQuery(
+        graphEntityChunksQueryOptions(entityId),
     );
 
     const deleteMutation = useDeleteGraphEntity();
@@ -201,6 +205,50 @@ export function EntityDetailPanel({
                         ) : (
                             <p className="text-xs text-muted-foreground">
                                 No neighbors found.
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Source Chunks */}
+                    <Separator />
+                    <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                            <span className="flex items-center gap-1.5">
+                                <FileText className="size-3" />
+                                Source Chunks
+                            </span>
+                        </h3>
+                        {chunksLoading ? (
+                            <div className="flex items-center gap-2 text-muted-foreground py-2">
+                                <Loader2 className="size-3 animate-spin" />
+                                <span className="text-xs">Loading chunks...</span>
+                            </div>
+                        ) : chunks && chunks.length > 0 ? (
+                            <div className="space-y-2">
+                                {chunks.map((chunk, idx) => (
+                                    <div
+                                        key={chunk.chunkId ?? idx}
+                                        className="rounded-lg border px-3 py-2 space-y-1"
+                                    >
+                                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                            {chunk.sequenceNumber != null && (
+                                                <span>Chunk #{chunk.sequenceNumber}</span>
+                                            )}
+                                            {chunk.createdAt && (
+                                                <span>{new Date(chunk.createdAt).toLocaleDateString()}</span>
+                                            )}
+                                        </div>
+                                        {chunk.content && (
+                                            <p className="text-xs text-foreground/90 whitespace-pre-wrap line-clamp-4">
+                                                {chunk.content}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">
+                                No source chunks found.
                             </p>
                         )}
                     </div>

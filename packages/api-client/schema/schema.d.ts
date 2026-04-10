@@ -279,26 +279,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/search/temporal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Temporal search
-         * @description Search with temporal context — scopes results to a specific point in time.
-         */
-        post: operations["temporalSearch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/search/reason": {
         parameters: {
             query?: never;
@@ -313,74 +293,6 @@ export interface paths {
          * @description Uses an LLM agent with graph traversal tools to plan, gather evidence, and synthesize answers from the temporal knowledge graph.
          */
         post: operations["reason"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/relationships": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Find relationships by claim
-         * @description Finds all relationships involving a specific claim (as source or target). Optionally filter by relationship type.
-         */
-        get: operations["findRelationships"];
-        put?: never;
-        /**
-         * Create relationship
-         * @description Creates a new relationship between two claims. Both claims must exist.
-         */
-        post: operations["createRelationship"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/relationships/{relationshipId}/feedback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get feedback history
-         * @description Returns all feedback for a relationship
-         */
-        get: operations["getFeedbackHistory"];
-        put?: never;
-        /**
-         * Submit feedback
-         * @description Submit feedback on a relationship: CONFIRM, REJECT, or RECLASSIFY. Records an audit trail and updates the relationship status.
-         */
-        post: operations["submitFeedback"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/reason": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Retrieve and generate
-         * @description Performs vector-based retrieval and generates a response based on the provided message
-         */
-        post: operations["generate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -447,96 +359,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/knowledge/entities": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List entity by workspace
-         * @description Returns all entities in a workspace. Optionally filter by entity type.
-         */
-        get: operations["listEntities"];
-        put?: never;
-        /**
-         * Create or get entity
-         * @description Creates a new knowledge entity. If an entity with the same name, type, and workspace already exists, returns the existing one (idempotent).
-         */
-        post: operations["createEntity"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/entities/{entityId}/memories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get memories linked to an entity */
-        get: operations["getMemoriesForEntity"];
-        put?: never;
-        /**
-         * Link memory to entity
-         * @description Creates an explicit link between a memory and this entity. Idempotent — if the link already exists, returns it.
-         */
-        post: operations["linkMemory"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/entities/{entityId}/aliases": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get aliases for an entity */
-        get: operations["getAliases"];
-        put?: never;
-        /**
-         * Add alias to entity
-         * @description Adds an alternate name for an entity. Idempotent — if the alias already exists, returns it.
-         */
-        post: operations["addAlias"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/claims": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Query claims
-         * @description Returns claims filtered by entity ID, block ID, or snapshot ID. When filtering by snapshot ID, returns all claims associated with the blocks in that snapshot.
-         */
-        get: operations["queryClaims"];
-        put?: never;
-        /**
-         * Create claim
-         * @description Records a claim linked to a knowledge entity and extracted from a memory block.
-         */
-        post: operations["createClaim"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/integrations/{id}/sync": {
         parameters: {
             query?: never;
@@ -548,7 +370,7 @@ export interface paths {
         put?: never;
         /**
          * Sync integration
-         * @description Triggers a sync for the integration, auto-detecting the provider type
+         * @description Triggers an async sync for the integration. Returns immediately with the current integration state. Use GET /{id}/sync-stats to track progress.
          */
         post: operations["syncIntegration"];
         delete?: never;
@@ -788,16 +610,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * List event nodes
-         * @description Lists event nodes in a workspace
-         */
+        /** List event nodes */
         get: operations["list"];
         put?: never;
-        /**
-         * Create event node
-         * @description Creates an event node and connects it to subject and object entities: (Subject) -[SUBJECT_OF]-> (EventNode) -[OBJECT_OF]-> (Object)
-         */
+        /** Create event node */
         post: operations["create"];
         delete?: never;
         options?: never;
@@ -812,57 +628,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * List entity nodes
-         * @description Lists entity vertices in a workspace
-         */
+        /** List entity nodes */
         get: operations["list_1"];
         put?: never;
-        /**
-         * Create entity node
-         * @description Creates a new entity vertex in the knowledge graph
-         */
+        /** Create entity node */
         post: operations["create_1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts/{conflictId}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Resolve conflict
-         * @description Resolves a conflict with a resolution type and optional note.
-         */
-        post: operations["resolve"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts/{conflictId}/acknowledge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Acknowledge conflict
-         * @description Marks a conflict as acknowledged.
-         */
-        post: operations["acknowledge"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1150,46 +920,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/timeline": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get timeline
-         * @description Returns ordered temporal events for a specific object.
-         */
-        get: operations["getTimeline"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/timeline/changes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get changes since
-         * @description Returns all temporal events in a workspace since a given timestamp.
-         */
-        get: operations["getChangesSince"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/settings/app": {
         parameters: {
             query?: never;
@@ -1225,30 +955,6 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/relationships/{relationshipId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get relationship
-         * @description Retrieves a specific relationship by ID
-         */
-        get: operations["getRelationship"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete relationship
-         * @description Deletes an existing relationship
-         */
-        delete: operations["deleteRelationship"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1329,139 +1035,6 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/temporal/entities/{entityId}/evolution": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get comprehensive entity evolution timeline
-         * @description Returns a unified chronological timeline of all events for an entity, including claim creation, invalidation, and expiry events.
-         */
-        get: operations["getEntityEvolution"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/temporal/entities/{entityId}/claims/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get full temporal evolution of an entity's claims
-         * @description Returns the complete temporal history of all claims for an entity, grouped by predicate and sorted chronologically within each group.
-         */
-        get: operations["getClaimHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/temporal/entities/{entityId}/claims/at": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get claims valid at a specific point in time
-         * @description Returns all claims for the given entity that were valid at the specified timestamp. A claim is valid if its validFrom is before or at the time, and its validTo is after the time or null.
-         */
-        get: operations["getClaimsValidAt"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/temporal/claims/{claimId}/lineage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get invalidation lineage chain for a claim
-         * @description Traces the chain of claims that were invalidated by or derived from the specified claim, using a recursive query up to 10 levels deep.
-         */
-        get: operations["getClaimLineage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/entities/{entityId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get entity by ID */
-        get: operations["getEntity"];
-        put?: never;
-        post?: never;
-        /** Delete entity */
-        delete: operations["deleteEntity"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/entities/by-memory/{memoryId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get entities linked to a memory */
-        get: operations["getEntitiesForMemory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/knowledge/claims/{claimId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get claim by ID */
-        get: operations["getClaim"];
-        put?: never;
-        post?: never;
-        /** Delete claim */
-        delete: operations["deleteClaim"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1754,10 +1327,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Temporal query
-         * @description Finds event nodes for an entity within a time range
-         */
+        /** Find events for entity within time range */
         get: operations["temporalQuery"];
         put?: never;
         post?: never;
@@ -1774,10 +1344,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Find paths
-         * @description Finds paths between two entities through event nodes
-         */
+        /** Find paths between two entities */
         get: operations["findPaths"];
         put?: never;
         post?: never;
@@ -1794,17 +1361,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get event node
-         * @description Retrieves an event node with its connected subject and object entities
-         */
+        /** Get event node with connected entities */
         get: operations["get"];
         put?: never;
         post?: never;
-        /**
-         * Delete event node
-         * @description Deletes an event node and all connected edges
-         */
+        /** Delete event node */
         delete: operations["delete"];
         options?: never;
         head?: never;
@@ -1818,17 +1379,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get entity node
-         * @description Retrieves an entity vertex by ID
-         */
+        /** Get entity node by ID */
         get: operations["get_1"];
         put?: never;
         post?: never;
-        /**
-         * Delete entity node
-         * @description Deletes an entity vertex and all connected edges
-         */
+        /** Delete entity node */
         delete: operations["delete_1"];
         options?: never;
         head?: never;
@@ -1842,10 +1397,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get neighbors
-         * @description Retrieves entities connected via event nodes
-         */
+        /** Get entities connected via event nodes */
         get: operations["getNeighbors"];
         put?: never;
         post?: never;
@@ -1862,10 +1414,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get entity events
-         * @description Retrieves all event nodes connected to an entity
-         */
+        /** Get events connected to entity */
         get: operations["getEvents"];
         put?: never;
         post?: never;
@@ -1875,38 +1424,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/conflicts": {
+    "/graph/entities/{id}/chunks": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * List conflicts
-         * @description Returns conflicts for a workspace, optionally filtered by status.
-         */
-        get: operations["listConflicts"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/conflicts/{conflictId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get conflict
-         * @description Returns a single conflict by ID.
-         */
-        get: operations["getConflict"];
+        /** Get document chunks the entity was extracted from */
+        get: operations["getChunks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2092,7 +1618,6 @@ export interface components {
              */
             description?: string;
         };
-        /** @description List of member user IDs */
         UserId: {
             /** Format: uuid */
             value?: string;
@@ -2109,6 +1634,7 @@ export interface components {
             name?: string;
             /** @description Workspace description */
             description?: string;
+            /** @description Owner user ID */
             ownerId?: components["schemas"]["UserId"];
             /** @description List of member user IDs */
             members?: components["schemas"]["UserId"][];
@@ -2158,7 +1684,7 @@ export interface components {
             updatedAt?: string;
         };
         SetAppConfigRequest: {
-            value: string;
+            value?: string;
             description?: string;
         };
         AppConfigResponse: {
@@ -2241,7 +1767,7 @@ export interface components {
              * @description New plan name
              * @example enterprise
              */
-            planName: string;
+            planName?: string;
         };
         /** @description Workspace subscription details response */
         SubscriptionResponse: {
@@ -2304,36 +1830,6 @@ export interface components {
              */
             memberId: string;
         };
-        TemporalSearchRequest: {
-            query?: string;
-            /** Format: date-time */
-            temporalContext?: string;
-            /** Format: int32 */
-            limit?: number;
-            /** Format: int32 */
-            offset?: number;
-        };
-        AnswerResult: {
-            text?: string;
-            responseType?: string;
-            sources?: components["schemas"]["SearchResultItem"][];
-            data?: {
-                [key: string]: Record<string, never>;
-            };
-        };
-        SearchResponse: {
-            answer?: components["schemas"]["AnswerResult"];
-            alternatives?: components["schemas"]["SearchResultItem"][];
-        };
-        SearchResultItem: {
-            entityType?: string;
-            /** Format: uuid */
-            entityId?: string;
-            entitySubtype?: string;
-            title?: string;
-            snippet?: string;
-            responseType?: string;
-        };
         ReasoningRequest: {
             query?: string;
             /** Format: date-time */
@@ -2364,240 +1860,11 @@ export interface components {
             claim1Text?: string;
             claim2Text?: string;
         };
-        /** @description Request to create a new relationship between claims */
-        CreateRelationshipRequest: {
-            /**
-             * Format: uuid
-             * @description ID of the source claim
-             */
-            sourceClaimId: string;
-            /**
-             * Format: uuid
-             * @description ID of the target claim
-             */
-            targetClaimId: string;
-            /**
-             * @description Type of relationship
-             * @example SUPPORTS
-             * @enum {string}
-             */
-            type: "supports" | "contradicts" | "references" | "derives_from" | "related";
-        };
-        /** @description Relationship between claims */
-        RelationshipResponse: {
-            /**
-             * Format: uuid
-             * @description Relationship ID
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Source claim ID
-             */
-            sourceClaimId?: string;
-            /**
-             * Format: uuid
-             * @description Target claim ID
-             */
-            targetClaimId?: string;
-            /**
-             * @description Relationship type
-             * @enum {string}
-             */
-            type?: "supports" | "contradicts" | "references" | "derives_from" | "related";
-            /**
-             * Format: double
-             * @description Confidence score (0.0-1.0)
-             */
-            confidence?: number;
-            /**
-             * @description Lifecycle status
-             * @enum {string}
-             */
-            status?: "SUGGESTED" | "CONFIRMED" | "REJECTED";
-            /**
-             * @description Provenance source
-             * @enum {string}
-             */
-            source?: "SYSTEM" | "USER";
-            /**
-             * Format: uuid
-             * @description Source ID for content provenance
-             */
-            sourceId?: string;
-            /** @description Source application name */
-            sourceApp?: string;
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             */
-            createdAt?: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             */
-            updatedAt?: string;
-        };
-        /** @description Request to submit feedback on a relationship */
-        SubmitFeedbackRequest: {
-            /**
-             * @description Feedback action
-             * @example CONFIRM
-             * @enum {string}
-             */
-            action: "CONFIRM" | "REJECT" | "RECLASSIFY";
-            /**
-             * @description New type if reclassifying
-             * @example SUPPORTS
-             */
-            newType?: string;
-            /** @description Optional comment */
-            comment?: string;
-        };
-        /** @description Feedback record on a relationship */
-        FeedbackResponse: {
-            /**
-             * Format: uuid
-             * @description Feedback ID
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Relationship ID
-             */
-            relationshipId?: string;
-            /** @description Previous type */
-            oldType?: string;
-            /** @description New type (if reclassified) */
-            newType?: string;
-            /** @description Previous status */
-            oldStatus?: string;
-            /** @description New status */
-            newStatus?: string;
-            /**
-             * Format: uuid
-             * @description User who submitted
-             */
-            userId?: string;
-            /** @description Optional comment */
-            comment?: string;
-            /**
-             * Format: date-time
-             * @description Timestamp
-             */
-            createdAt?: string;
-        };
-        MessageRequest: {
-            message?: string;
-        };
         /** @description Profile creation data */
         CreateProfileRequest: {
-            firstName: string;
+            firstName?: string;
             lastName?: string;
-            email: string;
-        };
-        CreateEntityRequest: {
-            name: string;
-            /** @enum {string} */
-            entityType: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
-            attributes?: {
-                [key: string]: Record<string, never>;
-            };
-            /** Format: uuid */
-            workspaceId: string;
-        };
-        EntityResponse: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            /** @enum {string} */
-            entityType?: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
-            attributes?: {
-                [key: string]: Record<string, never>;
-            };
-            aliases?: string[];
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: uuid */
-            sourceId?: string;
-            sourceApp?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-        };
-        LinkMemoryRequest: {
-            /** Format: uuid */
-            memoryId: string;
-            /** Format: uuid */
-            workspaceId: string;
-        };
-        MemoryEntityLinkResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            memoryId?: string;
-            /** Format: uuid */
-            entityId?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        CreateClaimRequest: {
-            /** Format: uuid */
-            entityId: string;
-            /** Format: uuid */
-            blockId: string;
-            claimText: string;
-            predicate?: string;
-            /** Format: uuid */
-            objectEntityId?: string;
-            objectValue?: string;
-            polarity?: string;
-            /** Format: double */
-            confidence?: number;
-            /** Format: date-time */
-            validFrom?: string;
-            /** Format: date-time */
-            validTo?: string;
-            temporalType?: string;
-            statementType?: string;
-        };
-        ClaimResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            entityId?: string;
-            /** Format: uuid */
-            blockId?: string;
-            claimText?: string;
-            predicate?: string;
-            /** Format: uuid */
-            objectEntityId?: string;
-            objectValue?: string;
-            polarity?: string;
-            /** Format: double */
-            confidence?: number;
-            metadata?: {
-                [key: string]: Record<string, never>;
-            };
-            /** Format: uuid */
-            sourceId?: string;
-            sourceApp?: string;
-            lifecycleStatus?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            validFrom?: string;
-            /** Format: date-time */
-            validTo?: string;
-            temporalType?: string;
-            statementType?: string;
-            /** Format: uuid */
-            invalidatedBy?: string;
-            /** Format: date-time */
-            expiredAt?: string;
+            email?: string;
         };
         /** @description Integration details response */
         IntegrationResponse: {
@@ -2682,6 +1949,7 @@ export interface components {
             authorizationUrl?: string;
             /** @description State parameter for CSRF verification (OAuth flows) */
             state?: string;
+            /** @description Connected integration details (direct connection flows) */
             integration?: components["schemas"]["IntegrationResponse"];
         };
         /** @description Create source request */
@@ -2692,7 +1960,7 @@ export interface components {
              */
             workspaceId: string;
             /** @description Name of the requested integration source */
-            sourceName: string;
+            sourceName?: string;
             /** @description Description of why this source is needed */
             description?: string;
         };
@@ -2737,8 +2005,7 @@ export interface components {
             subjectId: string;
             /** Format: uuid */
             objectId: string;
-            /** @enum {string} */
-            eventType: "WORKS_AT" | "FOUNDED" | "ACQUIRED" | "MEMBER_OF" | "LOCATED_IN" | "RELATED_TO" | "CAUSED" | "PARTICIPATED_IN" | "PRODUCED" | "USES" | "CUSTOM";
+            eventType?: string;
             description?: string;
             metadata?: {
                 [key: string]: Record<string, never>;
@@ -2749,8 +2016,7 @@ export interface components {
             validFrom?: string;
             /** Format: date-time */
             validTo?: string;
-            /** @enum {string} */
-            temporalType: "ATEMPORAL" | "STATIC" | "DYNAMIC";
+            temporalType?: string;
             /** Format: uuid */
             workspaceId: string;
         };
@@ -2790,38 +2056,13 @@ export interface components {
             createdAt?: string;
         };
         CreateGraphEntityRequest: {
-            name: string;
-            entityType: string;
+            name?: string;
+            entityType?: string;
             attributes?: {
                 [key: string]: Record<string, never>;
             };
             /** Format: uuid */
             workspaceId: string;
-        };
-        ResolveConflictRequest: {
-            resolutionType: string;
-            resolutionNote?: string;
-        };
-        ConflictResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            claimAId?: string;
-            /** Format: uuid */
-            claimBId?: string;
-            /** Format: uuid */
-            relationshipId?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            status?: string;
-            resolutionType?: string;
-            resolutionNote?: string;
-            /** Format: uuid */
-            resolvedBy?: string;
-            /** Format: date-time */
-            resolvedAt?: string;
-            /** Format: date-time */
-            detectedAt?: string;
         };
         /** @description Subscribe workspace to a plan request */
         SubscribeRequest: {
@@ -2829,12 +2070,12 @@ export interface components {
              * @description Plan name
              * @example pro
              */
-            planName: string;
+            planName?: string;
         };
         SignupRequest: {
-            username: string;
-            fullName: string;
-            password: string;
+            username?: string;
+            fullName?: string;
+            password?: string;
         };
         TokenPairResponse: {
             accessToken?: string;
@@ -2845,10 +2086,10 @@ export interface components {
             refreshExpiresAt?: string;
         };
         RefreshRequest: {
-            refreshToken: string;
+            refreshToken?: string;
         };
         GoogleOAuthRequest: {
-            code: string;
+            code?: string;
         };
         GoogleOAuthResponse: {
             userId?: string;
@@ -2868,15 +2109,15 @@ export interface components {
             state?: string;
         };
         OAuthCallbackRequest: {
-            code: string;
-            state: string;
+            code?: string;
+            state?: string;
         };
         LogoutRequest: {
-            refreshToken: string;
+            refreshToken?: string;
         };
         LoginRequest: {
-            username: string;
-            password: string;
+            username?: string;
+            password?: string;
         };
         ActivityLogResponse: {
             /** Format: uuid */
@@ -2895,22 +2136,26 @@ export interface components {
             /** Format: date-time */
             occurredAt?: string;
         };
-        TemporalEventResponse: {
-            /** Format: uuid */
-            id?: string;
-            objectType?: string;
-            /** Format: uuid */
-            objectId?: string;
-            eventType?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: uuid */
-            actorId?: string;
-            metadata?: {
+        AnswerResult: {
+            text?: string;
+            responseType?: string;
+            sources?: components["schemas"]["SearchResultItem"][];
+            data?: {
                 [key: string]: Record<string, never>;
             };
-            /** Format: date-time */
-            occurredAt?: string;
+        };
+        SearchResponse: {
+            answer?: components["schemas"]["AnswerResult"];
+            alternatives?: components["schemas"]["SearchResultItem"][];
+        };
+        SearchResultItem: {
+            entityType?: string;
+            /** Format: uuid */
+            entityId?: string;
+            entitySubtype?: string;
+            title?: string;
+            snippet?: string;
+            responseType?: string;
         };
         /** @description Notification details response */
         NotificationResponse: {
@@ -2964,77 +2209,6 @@ export interface components {
             /** Format: int64 */
             timeout?: number;
         };
-        EntityEvolutionResponse: {
-            /** Format: uuid */
-            entityId?: string;
-            entityName?: string;
-            entityType?: string;
-            events?: components["schemas"]["EvolutionEvent"][];
-        };
-        EvolutionEvent: {
-            /** Format: date-time */
-            occurredAt?: string;
-            eventType?: string;
-            description?: string;
-            /** Format: uuid */
-            claimId?: string;
-            claimText?: string;
-            sourceApp?: string;
-            metadata?: {
-                [key: string]: Record<string, never>;
-            };
-        };
-        PredicateTimeline: {
-            predicate?: string;
-            entries?: components["schemas"]["TemporalClaimEntry"][];
-        };
-        TemporalClaimEntry: {
-            /** Format: uuid */
-            claimId?: string;
-            claimText?: string;
-            objectValue?: string;
-            temporalType?: string;
-            statementType?: string;
-            /** Format: date-time */
-            validFrom?: string;
-            /** Format: date-time */
-            validTo?: string;
-            /** Format: uuid */
-            invalidatedBy?: string;
-            lifecycleStatus?: string;
-            /** Format: uuid */
-            sourceId?: string;
-            sourceApp?: string;
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        TemporalClaimHistoryResponse: {
-            /** Format: uuid */
-            entityId?: string;
-            entityName?: string;
-            timelines?: components["schemas"]["PredicateTimeline"][];
-        };
-        ClaimLineageNode: {
-            /** Format: uuid */
-            claimId?: string;
-            claimText?: string;
-            predicate?: string;
-            /** Format: date-time */
-            validFrom?: string;
-            /** Format: date-time */
-            validTo?: string;
-            /** Format: uuid */
-            invalidatedBy?: string;
-            lifecycleStatus?: string;
-            sourceApp?: string;
-            /** Format: int32 */
-            depth?: number;
-        };
-        ClaimLineageResponse: {
-            /** Format: uuid */
-            rootClaimId?: string;
-            chain?: components["schemas"]["ClaimLineageNode"][];
-        };
         /** @description Integration sync stats response */
         SyncStatsResponse: {
             /**
@@ -3082,6 +2256,17 @@ export interface components {
         GraphPathResponse: {
             entities?: components["schemas"]["GraphEntityResponse"][];
             eventNodes?: components["schemas"]["EventNodeResponse"][];
+        };
+        ChunkResponse: {
+            /** Format: uuid */
+            chunkId?: string;
+            /** Format: uuid */
+            documentId?: string;
+            content?: string;
+            /** Format: int32 */
+            sequenceNumber?: number;
+            /** Format: date-time */
+            createdAt?: string;
         };
         /** @description Usage record details response */
         UsageResponse: {
@@ -4058,40 +3243,6 @@ export interface operations {
             };
         };
     };
-    temporalSearch: {
-        parameters: {
-            query: {
-                /** @description Workspace ID to search within */
-                workspaceId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TemporalSearchRequest"];
-            };
-        };
-        responses: {
-            /** @description Temporal search completed successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchResponse"];
-                };
-            };
-            /** @description Invalid request parameters */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     reason: {
         parameters: {
             query: {
@@ -4119,175 +3270,6 @@ export interface operations {
             };
             /** @description Invalid request parameters */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    findRelationships: {
-        parameters: {
-            query: {
-                /** @description Claim ID to find relationships for */
-                claimId: string;
-                /** @description Optional relationship type filter */
-                type?: "supports" | "contradicts" | "references" | "derives_from" | "related";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Relationships retrieved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationshipResponse"][];
-                };
-            };
-        };
-    };
-    createRelationship: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateRelationshipRequest"];
-            };
-        };
-        responses: {
-            /** @description Relationship created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationshipResponse"];
-                };
-            };
-            /** @description Invalid request or validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationshipResponse"];
-                };
-            };
-            /** @description Relationship already exists with same source, target, and type */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationshipResponse"];
-                };
-            };
-        };
-    };
-    getFeedbackHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                relationshipId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Feedback history retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FeedbackResponse"][];
-                };
-            };
-        };
-    };
-    submitFeedback: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                relationshipId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubmitFeedbackRequest"];
-            };
-        };
-        responses: {
-            /** @description Feedback submitted */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FeedbackResponse"];
-                };
-            };
-            /** @description Relationship not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FeedbackResponse"];
-                };
-            };
-        };
-    };
-    generate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MessageRequest"];
-            };
-        };
-        responses: {
-            /** @description Response generated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string;
-                };
-            };
-            /** @description Invalid request payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal server error during generation */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4385,241 +3367,6 @@ export interface operations {
             };
         };
     };
-    listEntities: {
-        parameters: {
-            query: {
-                /** @description Workspace ID */
-                workspaceId: string;
-                /** @description Optional entity type filter */
-                type?: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Entities retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"][];
-                };
-            };
-        };
-    };
-    createEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateEntityRequest"];
-            };
-        };
-        responses: {
-            /** @description Entity created or returned */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
-            /** @description Invalid request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
-        };
-    };
-    getMemoriesForEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Links retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryEntityLinkResponse"][];
-                };
-            };
-        };
-    };
-    linkMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LinkMemoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Link created or returned */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryEntityLinkResponse"];
-                };
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryEntityLinkResponse"];
-                };
-            };
-        };
-    };
-    getAliases: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Aliases retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
-                };
-            };
-        };
-    };
-    addAlias: {
-        parameters: {
-            query: {
-                alias: string;
-                type: "person" | "place" | "organization" | "concept" | "technology" | "event" | "other";
-                workspaceId: string;
-            };
-            header?: never;
-            path: {
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Alias added */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    queryClaims: {
-        parameters: {
-            query?: {
-                /** @description Filter by entity ID */
-                entityId?: string;
-                /** @description Filter by block ID */
-                blockId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Claims retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"][];
-                };
-            };
-        };
-    };
-    createClaim: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateClaimRequest"];
-            };
-        };
-        responses: {
-            /** @description Claim created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"];
-                };
-            };
-            /** @description Invalid request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"];
-                };
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"];
-                };
-            };
-        };
-    };
     syncIntegration: {
         parameters: {
             query?: never;
@@ -4631,8 +3378,8 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Integration synced successfully */
-            200: {
+            /** @description Sync triggered successfully */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5098,8 +3845,6 @@ export interface operations {
         parameters: {
             query?: {
                 workspaceId?: string;
-                offset?: number;
-                limit?: number;
             };
             header?: never;
             path?: never;
@@ -5138,54 +3883,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GraphEntityResponse"];
-                };
-            };
-        };
-    };
-    resolve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                conflictId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResolveConflictRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"];
-                };
-            };
-        };
-    };
-    acknowledge: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                conflictId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"];
                 };
             };
         };
@@ -5675,52 +4372,6 @@ export interface operations {
             };
         };
     };
-    getTimeline: {
-        parameters: {
-            query: {
-                objectType: string;
-                objectId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemporalEventResponse"][];
-                };
-            };
-        };
-    };
-    getChangesSince: {
-        parameters: {
-            query: {
-                workspaceId: string;
-                since: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemporalEventResponse"][];
-                };
-            };
-        };
-    };
     getAllAppConfigs: {
         parameters: {
             query?: never;
@@ -5791,64 +4442,6 @@ export interface operations {
             };
             /** @description Access denied to workspace */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getRelationship: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                relationshipId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Relationship found */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationshipResponse"];
-                };
-            };
-            /** @description Relationship not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationshipResponse"];
-                };
-            };
-        };
-    };
-    deleteRelationship: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                relationshipId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Relationship deleted successfully */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Relationship not found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5937,266 +4530,6 @@ export interface operations {
                     "text/event-stream": components["schemas"]["SseEmitter"];
                     "application/json": components["schemas"]["SseEmitter"];
                 };
-            };
-        };
-    };
-    getEntityEvolution: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Entity ID */
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Evolution timeline retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityEvolutionResponse"];
-                };
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityEvolutionResponse"];
-                };
-            };
-        };
-    };
-    getClaimHistory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Entity ID */
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description History retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemporalClaimHistoryResponse"];
-                };
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemporalClaimHistoryResponse"];
-                };
-            };
-        };
-    };
-    getClaimsValidAt: {
-        parameters: {
-            query: {
-                /** @description Point in time (ISO-8601) */
-                time: string;
-            };
-            header?: never;
-            path: {
-                /** @description Entity ID */
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Claims retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"][];
-                };
-            };
-            /** @description Invalid time format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"][];
-                };
-            };
-        };
-    };
-    getClaimLineage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Claim ID */
-                claimId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Lineage retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimLineageResponse"];
-                };
-            };
-        };
-    };
-    getEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Entity found */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
-        };
-    };
-    deleteEntity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                entityId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Entity deleted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Entity not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getEntitiesForMemory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                memoryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Links retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryEntityLinkResponse"][];
-                };
-            };
-        };
-    };
-    getClaim: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                claimId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Claim found */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"];
-                };
-            };
-            /** @description Claim not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClaimResponse"];
-                };
-            };
-        };
-    };
-    deleteClaim: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                claimId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Claim deleted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Claim not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -6870,35 +5203,12 @@ export interface operations {
             };
         };
     };
-    listConflicts: {
-        parameters: {
-            query: {
-                workspaceId: string;
-                status?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictResponse"][];
-                };
-            };
-        };
-    };
-    getConflict: {
+    getChunks: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                conflictId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -6910,7 +5220,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ConflictResponse"];
+                    "application/json": components["schemas"]["ChunkResponse"][];
                 };
             };
         };

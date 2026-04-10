@@ -54,6 +54,19 @@ export const graphEntityNeighborsQueryOptions = (id: string) =>
         },
     });
 
+export const graphEntityChunksQueryOptions = (id: string) =>
+    queryOptions<Schemas['ChunkResponse'][]>({
+        queryKey: ['graph', 'entity', id, 'chunks'],
+        enabled: !!id,
+        queryFn: async () => {
+            const res = await api.GET('/graph/entities/{id}/chunks', {
+                params: { path: { id } },
+            });
+            if (res.error) throw new Error('Failed to fetch entity chunks');
+            return res.data;
+        },
+    });
+
 export const graphEventsQueryOptions = (workspaceId: string) =>
     queryOptions<Schemas['EventNodeResponse'][]>({
         queryKey: ['graph', 'events', workspaceId],
