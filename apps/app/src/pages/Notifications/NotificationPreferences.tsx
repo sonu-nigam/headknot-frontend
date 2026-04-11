@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { notificationPreferencesQueryOptions } from '@/query/options/notifications';
+import { $api } from '@workspace/api-client';
 import { useUpdateNotificationPreferences } from '@/hooks/notifications/useUpdateNotificationPreferences';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -15,8 +14,8 @@ import { Switch } from '@workspace/ui/components/switch';
 import React from 'react';
 
 export function NotificationPreferences() {
-    const { data: preferences, isLoading } = useQuery(
-        notificationPreferencesQueryOptions
+    const { data: preferences, isLoading } = $api.useQuery(
+        "get", "/notifications/preferences",
     );
     const updatePrefs = useUpdateNotificationPreferences();
 
@@ -32,8 +31,7 @@ export function NotificationPreferences() {
 
     const handleSave = () => {
         updatePrefs.mutate({
-            inAppEnabled,
-            emailEnabled,
+            body: { inAppEnabled, emailEnabled },
         });
     };
 

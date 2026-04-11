@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useRollbackSnapshot(memoryId: string) {
     const queryClient = useQueryClient();
@@ -14,10 +15,7 @@ export function useRollbackSnapshot(memoryId: string) {
             return data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['memory', memoryId] });
-            queryClient.invalidateQueries({
-                queryKey: ['snapshots', memoryId],
-            });
+            invalidateByPath(queryClient, "get", "/memory");
         },
     });
 }

@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -13,8 +12,7 @@ import {
     Zap,
 } from 'lucide-react';
 import { Schemas } from '@/types/api';
-import { conflictByIdQueryOptions } from '@/query/options/conflicts';
-import { objectTimelineQueryOptions } from '@/query/options/timeline';
+import { $api } from '@workspace/api-client';
 import { useAcknowledgeConflict } from '@/hooks/conflicts/useAcknowledgeConflict';
 import { useResolveConflict } from '@/hooks/conflicts/useResolveConflict';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -199,18 +197,13 @@ export function ConflictDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const { data: conflict, isLoading } = useQuery({
-        ...conflictByIdQueryOptions(id ?? ''),
-        enabled: !!id,
-    });
+    const { data: conflict, isLoading } = $api.useQuery("get", "/conflicts/{id}", {
+        params: { path: { id: id ?? '' } },
+    }, { enabled: !!id });
 
-    const { data: timelineEvents, isLoading: timelineLoading } = useQuery({
-        ...objectTimelineQueryOptions({
-            objectType: 'CLAIM',
-            objectId: conflict?.sourceClaimId ?? '',
-        }),
-        enabled: !!conflict?.sourceClaimId,
-    });
+    const { data: timelineEvents, isLoading: timelineLoading } = $api.useQuery("get", "/timeline", {
+        params: { query: { objectType: 'CLAIM', objectId: conflict?.sourceClaimId ?? '' } },
+    }, { enabled: !!conflict?.sourceClaimId });
 
     const acknowledge = useAcknowledgeConflict();
     const resolve = useResolveConflict();
@@ -317,7 +310,7 @@ export function ConflictDetailPage() {
                                         size="sm"
                                         className="gap-2"
                                         onClick={() =>
-                                            acknowledge.mutate(id)
+                                            acknowledge.mutate({ params: { path: { id: id! } } })
                                         }
                                         disabled={acknowledge.isPending}
                                     >
@@ -332,7 +325,7 @@ export function ConflictDetailPage() {
                                             size="sm"
                                             className="gap-2"
                                             onClick={() =>
-                                                resolve.mutate(id)
+                                                resolve.mutate({ params: { path: { id: id! } } })
                                             }
                                             disabled={resolve.isPending}
                                         >

@@ -1,20 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useDeleteNotification() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ id }: { id: string }) => {
-            const { error } = await api.DELETE('/notifications/{id}', {
-                params: { path: { id } },
-            });
-            if (error) throw new Error('Failed to delete notification');
-        },
+    return $api.useMutation("delete", "/notifications/{id}", {
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['notifications'],
-            });
+            invalidateByPath(queryClient, "get", "/notifications");
         },
     });
 }

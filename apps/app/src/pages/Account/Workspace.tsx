@@ -26,8 +26,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@workspace/ui/components/dialog';
-import { useQuery } from '@tanstack/react-query';
-import { myWorkspacesQueryOptions } from '@/query/options/workspace';
+import { $api } from '@workspace/api-client';
 import { CreateWorkspaceForm } from '@/forms/Account/CreateWorkspaceForm';
 import { UpdateWorkspaceForm } from '@/forms/Account/UpdateWorkspaceForm';
 import { useDeactivateWorkspace } from '@/hooks/workspace/useDeactivateWorkspace';
@@ -45,7 +44,7 @@ import React from 'react';
 import { format } from 'date-fns';
 
 export function Workspace() {
-    const { data: workspaces, isLoading } = useQuery(myWorkspacesQueryOptions);
+    const { data: workspaces, isLoading } = $api.useQuery("get", "/workspaces/my-workspaces");
     const { selectedWorkspaceId } = useAppStore();
     const activeWorkspace = workspaces?.find(
         (w) => w.id === selectedWorkspaceId,
@@ -338,7 +337,7 @@ function DeactivateButton({ workspaceId }: { workspaceId: string }) {
         <Button
             variant="destructive"
             size="sm"
-            onClick={() => deactivate.mutate(workspaceId)}
+            onClick={() => deactivate.mutate({ params: { path: { id: workspaceId } } })}
             disabled={deactivate.isPending}
         >
             {deactivate.isPending

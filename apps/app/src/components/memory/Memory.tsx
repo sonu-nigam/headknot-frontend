@@ -2,9 +2,9 @@ import { useCommitMemory } from "@/hooks/memory/useCommitMemory";
 import { useUpdateMemoryBlocks } from "@/hooks/memory/useUpdateMemoryBlocks";
 import { type LexicalBlock, type LexicalBlockKind } from "@/lib/lexicalBlockTransformer";
 import { extractMemoryIdFromSlug } from "@/lib/memoryUtils";
-import { memoryByIdQueryOptions } from "@/query/options/memory";
-import { useSuspenseQuery, useQueryClient, useQuery } from "@tanstack/react-query";
-import { snapshotListQueryOptions } from "@/query/options/snapshot";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { api, $api } from "@workspace/api-client";
+import { invalidateByPath } from "@/lib/queryKeys";
 import { useDebounceFn, useThrottleFn } from "ahooks";
 import { useParams } from "react-router-dom";
 import { MemoryHeader } from "./MemoryHeader";
@@ -20,15 +20,22 @@ export function Memory() {
     const [editorKey, setEditorKey] = useState(0);
 
     // Fetch snapshots to get the latest snapshotId for claims query
-    const { data: snapshots } = useQuery(
-        snapshotListQueryOptions(memoryId || ''),
+    const { data: snapshots } = $api.useQuery(
+        "get", "/memory/{id}/snapshots",
+        { params: { path: { id: memoryId || '' } } },
+        { enabled: !!memoryId },
     );
     const latestSnapshotId = snapshots?.length
         ? snapshots[snapshots.length - 1].id
         : undefined;
 
     const { data: initialBlocks } = useSuspenseQuery({
-        ...memoryByIdQueryOptions(memoryId || ''),
+        queryKey: ["get", "/memory/{id}", { params: { path: { id: memoryId || '' } } }] as const,
+        queryFn: async () => {
+            const { data, error } = await api.GET("/memory/{id}", { params: { path: { id: memoryId || '' } } });
+            if (error) throw error;
+            return data;
+        },
         retry: 0,
         select: (data) =>
             (data.blocks || []).map((block, index) => ({
@@ -93,9 +100,9 @@ export function Memory() {
         throttledTrigger.cancel();
         debouncedCommit.cancel();
         // Refetch memory data, then remount editor
-        await queryClient.invalidateQueries({ queryKey: ['memory', memoryId] });
+        await invalidateByPath(queryClient, "get", "/memory");
         setEditorKey((k) => k + 1);
-    }, [queryClient, memoryId, throttledTrigger, debouncedCommit]);
+    }, [queryClient, throttledTrigger, debouncedCommit]);
 
     return (
         <>

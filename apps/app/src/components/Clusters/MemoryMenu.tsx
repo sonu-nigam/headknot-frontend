@@ -7,10 +7,10 @@ import {
     DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu';
 import { SidebarMenuAction } from '@workspace/ui/components/sidebar';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
-import { useAppStore } from '@/state/store';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import { useNavigate } from 'react-router-dom';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function MemoryMenu({
     isMobile,
@@ -66,34 +66,14 @@ function useMemoryMenuActions({
 }) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const workspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { mutate: trashMemoryMutation } = useMutation({
-        mutationFn: async (memoryId: string) => {
-            const res = await api.PATCH('/memory/{memoryId}/trash', {
-                params: {
-                    path: {
-                        memoryId,
-                    },
-                },
-            });
-            if (res.error) {
-                return Promise.reject({
-                    message: res.error.message || 'Failed to delete memory',
-                    type: 'server',
-                });
-            }
-            return res.data;
-        },
+    const { mutate: trashMemoryMutation } = $api.useMutation("patch", "/memory/{memoryId}/trash", {
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['memory', workspaceId, clusterId],
-            });
+            invalidateByPath(queryClient, "get", "/memory");
         },
     });
 
     const viewMemory = () => {
-        // Implement view cluster action
         navigate(`/${memoryId}`);
     };
 
@@ -102,7 +82,9 @@ function useMemoryMenuActions({
     };
 
     const trashMemory = () => {
-        trashMemoryMutation(memoryId);
+        trashMemoryMutation({
+            params: { path: { memoryId } },
+        });
     };
 
     return {

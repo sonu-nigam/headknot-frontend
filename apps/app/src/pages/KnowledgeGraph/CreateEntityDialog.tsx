@@ -78,10 +78,12 @@ export function CreateEntityDialog({
 
         createMutation.mutate(
             {
-                name: values.name,
-                entityType: values.entityType,
-                attributes,
-                workspaceId: selectedWorkspaceId,
+                body: {
+                    name: values.name,
+                    entityType: values.entityType,
+                    attributes,
+                    workspaceId: selectedWorkspaceId,
+                },
             },
             {
                 onSuccess: () => {

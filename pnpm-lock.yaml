@@ -159,6 +159,10 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+    devDependencies:
+      openapi-react-query:
+        specifier: 0.1.0
+        version: 0.1.0(@tanstack/react-query@5.87.4(react@19.1.1))(openapi-fetch@0.10.6)
 
   packages/e2e-tests:
     devDependencies:
@@ -3631,6 +3635,12 @@ packages:
 
   openapi-fetch@0.10.6:
     resolution: {integrity: sha512-6xXfvIEL/POtLGOaFPsp3O+pDe+J3DZYxbD9BrsQHXOTeNK8z/gsWHT6adUy1KcpQOhmkerMzlQrJM6DbN55dQ==}
+
+  openapi-react-query@0.1.0:
+    resolution: {integrity: sha512-dkrPQ29AJk0xGRZI8UL/Cis1bMLTssRMUbg+dhFs7o3pFLv7az16jwOmOHsJ+rZhDbAUyhkwYKYg2jaeSIuJQg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.0.0
+      openapi-fetch: ^0.10.6
 
   openapi-typescript-helpers@0.0.11:
     resolution: {integrity: sha512-xofUHlVFq+BMquf3nh9I8N2guHckW6mrDO/F3kaFgrL7MGbjldDnQ9TIT+rkH/+H0LiuO+RuZLnNmsJwsjwUKg==}
@@ -8472,6 +8482,12 @@ snapshots:
 
   openapi-fetch@0.10.6:
     dependencies:
+      openapi-typescript-helpers: 0.0.11
+
+  openapi-react-query@0.1.0(@tanstack/react-query@5.87.4(react@19.1.1))(openapi-fetch@0.10.6):
+    dependencies:
+      '@tanstack/react-query': 5.87.4(react@19.1.1)
+      openapi-fetch: 0.10.6
       openapi-typescript-helpers: 0.0.11
 
   openapi-typescript-helpers@0.0.11: {}

@@ -1,23 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useAcknowledgeConflict() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { data, error } = await api.POST(
-                '/conflicts/{id}/acknowledge',
-                {
-                    params: { path: { id } },
-                },
-            );
-            if (error) throw new Error('Failed to acknowledge conflict');
-            return data;
-        },
+    return $api.useMutation("post", "/conflicts/{id}/acknowledge", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['conflicts'] });
-            queryClient.invalidateQueries({ queryKey: ['timeline'] });
+            invalidateByPath(queryClient, "get", "/conflicts");
+            invalidateByPath(queryClient, "get", "/timeline");
         },
     });
 }

@@ -3,8 +3,7 @@ import {
     workspaceResolver,
     WorkspaceFormValues,
 } from '@/validations/form/workspaceForm';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useUpdateWorkspace } from '@/hooks/workspace/useUpdateWorkspace';
 import {
     Form,
     FormControl,
@@ -25,22 +24,7 @@ export function UpdateWorkspaceForm({
     workspace: any;
     setOpen: (open: boolean) => void;
 }) {
-    const queryClient = useQueryClient();
-
-    const { mutate: updateWorkspace, isPending } = useMutation({
-        mutationFn: async (values: WorkspaceFormValues) => {
-            const res = await api.PUT('/workspaces/{id}', {
-                params: { path: { id: workspace.id } },
-                body: values,
-            });
-            if (res.error) throw new Error('Failed to update workspace');
-            return res.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
-            setOpen(false);
-        },
-    });
+    const { mutate: updateWorkspace, isPending } = useUpdateWorkspace();
 
     const form = useForm<WorkspaceFormValues>({
         resolver: workspaceResolver,
@@ -51,7 +35,17 @@ export function UpdateWorkspaceForm({
     });
 
     const onSubmit = (values: WorkspaceFormValues) => {
-        updateWorkspace(values);
+        updateWorkspace(
+            {
+                params: { path: { id: workspace.id } },
+                body: values,
+            },
+            {
+                onSuccess: () => {
+                    setOpen(false);
+                },
+            },
+        );
     };
 
     return (

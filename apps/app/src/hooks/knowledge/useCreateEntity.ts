@@ -1,21 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
-import { Schemas } from '@/types/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useCreateEntity() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (data: Schemas['CreateEntityRequest']) => {
-            const { data: result, error } = await api.POST(
-                '/knowledge/entities',
-                { body: data },
-            );
-            if (error) throw new Error('Failed to create entity');
-            return result;
-        },
+    return $api.useMutation("post", "/knowledge/entities", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['knowledge', 'entities'] });
+            invalidateByPath(queryClient, "get", "/knowledge/entities");
         },
     });
 }

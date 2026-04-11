@@ -1,18 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useDeleteGraphEntity() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { error } = await api.DELETE('/graph/entities/{id}', {
-                params: { path: { id } },
-            });
-            if (error) throw new Error('Failed to delete graph entity');
-        },
+    return $api.useMutation("delete", "/graph/entities/{id}", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['graph'] });
+            invalidateByPath(queryClient, "get", "/graph");
         },
     });
 }

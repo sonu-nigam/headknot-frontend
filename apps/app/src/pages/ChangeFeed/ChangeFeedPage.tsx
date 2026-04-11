@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
 import { Schemas } from '@/types/api';
-import { workspaceChangesQueryOptions } from '@/query/options/timeline';
+import { $api } from '@workspace/api-client';
 import { formatDistanceToNow, subDays } from 'date-fns';
 
 // --- Event Icon & Color Mapping ---
@@ -130,13 +129,9 @@ export function ChangeFeedPage() {
         data: events,
         isLoading,
         refetch,
-    } = useQuery({
-        ...workspaceChangesQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            since,
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    } = $api.useQuery("get", "/timeline/changes", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', since } },
+    }, { enabled: !!selectedWorkspaceId && !!since });
 
     const handleRangeChange = (days: number) => {
         setSince(subDays(new Date(), days).toISOString());

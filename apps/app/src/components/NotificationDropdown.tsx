@@ -1,8 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import {
-    unreadNotificationsQueryOptions,
-    unreadCountQueryOptions,
-} from '@/query/options/notifications';
+import { $api } from '@workspace/api-client';
 import { useMarkAsRead } from '@/hooks/notifications/useMarkAsRead';
 import { useMarkAllAsRead } from '@/hooks/notifications/useMarkAllAsRead';
 import { Button } from '@workspace/ui/components/button';
@@ -93,10 +89,8 @@ export function NotificationDropdown() {
     const navigate = useNavigate();
     const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-    const { data: unreadNotifications } = useQuery(
-        unreadNotificationsQueryOptions,
-    );
-    const { data: unreadCount } = useQuery(unreadCountQueryOptions);
+    const { data: unreadNotifications } = $api.useQuery("get", "/notifications/unread");
+    const { data: unreadCount } = $api.useQuery("get", "/notifications/unread/count");
 
     const markAsRead = useMarkAsRead();
     const markAllAsRead = useMarkAllAsRead();
@@ -146,7 +140,7 @@ export function NotificationDropdown() {
                                     variant="ghost"
                                     size="sm"
                                     className="h-7 text-xs text-muted-foreground"
-                                    onClick={() => markAllAsRead.mutate()}
+                                    onClick={() => markAllAsRead.mutate({})}
                                 >
                                     <CheckCheck className="size-3.5 mr-1" />
                                     Mark all as read
@@ -181,7 +175,7 @@ export function NotificationDropdown() {
                             <NotificationItem
                                 key={notification.id}
                                 notification={notification}
-                                onRead={(id) => markAsRead.mutate({ id })}
+                                onRead={(id) => markAsRead.mutate({ params: { path: { id } } })}
                             />
                         ))}
                     </div>

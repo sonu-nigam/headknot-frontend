@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
 import { Schemas } from '@/types/api';
-import { conflictsQueryOptions } from '@/query/options/conflicts';
+import { $api } from '@workspace/api-client';
 import { useAcknowledgeConflict } from '@/hooks/conflicts/useAcknowledgeConflict';
 import { useResolveConflict } from '@/hooks/conflicts/useResolveConflict';
 import { ResolveConflictDialog } from '@/components/conflicts/ResolveConflictDialog';
@@ -306,24 +306,18 @@ export function ConflictsDashboardPage() {
         data: conflicts,
         isLoading,
         refetch,
-    } = useQuery({
-        ...conflictsQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            status: statusFilter || undefined,
-        }),
-        enabled: !!selectedWorkspaceId,
+    } = $api.useQuery("get", "/conflicts", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', status: statusFilter || undefined } },
+    }, { enabled: !!selectedWorkspaceId,
     });
 
     const acknowledge = useAcknowledgeConflict();
     const resolve = useResolveConflict();
 
     // For stats, fetch all conflicts (unfiltered)
-    const { data: allConflicts } = useQuery({
-        ...conflictsQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    const { data: allConflicts } = $api.useQuery("get", "/conflicts", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '' } },
+    }, { enabled: !!selectedWorkspaceId });
 
     return (
         <AppLayout
@@ -394,7 +388,7 @@ export function ConflictsDashboardPage() {
                     {!isLoading && conflicts && conflicts.length > 0 && (
                         <ConflictsTable
                             conflicts={conflicts}
-                            onAcknowledge={(id) => acknowledge.mutate(id)}
+                            onAcknowledge={(id) => acknowledge.mutate({ params: { path: { id } } })}
                             onResolve={(id) => {
                                 const c = conflicts?.find((x) => x.id === id);
                                 if (c) setResolveConflict(c);

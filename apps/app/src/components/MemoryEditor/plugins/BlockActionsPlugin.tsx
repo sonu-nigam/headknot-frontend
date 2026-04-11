@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react
 import { createPortal } from 'react-dom';
 import { $getRoot } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useQuery } from '@tanstack/react-query';
 import { Network } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -12,7 +11,7 @@ import {
 } from '@workspace/ui/components/tooltip';
 import { contextPanelStore } from '@/state/contextPanelStore';
 import { useRelationshipsPanelStore } from '@/state/relationshipsPanelStore';
-import { claimsBySnapshotQueryOptions } from '@/query/options/knowledge';
+import { $api } from '@workspace/api-client';
 
 interface BlockPosition {
     key: string;
@@ -38,10 +37,12 @@ export function BlockActionsPlugin({
     const [blockPositions, setBlockPositions] = useState<BlockPosition[]>([]);
 
     // Single API call: fetch all claims for the current snapshot
-    const { data: snapshotClaims } = useQuery({
-        ...claimsBySnapshotQueryOptions(snapshotId ?? ''),
-        enabled: !!snapshotId,
-    });
+    const { data: snapshotClaims } = $api.useQuery(
+        "get",
+        "/knowledge/claims",
+        { params: { query: { snapshotId: snapshotId ?? '' } } },
+        { enabled: !!snapshotId },
+    );
 
     // Build a map: blockId → claim count
     const blockClaimCounts = useMemo(() => {

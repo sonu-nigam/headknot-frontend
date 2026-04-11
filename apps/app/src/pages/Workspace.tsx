@@ -1,11 +1,11 @@
 import AppLayout from '@/components/AppLayout';
-import { myWorkspacesQueryOptions } from '@/query/options/workspace';
 import { useAppStore } from '@/state/store';
 import {
     WorkspaceFormValues,
     workspaceResolver,
 } from '@/validations/form/workspaceForm';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import { Button } from '@workspace/ui/components/button';
 import {
     Dialog,
@@ -54,7 +54,7 @@ import { useDeactivateWorkspace } from '@/hooks/workspace/useDeactivateWorkspace
 import { WorkspaceMembers } from '@/components/workspace/WorkspaceMembers';
 
 export default function Workspace() {
-    const { data: workspaces, isLoading } = useQuery(myWorkspacesQueryOptions);
+    const { data: workspaces, isLoading } = $api.useQuery("get", "/workspaces/my-workspaces");
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
     return (
@@ -181,7 +181,7 @@ function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
                             {isWorkspaceActive ? (
                                 <DropdownMenuItem
                                     onClick={() =>
-                                        deactivateWorkspace.mutate(workspace.id)
+                                        deactivateWorkspace.mutate({ params: { path: { id: workspace.id } } })
                                     }
                                     className="gap-2"
                                 >
@@ -191,7 +191,7 @@ function WorkspaceCard({ workspace, isActive }: WorkspaceCardProps) {
                             ) : (
                                 <DropdownMenuItem
                                     onClick={() =>
-                                        activateWorkspace.mutate(workspace.id)
+                                        activateWorkspace.mutate({ params: { path: { id: workspace.id } } })
                                     }
                                     className="gap-2"
                                 >
@@ -315,7 +315,7 @@ function CreateWorkspaceDialog({ children }: CreateWorkspaceDialogProps) {
         values: WorkspaceFormValues,
         setError: UseFormSetError<WorkspaceFormValues>,
     ) => {
-        createWorkspace.mutate(values, {
+        createWorkspace.mutate({ body: values }, {
             onSuccess: () => setOpen(false),
             onError: (error: any) => {
                 setError('name', { message: error.message });
@@ -362,7 +362,7 @@ function EditWorkspaceDialog({
         setError: UseFormSetError<WorkspaceFormValues>,
     ) => {
         updateWorkspace.mutate(
-            { id: workspace.id, body: values },
+            { params: { path: { id: workspace.id } }, body: values },
             {
                 onSuccess: () => onOpenChange(false),
                 onError: (error: any) => {
@@ -433,7 +433,7 @@ function DeleteWorkspaceDialog({
                     <Button
                         variant="destructive"
                         onClick={() =>
-                            deleteWorkspace.mutate(workspace.id, {
+                            deleteWorkspace.mutate({ params: { path: { id: workspace.id } } }, {
                                 onSuccess: () => {
                                     onOpenChange(false);
                                     if (
@@ -441,7 +441,7 @@ function DeleteWorkspaceDialog({
                                     ) {
                                         const workspaces =
                                             queryClient.getQueryData<any[]>([
-                                                'my-workspaces',
+                                                "get", "/workspaces/my-workspaces",
                                             ]);
                                         const nextWorkspace = workspaces?.find(
                                             (w) => w.id !== workspace.id,

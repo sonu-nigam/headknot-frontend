@@ -1,10 +1,8 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { LoginFormValues, loginResolver } from '@/validations/form/authForm';
-import { useMutation } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { $api } from '@workspace/api-client';
 import { useCallback, useState } from 'react';
 import { useLogin } from '@/hooks/auth/useLogin';
-import { Schemas } from '@/types/api';
 import { useForm } from 'react-hook-form';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
@@ -70,23 +68,15 @@ export default function Login() {
         },
     });
 
-    const initiateGoogleOAuth = useMutation<
-        Schemas['OAuthAuthorizeResponse']
-    >({
-        mutationFn: async () => {
-            const { error, data } = await api.POST(
-                '/auth/oauth/google/initiate',
-            );
-            if (error) throw error;
-            return data;
-        },
-    });
+    const initiateGoogleOAuth = $api.useMutation("post", "/auth/oauth/google/initiate");
 
     async function onSubmit(values: LoginFormValues) {
         login.mutate(
             {
-                username: values.username,
-                password: values.password,
+                body: {
+                    username: values.username,
+                    password: values.password,
+                },
             },
             {
                 onSuccess: () => {

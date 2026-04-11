@@ -1,7 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/state/store';
-import { searchQueryOptions } from '@/query/options/search';
+import { $api } from '@workspace/api-client';
 import { SearchResultsPage } from './SearchResultsPage';
 import { KnowledgeResultsPage } from './KnowledgeResultsPage';
 import { CausalResultsPage } from './CausalResultsPage';
@@ -28,14 +27,9 @@ export function SearchRouter() {
     const isAlternativesView = searchParams.get('view') === 'alternatives';
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: searchResults, isLoading } = useQuery({
-        ...searchQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            query,
-            limit: 10,
-        }),
-        enabled: !!query && !!selectedWorkspaceId,
-    });
+    const { data: searchResults, isLoading } = $api.useQuery("get", "/search", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', query, limit: 10 } },
+    }, { enabled: !!query && !!selectedWorkspaceId });
 
     // Loading state
     if (isLoading && !searchResults) {

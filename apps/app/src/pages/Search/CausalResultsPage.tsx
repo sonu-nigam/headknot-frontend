@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import { useAppStore } from '@/state/store';
-import { searchQueryOptions } from '@/query/options/search';
+import { $api } from '@workspace/api-client';
 import { Schemas } from '@/types/api';
 import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 import {
@@ -364,14 +363,9 @@ export function CausalResultsPage() {
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
     const [limit, setLimit] = useState(10);
 
-    const { data: searchResults, isLoading } = useQuery({
-        ...searchQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            query,
-            limit,
-        }),
-        enabled: !!query && !!selectedWorkspaceId,
-    });
+    const { data: searchResults, isLoading } = $api.useQuery("get", "/search", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', query, limit } },
+    }, { enabled: !!query && !!selectedWorkspaceId });
 
     const answer = searchResults?.answer;
 

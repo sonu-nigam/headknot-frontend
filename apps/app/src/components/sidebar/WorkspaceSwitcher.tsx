@@ -15,15 +15,15 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@workspace/ui/components/sidebar';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { myWorkspacesQueryOptions } from '@/query/options/workspace';
+import { useMutation } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useEffect } from 'react';
 
 export function WorkspaceSwitcher() {
     const { isMobile } = useSidebar();
-    const { data: workspaces, isLoading: workspaceLoading } = useQuery(
-        myWorkspacesQueryOptions,
+    const { data: workspaces, isLoading: workspaceLoading } = $api.useQuery(
+        "get", "/workspaces/my-workspaces",
     );
 
     // Persisted selection from zustand

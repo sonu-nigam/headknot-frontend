@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { snapshotListQueryOptions } from '@/query/options/snapshot';
+import { $api } from '@workspace/api-client';
 import { useCheckoutSnapshot } from '@/hooks/memory/useCheckoutSnapshot';
 import { useRollbackSnapshot } from '@/hooks/memory/useRollbackSnapshot';
 import { Schemas } from '@/types/api';
@@ -34,8 +33,10 @@ export function SnapshotTimeline({
     memoryId,
     onEditorReload,
 }: SnapshotTimelineProps) {
-    const { data: snapshots, isLoading } = useQuery(
-        snapshotListQueryOptions(memoryId),
+    const { data: snapshots, isLoading } = $api.useQuery(
+        "get", "/memory/{id}/snapshots",
+        { params: { path: { id: memoryId } } },
+        { enabled: !!memoryId },
     );
 
     if (isLoading) {

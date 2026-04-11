@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import { Schemas } from '@/types/api';
-import { activityListQueryOptions } from '@/query/options/activity';
 import {
     formatDistanceToNow,
     isToday,
@@ -162,7 +161,9 @@ export default function Activity() {
         isLoading,
         refetch,
         isFetching,
-    } = useQuery(activityListQueryOptions({ offset: 0, limit: displayLimit }));
+    } = $api.useQuery("get", "/activity/", {
+        params: { query: { offset: 0, limit: displayLimit } },
+    });
 
     // Apply filters
     const filteredActivities = useMemo(() => {

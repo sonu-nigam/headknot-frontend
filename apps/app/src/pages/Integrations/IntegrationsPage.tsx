@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
@@ -26,7 +26,8 @@ import {
     Database,
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
-import { integrationsQueryOptions } from '@/query/options/integrations';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
 import { Schemas } from '@/types/api';
 
@@ -228,7 +229,7 @@ export function IntegrationsPage() {
 
         if (connected === 'true' && provider) {
             setSuccessProvider(provider);
-            queryClient.invalidateQueries({ queryKey: ['integrations'] });
+            invalidateByPath(queryClient, "get", "/integrations");
 
             searchParams.delete('connected');
             searchParams.delete('provider');
@@ -239,7 +240,9 @@ export function IntegrationsPage() {
     const {
         data: integrations,
         isLoading: integrationsLoading,
-    } = useQuery(integrationsQueryOptions(selectedWorkspaceId ?? ''));
+    } = $api.useQuery("get", "/integrations/workspace/{workspaceId}", {
+        params: { path: { workspaceId: selectedWorkspaceId ?? '' } },
+    }, { enabled: !!selectedWorkspaceId });
 
     const connectMutation = useConnectIntegration();
 
@@ -247,8 +250,8 @@ export function IntegrationsPage() {
 
     const catalog = mergeCatalog(integrations);
     const connectedCount = catalog.filter((c) => c.isConnected).length;
-    const totalItems = (integrations ?? []).reduce(
-        (sum, i) => sum + (i.itemsIndexed ?? 0),
+    const totalItems = (integrations ?? []).reduce<number>(
+        (sum, i) => sum + ((i as Schemas['IntegrationResponse']).itemsIndexed ?? 0),
         0,
     );
 
@@ -259,7 +262,7 @@ export function IntegrationsPage() {
         if (!integrationId) return;
 
         connectMutation.mutate({
-            integrationId,
+            params: { path: { id: integrationId } },
             body: { workspaceId: selectedWorkspaceId },
         });
     };

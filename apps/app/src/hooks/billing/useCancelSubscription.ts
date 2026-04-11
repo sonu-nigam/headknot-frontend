@@ -1,22 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useCancelSubscription() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ workspaceId }: { workspaceId: string }) => {
-            const { data, error } = await api.POST(
-                '/billing/workspace/{workspaceId}/cancel',
-                { params: { path: { workspaceId } } }
-            );
-            if (error) throw new Error('Failed to cancel subscription');
-            return data;
-        },
-        onSuccess: (_data, variables) => {
-            queryClient.invalidateQueries({
-                queryKey: ['billing', 'subscription', variables.workspaceId],
-            });
+    return $api.useMutation("post", "/billing/workspace/{workspaceId}/cancel", {
+        onSuccess: () => {
+            invalidateByPath(queryClient, "get", "/billing");
         },
     });
 }

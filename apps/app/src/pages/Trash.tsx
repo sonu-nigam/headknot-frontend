@@ -30,21 +30,16 @@ import {
     ArrowUpDownIcon,
 } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
-import { spaceQueryOptions } from '@/query/options/space';
-import { useQuery } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { Input } from '@workspace/ui/components/input';
 
 export default function TrashPage() {
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: trashedSpaces } = useQuery({
-        ...spaceQueryOptions({
-            workspaceId: selectedWorkspaceId as string,
-            status: 'TRASHED',
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    const { data: trashedSpaces } = $api.useQuery("get", "/space", {
+        params: { query: { workspaceId: selectedWorkspaceId as string, status: 'TRASHED' } },
+    }, { enabled: !!selectedWorkspaceId });
 
     return (
         <AppLayout breadcrumbs={[{ label: 'Trash', href: '/trash' }]}>

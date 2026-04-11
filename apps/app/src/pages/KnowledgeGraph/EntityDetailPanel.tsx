@@ -1,14 +1,9 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
 import { X, Loader2, Trash2, ExternalLink } from 'lucide-react';
-import {
-    graphEntityByIdQueryOptions,
-    graphEntityNeighborsQueryOptions,
-    graphEntityChunksQueryOptions,
-} from '@/query/options/graph';
+import { $api } from '@workspace/api-client';
 import { useDeleteGraphEntity } from '@/hooks/graph/useDeleteGraphEntity';
 import { ENTITY_COLORS, ENTITY_TYPE_LABELS, normalizeEntityType } from './constants';
 
@@ -25,14 +20,20 @@ export function EntityDetailPanel({
 }: EntityDetailPanelProps) {
     const [confirmDelete, setConfirmDelete] = useState(false);
 
-    const { data: entity, isLoading: entityLoading } = useQuery(
-        graphEntityByIdQueryOptions(entityId),
+    const { data: entity, isLoading: entityLoading } = $api.useQuery(
+        "get", "/graph/entities/{id}",
+        { params: { path: { id: entityId } } },
+        { enabled: !!entityId },
     );
-    const { data: neighbors, isLoading: neighborsLoading } = useQuery(
-        graphEntityNeighborsQueryOptions(entityId),
+    const { data: neighbors, isLoading: neighborsLoading } = $api.useQuery(
+        "get", "/graph/entities/{id}/neighbors",
+        { params: { path: { id: entityId } } },
+        { enabled: !!entityId },
     );
-    const { data: chunks, isLoading: chunksLoading } = useQuery(
-        graphEntityChunksQueryOptions(entityId),
+    const { data: chunks, isLoading: chunksLoading } = $api.useQuery(
+        "get", "/graph/entities/{id}/chunks",
+        { params: { path: { id: entityId } } },
+        { enabled: !!entityId },
     );
 
     const deleteMutation = useDeleteGraphEntity();
@@ -42,7 +43,7 @@ export function EntityDetailPanel({
             setConfirmDelete(true);
             return;
         }
-        deleteMutation.mutate(entityId, {
+        deleteMutation.mutate({ params: { path: { id: entityId } } }, {
             onSuccess: () => onClose(),
         });
     };

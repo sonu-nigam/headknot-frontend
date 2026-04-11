@@ -1,16 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
 import { Separator } from '@workspace/ui/components/separator';
 import { Badge } from '@workspace/ui/components/badge';
 import { X, Loader2, Filter } from 'lucide-react';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
-import {
-    graphEntitiesQueryOptions,
-    graphTemporalQueryOptions,
-} from '@/query/options/graph';
 
 interface TemporalFilterPanelProps {
     onClose: () => void;
@@ -24,22 +20,21 @@ export function TemporalFilterPanel({ onClose }: TemporalFilterPanelProps) {
     const [toDate, setToDate] = useState('');
     const [shouldQuery, setShouldQuery] = useState(false);
 
-    const { data: entities } = useQuery(
-        graphEntitiesQueryOptions(selectedWorkspaceId ?? ''),
+    const { data: entities } = $api.useQuery(
+        "get", "/graph/entities",
+        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
     );
 
     const {
         data: events,
         isLoading: eventsLoading,
         isError: eventsError,
-    } = useQuery({
-        ...graphTemporalQueryOptions({
-            entityId,
-            from: fromDate,
-            to: toDate,
-        }),
-        enabled: shouldQuery && !!entityId && !!fromDate && !!toDate,
-    });
+    } = $api.useQuery(
+        "get", "/graph/query/temporal",
+        { params: { query: { entityId, from: fromDate, to: toDate } } },
+        { enabled: shouldQuery && !!entityId && !!fromDate && !!toDate },
+    );
 
     const handleApply = () => {
         if (entityId && fromDate && toDate) {

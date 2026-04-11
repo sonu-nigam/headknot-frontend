@@ -3,8 +3,7 @@ import {
     workspaceResolver,
     WorkspaceFormValues,
 } from '@/validations/form/workspaceForm';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useCreateWorkspace } from '@/hooks/workspace/useCreateWorkspace';
 import {
     Form,
     FormControl,
@@ -18,18 +17,7 @@ import { Textarea } from '@workspace/ui/components/textarea';
 import { Button } from '@workspace/ui/components/button';
 
 export function CreateWorkspaceForm() {
-    const queryClient = useQueryClient();
-
-    const { mutate: createWorkspace, isPending: isCreating } = useMutation({
-        mutationFn: async (values: WorkspaceFormValues) => {
-            const res = await api.POST('/workspaces', { body: values });
-            if (res.error) throw new Error('Failed to create workspace');
-            return res.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
-        },
-    });
+    const { mutate: createWorkspace, isPending: isCreating } = useCreateWorkspace();
 
     const form = useForm<WorkspaceFormValues>({
         resolver: workspaceResolver,
@@ -40,8 +28,14 @@ export function CreateWorkspaceForm() {
     });
 
     const onSubmit = (values: WorkspaceFormValues) => {
-        createWorkspace(values);
-        form.reset();
+        createWorkspace(
+            { body: values },
+            {
+                onSuccess: () => {
+                    form.reset();
+                },
+            },
+        );
     };
 
     return (

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useDeleteEntity() {
     const queryClient = useQueryClient();
@@ -13,7 +14,7 @@ export function useDeleteEntity() {
             if (error) throw new Error('Failed to delete entity');
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['knowledge'] });
+            invalidateByPath(queryClient, "get", "/knowledge");
         },
     });
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
 import { Schemas } from '@/types/api';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useLinkMemory() {
     const queryClient = useQueryClient();
@@ -20,10 +21,8 @@ export function useLinkMemory() {
             if (error) throw new Error('Failed to link memory');
             return data;
         },
-        onSuccess: (_data, variables) => {
-            queryClient.invalidateQueries({
-                queryKey: ['knowledge', 'memories-for-entity', variables.entityId],
-            });
+        onSuccess: () => {
+            invalidateByPath(queryClient, "get", "/knowledge/entities");
         },
     });
 }

@@ -1,23 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useUpdateUserPreferences() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (body: {
-            preferences: Record<string, unknown>;
-        }) => {
-            const { data, error } = await api.PUT('/settings/user', {
-                body: body as never,
-            });
-            if (error) throw new Error('Failed to update user preferences');
-            return data;
-        },
+    return $api.useMutation("put", "/settings/user", {
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['settings', 'user'],
-            });
+            invalidateByPath(queryClient, "get", "/settings");
         },
     });
 }

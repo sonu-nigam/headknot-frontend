@@ -1,16 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
 import { Separator } from '@workspace/ui/components/separator';
 import { X, Loader2, Search, ArrowDown, RotateCcw } from 'lucide-react';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useGraphStore } from '@/state/graphStore';
-import {
-    graphEntitiesQueryOptions,
-    graphPathQueryOptions,
-} from '@/query/options/graph';
 import { ENTITY_COLORS, EVENT_NODE_COLOR } from './constants';
 
 interface PathFinderPanelProps {
@@ -25,18 +21,21 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
     const [toId, setToId] = useState('');
     const [shouldQuery, setShouldQuery] = useState(false);
 
-    const { data: entities } = useQuery(
-        graphEntitiesQueryOptions(selectedWorkspaceId ?? ''),
+    const { data: entities } = $api.useQuery(
+        "get", "/graph/entities",
+        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
     );
 
     const {
         data: pathResult,
         isLoading: pathLoading,
         isError: pathError,
-    } = useQuery({
-        ...graphPathQueryOptions({ from: fromId, to: toId }),
-        enabled: shouldQuery && !!fromId && !!toId,
-    });
+    } = $api.useQuery(
+        "get", "/graph/query/path",
+        { params: { query: { from: fromId, to: toId } } },
+        { enabled: shouldQuery && !!fromId && !!toId },
+    );
 
     const handleFindPath = () => {
         if (fromId && toId) {

@@ -1,5 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { $api } from '@workspace/api-client';
 import { Button } from '@workspace/ui/components/button';
 import {
     Dialog,
@@ -18,20 +17,7 @@ export function SearchApp({}) {
     const { isMobile, state } = useSidebar();
     const isExpandedView = isMobile || state === 'expanded';
 
-    const searchReason = useMutation({
-        mutationFn: async () => {
-            const { data, error } = await api.POST('/reason', {
-                body: {
-                    message: query,
-                },
-            });
-
-            if (error) {
-                throw new Error('Failed to create memory');
-            }
-
-            return data;
-        },
+    const searchReason = $api.useMutation("post", "/reason", {
         onSuccess: (data) => {
             console.log(data);
         },
@@ -70,7 +56,7 @@ export function SearchApp({}) {
                     </DialogClose>
                     <Button
                         type="submit"
-                        onClick={() => searchReason.mutateAsync()}
+                        onClick={() => searchReason.mutateAsync({ body: { message: query } })}
                     >
                         Search
                     </Button>

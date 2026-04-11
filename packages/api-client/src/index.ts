@@ -2,6 +2,7 @@ import createClient, {
     type Middleware,
     type ClientMethod,
 } from 'openapi-fetch';
+import createQueryClient from 'openapi-react-query';
 export type { paths, components, operations } from '../schema/schema';
 
 const baseUrl = 'http://localhost:8080/api';
@@ -82,6 +83,8 @@ export const api = createClient<paths>({
 });
 
 api.use(authMiddleware);
+
+export const $api = createQueryClient(api);
 
 // Helper for Google OAuth (Legacy - Deprecated)
 // @deprecated Use initiateGoogleOAuth and handleGoogleOAuthCallback instead

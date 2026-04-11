@@ -3,8 +3,7 @@ import {
     SidebarMenuSubItem,
 } from '@workspace/ui/components/sidebar';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { memoryListQueryOptions } from '@/query/options/memory';
+import { $api } from '@workspace/api-client';
 import { convertMemoryIdToSlug } from '@/lib/memoryUtils';
 import { MemoryMenu } from './MemoryMenu';
 
@@ -18,21 +17,16 @@ export function MemoryList({
     isMobile: boolean;
 }) {
     const navigate = useNavigate();
-    const { data: memoryList, isLoading: memoryListLoading } = useSuspenseQuery(
-        {
-            ...memoryListQueryOptions({
-                clusterId,
-                workspaceId,
-                status: 'ACTIVE',
-            }),
-            select: (data) =>
-                data.map((memory) => ({
-                    id: memory.id,
-                    title: memory.title,
-                    url: `/${convertMemoryIdToSlug(memory.id as string)}`,
-                })),
-        },
-    );
+    const { data: memoryList, isLoading: memoryListLoading } = $api.useSuspenseQuery("get", "/memory", {
+        params: { query: { clusterId, workspaceId, status: 'ACTIVE' } },
+    }, {
+        select: (data) =>
+            data.map((memory) => ({
+                id: memory.id,
+                title: memory.title,
+                url: `/${convertMemoryIdToSlug(memory.id as string)}`,
+            })),
+    });
 
     if (!memoryList.length) {
         return (

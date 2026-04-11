@@ -1,9 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/state/store';
-import {
-    userSettingsQueryOptions,
-    workspaceSettingsQueryOptions,
-} from '@/query/options/settings';
+import { $api } from '@workspace/api-client';
 import { useUpdateUserPreferences } from '@/hooks/settings/useUpdateUserPreferences';
 import { useUpdateWorkspaceSettings } from '@/hooks/settings/useUpdateWorkspaceSettings';
 import { Button } from '@workspace/ui/components/button';
@@ -37,8 +33,8 @@ export function Settings() {
     const { selectedWorkspaceId } = useAppStore();
     const { theme, setTheme } = useTheme();
 
-    const { data: userSettings, isLoading: userLoading } = useQuery(
-        userSettingsQueryOptions,
+    const { data: userSettings, isLoading: userLoading } = $api.useQuery(
+        "get", "/settings/user",
     );
 
     const updateUserPrefs = useUpdateUserPreferences();
@@ -62,14 +58,16 @@ export function Settings() {
 
     const handleSave = () => {
         updateUserPrefs.mutate({
-            preferences: {
-                emailNotifications,
-                conflictAlerts,
-                extractionAlerts,
-                syncAlerts,
-                aiAnswers,
-                theme,
-            } as Record<string, unknown>,
+            body: {
+                preferences: {
+                    emailNotifications,
+                    conflictAlerts,
+                    extractionAlerts,
+                    syncAlerts,
+                    aiAnswers,
+                    theme,
+                } as Record<string, unknown>,
+            },
         });
     };
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -32,13 +32,7 @@ import {
     TrendingUp,
     TrendingDown,
 } from 'lucide-react';
-import {
-    entityByIdQueryOptions,
-    entityAliasesQueryOptions,
-    claimsByEntityQueryOptions,
-    relationshipsByClaimQueryOptions,
-} from '@/query/options/knowledge';
-import { objectTimelineQueryOptions } from '@/query/options/timeline';
+import { api, $api } from '@workspace/api-client';
 import { Schemas } from '@/types/api';
 
 // --- Helpers ---
@@ -283,7 +277,14 @@ function RelationshipsTab({
 
     const relQueries = useQueries({
         queries: claimIds.map((claimId) =>
-            relationshipsByClaimQueryOptions(claimId),
+            ({
+                queryKey: ["get", "/relationships", { params: { query: { claimId } } }] as const,
+                queryFn: async () => {
+                    const { data, error } = await api.GET("/relationships", { params: { query: { claimId } } });
+                    if (error) throw error;
+                    return data;
+                },
+            }),
         ),
     });
 
@@ -377,9 +378,9 @@ function RelationshipsTab({
 // --- Timeline Tab ---
 
 function TimelineTab({ entityId }: { entityId: string }) {
-    const { data: events, isLoading } = useQuery(
-        objectTimelineQueryOptions({ objectType: 'ENTITY', objectId: entityId }),
-    );
+    const { data: events, isLoading } = $api.useQuery("get", "/timeline", {
+        params: { query: { objectType: 'ENTITY', objectId: entityId } },
+    }, { enabled: !!entityId });
 
     if (isLoading) {
         return (
@@ -501,16 +502,25 @@ export function EntityDetailPage() {
     const { entityId } = useParams<{ entityId: string }>();
     const navigate = useNavigate();
 
-    const { data: entity, isLoading: entityLoading } = useQuery(
-        entityByIdQueryOptions(entityId ?? ''),
+    const { data: entity, isLoading: entityLoading } = $api.useQuery(
+        "get",
+        "/knowledge/entities/{entityId}",
+        { params: { path: { entityId: entityId ?? '' } } },
+        { enabled: !!entityId },
     );
 
-    const { data: aliases } = useQuery(
-        entityAliasesQueryOptions(entityId ?? ''),
+    const { data: aliases } = $api.useQuery(
+        "get",
+        "/knowledge/entities/{entityId}/aliases",
+        { params: { path: { entityId: entityId ?? '' } } },
+        { enabled: !!entityId },
     );
 
-    const { data: claims, isLoading: claimsLoading } = useQuery(
-        claimsByEntityQueryOptions(entityId ?? ''),
+    const { data: claims, isLoading: claimsLoading } = $api.useQuery(
+        "get",
+        "/knowledge/claims",
+        { params: { query: { entityId: entityId ?? '' } } },
+        { enabled: !!entityId },
     );
 
     const claimsList = claims ?? [];
@@ -522,7 +532,14 @@ export function EntityDetailPage() {
         .filter(Boolean) as string[];
     const relQueries = useQueries({
         queries: claimIds.map((claimId) =>
-            relationshipsByClaimQueryOptions(claimId),
+            ({
+                queryKey: ["get", "/relationships", { params: { query: { claimId } } }] as const,
+                queryFn: async () => {
+                    const { data, error } = await api.GET("/relationships", { params: { query: { claimId } } });
+                    if (error) throw error;
+                    return data;
+                },
+            }),
         ),
     });
     const relCount = useMemo(() => {

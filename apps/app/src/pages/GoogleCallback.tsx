@@ -1,43 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
-import { api, storage } from '@workspace/api-client';
+import { $api, storage } from '@workspace/api-client';
 import { useDebounceFn } from 'ahooks';
-import { Schemas } from '@/types/api';
 
 export default function GoogleCallback() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    // What is this error on line
-    const googleLogin = useMutation<
-        Schemas['GoogleOAuthResponse'],
-        Error,
-        {
-            code: string;
-            state: string;
-        }
-    >({
-        mutationFn: async ({
-            code,
-            state,
-        }: {
-            code: string;
-            state: string;
-        }) => {
-            const { data, error } = await api.POST(
-                '/auth/oauth/google/callback',
-                {
-                    body: { code, state },
-                },
-            );
-
-            if (error) {
-                throw new Error('Failed to complete Google OAuth');
-            }
-
-            return data;
-        },
+    const googleLogin = $api.useMutation("post", "/auth/oauth/google/callback", {
         onSuccess: (data) => {
             const next = sessionStorage.getItem('oauth_next') || '/';
             sessionStorage.removeItem('oauth_state');
@@ -63,7 +33,7 @@ export default function GoogleCallback() {
 
     const handleGoogleLogin = () => {
         if (!code || !state) return;
-        googleLogin.mutate({ code, state });
+        googleLogin.mutate({ body: { code, state } });
     };
 
     const handleGoogleLoginDebounced = useDebounceFn(handleGoogleLogin, {

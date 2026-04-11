@@ -1,22 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useActivateWorkspace() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { data, error } = await api.POST(
-                '/workspaces/{id}/activate',
-                {
-                    params: { path: { id } },
-                },
-            );
-            if (error) throw new Error('Failed to activate workspace');
-            return data;
-        },
+    return $api.useMutation("post", "/workspaces/{id}/activate", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
+            invalidateByPath(queryClient, "get", "/workspaces");
         },
     });
 }

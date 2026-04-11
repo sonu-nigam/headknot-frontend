@@ -1,19 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useDeleteRelationship() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (relationshipId: string) => {
-            const { error } = await api.DELETE(
-                '/relationships/{relationshipId}',
-                { params: { path: { relationshipId } } },
-            );
-            if (error) throw new Error('Failed to delete relationship');
-        },
+    return $api.useMutation("delete", "/relationships/{relationshipId}", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['knowledge', 'relationships'] });
+            invalidateByPath(queryClient, "get", "/relationships");
         },
     });
 }

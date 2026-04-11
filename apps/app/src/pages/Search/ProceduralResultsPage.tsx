@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Schemas } from '@/types/api';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import { Checkbox } from '@workspace/ui/components/checkbox';
 import { useAppStore } from '@/state/store';
-import { searchQueryOptions } from '@/query/options/search';
+import { $api } from '@workspace/api-client';
 import {
     GitBranch,
     ExternalLink,
@@ -359,14 +358,9 @@ export function ProceduralResultsPage() {
     const navigate = useNavigate();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: searchResults, isLoading } = useQuery({
-        ...searchQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            query,
-            limit: 10,
-        }),
-        enabled: !!query && !!selectedWorkspaceId,
-    });
+    const { data: searchResults, isLoading } = $api.useQuery("get", "/search", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', query, limit: 10 } },
+    }, { enabled: !!query && !!selectedWorkspaceId });
 
     const answer = searchResults?.answer;
 

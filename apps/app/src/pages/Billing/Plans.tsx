@@ -1,9 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import { plansQueryOptions } from '@/query/options/billing';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useSubscribeWorkspace } from '@/hooks/billing/useSubscribeWorkspace';
 import { useChangePlan } from '@/hooks/billing/useChangePlan';
-import { workspaceSubscriptionQueryOptions } from '@/query/options/billing';
 import { Button } from '@workspace/ui/components/button';
 import {
     Card,
@@ -18,10 +16,10 @@ import { CheckIcon } from 'lucide-react';
 
 export function Plans() {
     const { selectedWorkspaceId } = useAppStore();
-    const { data: plans, isLoading } = useQuery(plansQueryOptions);
-    const { data: subscription } = useQuery(
-        workspaceSubscriptionQueryOptions(selectedWorkspaceId ?? '')
-    );
+    const { data: plans, isLoading } = $api.useQuery("get", "/billing/plans");
+    const { data: subscription } = $api.useQuery("get", "/billing/workspace/{workspaceId}/subscription", {
+        params: { path: { workspaceId: selectedWorkspaceId ?? '' } },
+    }, { enabled: !!selectedWorkspaceId });
     const subscribeMutation = useSubscribeWorkspace();
     const changePlanMutation = useChangePlan();
 
@@ -33,12 +31,12 @@ export function Plans() {
 
         if (isSubscribed) {
             changePlanMutation.mutate({
-                workspaceId: selectedWorkspaceId,
+                params: { path: { workspaceId: selectedWorkspaceId } },
                 body: { planName },
             });
         } else {
             subscribeMutation.mutate({
-                workspaceId: selectedWorkspaceId,
+                params: { path: { workspaceId: selectedWorkspaceId } },
                 body: { planName },
             });
         }

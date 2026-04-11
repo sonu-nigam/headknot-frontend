@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
@@ -38,10 +37,7 @@ import {
     Clock,
     AlertCircle,
 } from 'lucide-react';
-import {
-    integrationQueryOptions,
-    integrationSyncStatusQueryOptions,
-} from '@/query/options/integrations';
+import { $api } from '@workspace/api-client';
 import { useDisconnectIntegration } from '@/hooks/integrations/useDisconnectIntegration';
 import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -119,13 +115,13 @@ export function IntegrationDetailPage() {
     const { integrationId } = useParams<{ integrationId: string }>();
     const navigate = useNavigate();
 
-    const { data: integration, isLoading } = useQuery(
-        integrationQueryOptions(integrationId ?? ''),
-    );
+    const { data: integration, isLoading } = $api.useQuery("get", "/integrations/{integrationId}", {
+        params: { path: { integrationId: integrationId ?? '' } },
+    }, { enabled: !!integrationId });
 
-    const { data: syncStatus, isLoading: syncLoading } = useQuery(
-        integrationSyncStatusQueryOptions(integrationId ?? ''),
-    );
+    const { data: syncStatus, isLoading: syncLoading } = $api.useQuery("get", "/integrations/{id}/sync-stats", {
+        params: { path: { id: integrationId ?? '' } },
+    }, { enabled: !!integrationId });
 
     const disconnectMutation = useDisconnectIntegration();
     const syncMutation = useTriggerSync();
@@ -133,7 +129,7 @@ export function IntegrationDetailPage() {
     const handleDisconnect = () => {
         if (!integrationId) return;
         disconnectMutation.mutate(
-            { integrationId },
+            { params: { path: { id: integrationId } } },
             {
                 onSuccess: () => navigate('/integrations'),
             },
@@ -142,7 +138,7 @@ export function IntegrationDetailPage() {
 
     const handleSync = () => {
         if (!integrationId) return;
-        syncMutation.mutate({ integrationId });
+        syncMutation.mutate({ params: { path: { id: integrationId } } });
     };
 
     // Loading state

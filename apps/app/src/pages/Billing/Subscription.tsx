@@ -1,8 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import {
-    workspaceSubscriptionQueryOptions,
-    plansQueryOptions,
-} from '@/query/options/billing';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useCancelSubscription } from '@/hooks/billing/useCancelSubscription';
 import { Button } from '@workspace/ui/components/button';
@@ -20,10 +16,12 @@ import React from 'react';
 
 export function Subscription() {
     const { selectedWorkspaceId } = useAppStore();
-    const { data: subscription, isLoading } = useQuery(
-        workspaceSubscriptionQueryOptions(selectedWorkspaceId ?? '')
+    const { data: subscription, isLoading } = $api.useQuery(
+        "get", "/billing/workspace/{workspaceId}/subscription",
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
     );
-    const { data: plans } = useQuery(plansQueryOptions);
+    const { data: plans } = $api.useQuery("get", "/billing/plans");
     const cancelMutation = useCancelSubscription();
     const [showConfirm, setShowConfirm] = React.useState(false);
 
@@ -56,7 +54,7 @@ export function Subscription() {
     const handleCancel = () => {
         if (!selectedWorkspaceId) return;
         cancelMutation.mutate(
-            { workspaceId: selectedWorkspaceId },
+            { params: { path: { workspaceId: selectedWorkspaceId } } },
             { onSuccess: () => setShowConfirm(false) }
         );
     };

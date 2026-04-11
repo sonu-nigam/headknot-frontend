@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
 import { X, Loader2, Trash2 } from 'lucide-react';
-import { graphEventByIdQueryOptions } from '@/query/options/graph';
+import { $api } from '@workspace/api-client';
 import { useDeleteGraphEvent } from '@/hooks/graph/useDeleteGraphEvent';
 import { ENTITY_COLORS, ENTITY_TYPE_LABELS, normalizeEntityType } from './constants';
 
@@ -21,8 +20,10 @@ export function EventDetailPanel({
 }: EventDetailPanelProps) {
     const [confirmDelete, setConfirmDelete] = useState(false);
 
-    const { data: event, isLoading } = useQuery(
-        graphEventByIdQueryOptions(eventId),
+    const { data: event, isLoading } = $api.useQuery(
+        "get", "/graph/events/{id}",
+        { params: { path: { id: eventId } } },
+        { enabled: !!eventId },
     );
 
     const deleteMutation = useDeleteGraphEvent();
@@ -32,7 +33,7 @@ export function EventDetailPanel({
             setConfirmDelete(true);
             return;
         }
-        deleteMutation.mutate(eventId, {
+        deleteMutation.mutate({ params: { path: { id: eventId } } }, {
             onSuccess: () => onClose(),
         });
     };

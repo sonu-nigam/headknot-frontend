@@ -1,7 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
@@ -13,9 +12,9 @@ import {
     DialogFooter,
 } from '@workspace/ui/components/dialog';
 import { Loader2 } from 'lucide-react';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useCreateGraphEvent } from '@/hooks/graph/useCreateGraphEvent';
-import { graphEntitiesQueryOptions } from '@/query/options/graph';
 
 const EVENT_TYPES = [
     'WORKS_AT',
@@ -58,8 +57,10 @@ export function CreateEventDialog({
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
     const createMutation = useCreateGraphEvent();
 
-    const { data: entities } = useQuery(
-        graphEntitiesQueryOptions(selectedWorkspaceId ?? ''),
+    const { data: entities } = $api.useQuery(
+        "get", "/graph/entities",
+        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
     );
 
     const entityList = entities ?? [];
@@ -88,19 +89,21 @@ export function CreateEventDialog({
 
         createMutation.mutate(
             {
-                eventType: values.eventType,
-                description: values.description || undefined,
-                confidence: values.confidence,
-                validFrom: values.validFrom
-                    ? new Date(values.validFrom).toISOString()
-                    : undefined,
-                validTo: values.validTo
-                    ? new Date(values.validTo).toISOString()
-                    : undefined,
-                temporalType: values.temporalType,
-                subjectId: values.subjectId,
-                objectId: values.objectId,
-                workspaceId: selectedWorkspaceId,
+                body: {
+                    eventType: values.eventType,
+                    description: values.description || undefined,
+                    confidence: values.confidence,
+                    validFrom: values.validFrom
+                        ? new Date(values.validFrom).toISOString()
+                        : undefined,
+                    validTo: values.validTo
+                        ? new Date(values.validTo).toISOString()
+                        : undefined,
+                    temporalType: values.temporalType,
+                    subjectId: values.subjectId,
+                    objectId: values.objectId,
+                    workspaceId: selectedWorkspaceId,
+                },
             },
             {
                 onSuccess: () => {

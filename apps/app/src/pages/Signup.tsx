@@ -80,9 +80,11 @@ export default function Signup() {
     async function onSubmit(values: SignupFormValues) {
         signup.mutate(
             {
-                fullName: values.fullName,
-                username: values.username,
-                password: values.password,
+                body: {
+                    fullName: values.fullName,
+                    username: values.username,
+                    password: values.password,
+                },
             },
             {
                 onSuccess: () => {

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import {
     Dialog,
     DialogContent,
@@ -11,7 +10,7 @@ import { Button } from '@workspace/ui/components/button';
 import { Textarea } from '@workspace/ui/components/textarea';
 import { Loader2, AlertTriangle, FileText } from 'lucide-react';
 import { Schemas } from '@/types/api';
-import { claimByIdQueryOptions } from '@/query/options/knowledge';
+import { $api } from '@workspace/api-client';
 import { useResolveConflict } from '@/hooks/conflicts/useResolveConflict';
 
 type ResolutionChoice = 'PREFER_A' | 'PREFER_B' | 'MERGE';
@@ -91,19 +90,23 @@ export function ResolveConflictDialog({
 
     const resolve = useResolveConflict();
 
-    const { data: claimA, isLoading: loadingA } = useQuery({
-        ...claimByIdQueryOptions(conflict.sourceClaimId ?? ''),
-        enabled: open && !!conflict.sourceClaimId,
-    });
+    const { data: claimA, isLoading: loadingA } = $api.useQuery(
+        "get",
+        "/knowledge/claims/{claimId}",
+        { params: { path: { claimId: conflict.sourceClaimId ?? '' } } },
+        { enabled: open && !!conflict.sourceClaimId },
+    );
 
-    const { data: claimB, isLoading: loadingB } = useQuery({
-        ...claimByIdQueryOptions(conflict.targetClaimId ?? ''),
-        enabled: open && !!conflict.targetClaimId,
-    });
+    const { data: claimB, isLoading: loadingB } = $api.useQuery(
+        "get",
+        "/knowledge/claims/{claimId}",
+        { params: { path: { claimId: conflict.targetClaimId ?? '' } } },
+        { enabled: open && !!conflict.targetClaimId },
+    );
 
     const handleResolve = () => {
         if (!conflict.id || !choice) return;
-        resolve.mutate(conflict.id, {
+        resolve.mutate({ params: { path: { id: conflict.id } } }, {
             onSuccess: () => {
                 setChoice(null);
                 setNote('');

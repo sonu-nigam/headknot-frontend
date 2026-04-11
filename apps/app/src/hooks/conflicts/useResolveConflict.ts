@@ -1,23 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useResolveConflict() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { data, error } = await api.POST(
-                '/conflicts/{id}/resolve',
-                {
-                    params: { path: { id } },
-                },
-            );
-            if (error) throw new Error('Failed to resolve conflict');
-            return data;
-        },
+    return $api.useMutation("post", "/conflicts/{id}/resolve", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['conflicts'] });
-            queryClient.invalidateQueries({ queryKey: ['timeline'] });
+            invalidateByPath(queryClient, "get", "/conflicts");
+            invalidateByPath(queryClient, "get", "/timeline");
         },
     });
 }

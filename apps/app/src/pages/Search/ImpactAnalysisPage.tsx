@@ -1,11 +1,10 @@
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Schemas } from '@/types/api';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import { useAppStore } from '@/state/store';
-import { searchQueryOptions } from '@/query/options/search';
+import { $api } from '@workspace/api-client';
 import {
     AlertCircle,
     GitBranch,
@@ -441,14 +440,9 @@ export function ImpactAnalysisPage() {
     const query = searchParams.get('q') ?? '';
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: searchResults, isLoading } = useQuery({
-        ...searchQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            query,
-            limit: 10,
-        }),
-        enabled: !!query && !!selectedWorkspaceId,
-    });
+    const { data: searchResults, isLoading } = $api.useQuery("get", "/search", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', query, limit: 10 } },
+    }, { enabled: !!query && !!selectedWorkspaceId });
 
     const answer = searchResults?.answer;
 

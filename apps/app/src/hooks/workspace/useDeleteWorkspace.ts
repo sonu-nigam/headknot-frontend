@@ -1,18 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useDeleteWorkspace() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { error } = await api.DELETE('/workspaces/{id}', {
-                params: { path: { id } },
-            });
-            if (error) throw new Error('Failed to delete workspace');
-        },
+    return $api.useMutation("delete", "/workspaces/{id}", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
+            invalidateByPath(queryClient, "get", "/workspaces");
         },
     });
 }

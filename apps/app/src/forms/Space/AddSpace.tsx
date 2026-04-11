@@ -1,7 +1,6 @@
 import { useAppStore } from '@/state/store';
 import { SpaceFormValues, spaceResolver } from '@/validations/form/spaceForm';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
 import { Button } from '@workspace/ui/components/button';
 import {
     Dialog,

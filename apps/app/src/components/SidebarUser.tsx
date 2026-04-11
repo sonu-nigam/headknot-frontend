@@ -28,13 +28,12 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@workspace/ui/components/sidebar';
-import { useQuery } from '@tanstack/react-query';
-import { profileQueryOptions } from '@/query/options/profile';
+import { $api } from '@workspace/api-client';
 import { useLogout } from '@/hooks/auth/useLogout';
 
 export function SidebarUser() {
     const { isMobile } = useSidebar();
-    const { data: userProfileData } = useQuery(profileQueryOptions);
+    const { data: userProfileData } = $api.useQuery("get", "/profile/me");
     const logout = useLogout();
     const navigate = useNavigate();
 

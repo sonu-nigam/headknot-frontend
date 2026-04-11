@@ -1,21 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useDisconnectIntegration() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ integrationId }: { integrationId: string }) => {
-            const { error } = await api.POST(
-                '/integrations/{id}/disconnect',
-                { params: { path: { id: integrationId } } }
-            );
-            if (error) throw new Error('Failed to disconnect integration');
-        },
+    return $api.useMutation("post", "/integrations/{id}/disconnect", {
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['integrations'],
-            });
+            invalidateByPath(queryClient, "get", "/integrations");
         },
     });
 }

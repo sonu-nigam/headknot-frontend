@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
@@ -28,7 +27,7 @@ import {
     Inbox,
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
-import { entitiesByWorkspaceQueryOptions } from '@/query/options/knowledge';
+import { $api } from '@workspace/api-client';
 import { Schemas } from '@/types/api';
 
 // --- Helpers ---
@@ -106,12 +105,12 @@ export function EntityListPage() {
     const [sort, setSort] = useState<'updated' | 'alpha' | 'claims'>('updated');
     const [page, setPage] = useState(0);
 
-    const { data: entities, isLoading } = useQuery({
-        ...entitiesByWorkspaceQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    const { data: entities, isLoading } = $api.useQuery(
+        "get",
+        "/knowledge/entities",
+        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
 
     const filtered = useMemo(() => {
         let list = entities ?? [];

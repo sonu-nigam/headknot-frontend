@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -22,12 +22,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
 import { Schemas } from '@/types/api';
-import {
-    entitiesByWorkspaceQueryOptions,
-    claimsByEntityQueryOptions,
-    relationshipsByClaimQueryOptions,
-    claimByIdQueryOptions,
-} from '@/query/options/knowledge';
+import { api, $api } from '@workspace/api-client';
 import { useSubmitFeedback } from '@/hooks/relationships/useSubmitFeedback';
 
 // --- Types ---
@@ -130,10 +125,12 @@ function ConfidenceBar({ value }: { value?: number }) {
 // --- Claim Text Cell ---
 
 function ClaimTextCell({ claimId }: { claimId?: string }) {
-    const { data: claim, isLoading } = useQuery({
-        ...claimByIdQueryOptions(claimId ?? ''),
-        enabled: !!claimId,
-    });
+    const { data: claim, isLoading } = $api.useQuery(
+        "get",
+        "/knowledge/claims/{claimId}",
+        { params: { path: { claimId: claimId ?? '' } } },
+        { enabled: !!claimId },
+    );
 
     if (isLoading) {
         return (
@@ -205,12 +202,12 @@ export function RelationshipListPage() {
     const [page, setPage] = useState(0);
 
     // 1. Fetch entities
-    const { data: entities, isLoading: loadingEntities } = useQuery({
-        ...entitiesByWorkspaceQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    const { data: entities, isLoading: loadingEntities } = $api.useQuery(
+        "get",
+        "/knowledge/entities",
+        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
 
     const limitedEntities = useMemo(
         () => (entities ?? []).slice(0, MAX_ENTITIES),
@@ -220,7 +217,12 @@ export function RelationshipListPage() {
     // 2. Fetch claims for each entity
     const claimQueries = useQueries({
         queries: limitedEntities.map((entity) => ({
-            ...claimsByEntityQueryOptions(entity.id ?? ''),
+            queryKey: ["get", "/knowledge/claims", { params: { query: { entityId: entity.id ?? '' } } }] as const,
+            queryFn: async () => {
+                const { data, error } = await api.GET("/knowledge/claims", { params: { query: { entityId: entity.id ?? '' } } });
+                if (error) throw error;
+                return data;
+            },
             enabled: !!entity.id,
         })),
     });
@@ -241,7 +243,12 @@ export function RelationshipListPage() {
     // 3. Fetch relationships for each claim
     const relationshipQueries = useQueries({
         queries: uniqueClaimIds.map((claimId) => ({
-            ...relationshipsByClaimQueryOptions(claimId),
+            queryKey: ["get", "/relationships", { params: { query: { claimId } } }] as const,
+            queryFn: async () => {
+                const { data, error } = await api.GET("/relationships", { params: { query: { claimId } } });
+                if (error) throw error;
+                return data;
+            },
             enabled: !!claimId,
         })),
     });
@@ -298,8 +305,8 @@ export function RelationshipListPage() {
         vote: 'POSITIVE' | 'NEGATIVE',
     ) => {
         feedback.mutate({
-            relationshipId,
-            action: vote === 'POSITIVE' ? 'CONFIRM' : 'REJECT',
+            params: { path: { relationshipId } },
+            body: { action: vote === 'POSITIVE' ? 'CONFIRM' : 'REJECT' },
         });
     };
 

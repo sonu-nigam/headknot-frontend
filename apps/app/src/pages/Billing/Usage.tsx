@@ -1,8 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import {
-    workspaceUsageQueryOptions,
-    workspaceLimitsQueryOptions,
-} from '@/query/options/billing';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import {
     Card,
@@ -14,11 +10,15 @@ import {
 
 export function Usage() {
     const { selectedWorkspaceId } = useAppStore();
-    const { data: usage, isLoading: usageLoading } = useQuery(
-        workspaceUsageQueryOptions(selectedWorkspaceId ?? '')
+    const { data: usage, isLoading: usageLoading } = $api.useQuery(
+        "get", "/billing/workspace/{workspaceId}/usage",
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
     );
-    const { data: limits, isLoading: limitsLoading } = useQuery(
-        workspaceLimitsQueryOptions(selectedWorkspaceId ?? '')
+    const { data: limits, isLoading: limitsLoading } = $api.useQuery(
+        "get", "/billing/workspace/{workspaceId}/limits",
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
     );
 
     const isLoading = usageLoading || limitsLoading;

@@ -1,19 +1,10 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@workspace/ui/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTitle } from '@workspace/ui/components/sheet';
 import { useRelationshipsPanelStore } from '@/state/relationshipsPanelStore';
-import {
-    entitiesByMemoryQueryOptions,
-    entityByIdQueryOptions,
-    claimsByBlockQueryOptions,
-    claimsByEntityQueryOptions,
-    relationshipsByClaimQueryOptions,
-    memoriesForEntityQueryOptions,
-} from '@/query/options/knowledge';
-import { memoryByIdQueryOptions } from '@/query/options/memory';
+import { $api } from '@workspace/api-client';
 import { Schemas } from '@/types/api';
 import {
     NetworkIcon,
@@ -104,8 +95,11 @@ export function RelationshipsPanel() {
 // ── Memory-level view: shows entities + their linked memories ────────────
 
 function MemoryRelationshipsView({ memoryId }: { memoryId: string }) {
-    const { data: entityLinks, isLoading } = useQuery(
-        entitiesByMemoryQueryOptions(memoryId),
+    const { data: entityLinks, isLoading } = $api.useQuery(
+        "get",
+        "/knowledge/entities/by-memory/{memoryId}",
+        { params: { path: { memoryId } } },
+        { enabled: !!memoryId },
     );
 
     if (isLoading) {
@@ -158,12 +152,23 @@ function EntityCard({
     entityId: string;
     currentMemoryId: string;
 }) {
-    const { data: entity, isLoading } = useQuery(
-        entityByIdQueryOptions(entityId),
+    const { data: entity, isLoading } = $api.useQuery(
+        "get",
+        "/knowledge/entities/{entityId}",
+        { params: { path: { entityId } } },
+        { enabled: !!entityId },
     );
-    const { data: claims } = useQuery(claimsByEntityQueryOptions(entityId));
-    const { data: memoryLinks } = useQuery(
-        memoriesForEntityQueryOptions(entityId),
+    const { data: claims } = $api.useQuery(
+        "get",
+        "/knowledge/claims",
+        { params: { query: { entityId } } },
+        { enabled: !!entityId },
+    );
+    const { data: memoryLinks } = $api.useQuery(
+        "get",
+        "/knowledge/entities/{entityId}/memories",
+        { params: { path: { entityId } } },
+        { enabled: !!entityId },
     );
     const [expanded, setExpanded] = useState(false);
 
@@ -261,9 +266,9 @@ function EntityCard({
 function LinkedMemoryCard({ memoryId }: { memoryId: string }) {
     const navigate = useNavigate();
     const close = useRelationshipsPanelStore((s) => s.close);
-    const { data: memory, isLoading } = useQuery(
-        memoryByIdQueryOptions(memoryId),
-    );
+    const { data: memory, isLoading } = $api.useQuery("get", "/memory/{id}", {
+        params: { path: { id: memoryId } },
+    });
 
     if (isLoading) {
         return (
@@ -315,8 +320,11 @@ function LinkedMemoryCard({ memoryId }: { memoryId: string }) {
 // ── Claim item: shows claim text and its relationships ───────────────────
 
 function ClaimItem({ claim }: { claim: Schemas['ClaimResponse'] }) {
-    const { data: relationships } = useQuery(
-        relationshipsByClaimQueryOptions(claim.id!),
+    const { data: relationships } = $api.useQuery(
+        "get",
+        "/relationships",
+        { params: { query: { claimId: claim.id! } } },
+        { enabled: !!claim.id },
     );
 
     return (
@@ -395,8 +403,11 @@ function BlockRelationshipsView({
     memoryId: string;
     blockId: string;
 }) {
-    const { data: claims, isLoading } = useQuery(
-        claimsByBlockQueryOptions(blockId),
+    const { data: claims, isLoading } = $api.useQuery(
+        "get",
+        "/knowledge/claims",
+        { params: { query: { blockId } } },
+        { enabled: !!blockId },
     );
 
     if (isLoading) {
@@ -463,9 +474,17 @@ function EntityMiniCard({
 }) {
     const navigate = useNavigate();
     const close = useRelationshipsPanelStore((s) => s.close);
-    const { data: entity } = useQuery(entityByIdQueryOptions(entityId));
-    const { data: memoryLinks } = useQuery(
-        memoriesForEntityQueryOptions(entityId),
+    const { data: entity } = $api.useQuery(
+        "get",
+        "/knowledge/entities/{entityId}",
+        { params: { path: { entityId } } },
+        { enabled: !!entityId },
+    );
+    const { data: memoryLinks } = $api.useQuery(
+        "get",
+        "/knowledge/entities/{entityId}/memories",
+        { params: { path: { entityId } } },
+        { enabled: !!entityId },
     );
 
     const linkedMemories =
@@ -517,7 +536,9 @@ function LinkedMemoryInline({
     memoryId: string;
     onNavigate: () => void;
 }) {
-    const { data: memory } = useQuery(memoryByIdQueryOptions(memoryId));
+    const { data: memory } = $api.useQuery("get", "/memory/{id}", {
+        params: { path: { id: memoryId } },
+    });
 
     const title =
         memory?.blocks?.[0]?.text?.slice(0, 50) || 'Untitled memory';

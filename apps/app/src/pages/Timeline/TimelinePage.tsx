@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/AppLayout';
 import { Badge } from '@workspace/ui/components/badge';
 import { useAppStore } from '@/state/store';
 import { Schemas } from '@/types/api';
-import { workspaceChangesQueryOptions } from '@/query/options/timeline';
+import { $api } from '@workspace/api-client';
 import { format, subDays } from 'date-fns';
 import {
     Database,
@@ -144,13 +143,9 @@ export function TimelinePage() {
         [],
     );
 
-    const { data: events, isLoading } = useQuery({
-        ...workspaceChangesQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            since,
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    const { data: events, isLoading } = $api.useQuery("get", "/timeline/changes", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', since } },
+    }, { enabled: !!selectedWorkspaceId && !!since });
 
     // Apply filter
     const filteredEvents = useMemo(() => {

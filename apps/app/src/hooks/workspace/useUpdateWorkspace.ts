@@ -1,27 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
-import { Schemas } from '@/types/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useUpdateWorkspace() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({
-            id,
-            body,
-        }: {
-            id: string;
-            body: Schemas['UpdateWorkspaceRequest'];
-        }) => {
-            const { data, error } = await api.PUT('/workspaces/{id}', {
-                params: { path: { id } },
-                body,
-            });
-            if (error) throw new Error('Failed to update workspace');
-            return data;
-        },
+    return $api.useMutation("put", "/workspaces/{id}", {
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
+            invalidateByPath(queryClient, "get", "/workspaces");
         },
     });
 }

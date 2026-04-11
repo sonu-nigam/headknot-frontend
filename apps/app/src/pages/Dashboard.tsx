@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
     SearchIcon,
     DatabaseIcon,
@@ -16,8 +15,7 @@ import {
 import AppLayout from '@/components/AppLayout';
 import { useSearchDialog } from '@/components/SearchCommandDialog';
 import { useAppStore } from '@/state/store';
-import { entitiesByWorkspaceQueryOptions } from '@/query/options/knowledge';
-import { conflictsQueryOptions } from '@/query/options/conflicts';
+import { $api } from '@workspace/api-client';
 import { Button } from '@workspace/ui/components/button';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -92,22 +90,19 @@ export default function Dashboard() {
     const {
         data: entities,
         isLoading: entitiesLoading,
-    } = useQuery({
-        ...entitiesByWorkspaceQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    } = $api.useQuery(
+        "get",
+        "/knowledge/entities",
+        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
 
     const {
         data: conflicts,
         isLoading: conflictsLoading,
-    } = useQuery({
-        ...conflictsQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    } = $api.useQuery("get", "/conflicts", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '' } },
+    }, { enabled: !!selectedWorkspaceId });
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();

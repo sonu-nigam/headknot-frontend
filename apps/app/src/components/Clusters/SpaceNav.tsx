@@ -15,9 +15,8 @@ import {
 } from '@workspace/ui/components/collapsible';
 import { Button } from '@workspace/ui/components/button';
 import { Link } from 'react-router-dom';
-import { spaceQueryOptions } from '@/query/options/space';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
-import { useQuery } from '@tanstack/react-query';
 import { AddMemory } from './AddMemory';
 import { ProjectMenu } from './ProjectMenu';
 import { MemoryList } from './MemoryList';
@@ -27,13 +26,9 @@ export function SpaceNav() {
     const { isMobile } = useSidebar();
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { data: workspaceSpaces } = useQuery({
-        ...spaceQueryOptions({
-            workspaceId: selectedWorkspaceId as string,
-            status: 'ACTIVE',
-        }),
-        enabled: false, // disabled: space API temporarily disabled
-    });
+    const { data: workspaceSpaces } = $api.useQuery("get", "/space", {
+        params: { query: { workspaceId: selectedWorkspaceId as string, status: 'ACTIVE' } },
+    }, { enabled: false }); // disabled: space API temporarily disabled
 
     const spaces = workspaceSpaces?.map((space) => ({
         id: space.id as string,

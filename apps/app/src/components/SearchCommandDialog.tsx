@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/state/store';
-import { searchQueryOptions } from '@/query/options/search';
+import { $api } from '@workspace/api-client';
 import {
     Command,
     CommandDialog,
@@ -73,14 +72,9 @@ export function SearchCommandDialog() {
     }, [open, setOpen]);
 
     // Search query
-    const { data: searchResults, isLoading } = useQuery({
-        ...searchQueryOptions({
-            workspaceId: selectedWorkspaceId ?? '',
-            query: debouncedQuery,
-            limit: 10,
-        }),
-        enabled: !!debouncedQuery && debouncedQuery.length >= 2 && !!selectedWorkspaceId,
-    });
+    const { data: searchResults, isLoading } = $api.useQuery("get", "/search", {
+        params: { query: { workspaceId: selectedWorkspaceId ?? '', query: debouncedQuery, limit: 10 } },
+    }, { enabled: !!debouncedQuery && debouncedQuery.length >= 2 && !!selectedWorkspaceId });
 
     const handleSelect = useCallback(
         (item: Schemas['SearchResultItem']) => {

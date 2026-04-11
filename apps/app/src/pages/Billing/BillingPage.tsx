@@ -1,12 +1,6 @@
 import AppLayout from '@/components/AppLayout';
-import { useQuery } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
-import {
-    plansQueryOptions,
-    workspaceSubscriptionQueryOptions,
-    workspaceUsageQueryOptions,
-    workspaceLimitsQueryOptions,
-} from '@/query/options/billing';
 import { useChangePlan } from '@/hooks/billing/useChangePlan';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -83,19 +77,22 @@ export function BillingPage() {
     const { selectedWorkspaceId } = useAppStore();
 
     const { data: plans, isLoading: plansLoading } =
-        useQuery(plansQueryOptions);
-    const { data: subscription, isLoading: subLoading } = useQuery({
-        ...workspaceSubscriptionQueryOptions(selectedWorkspaceId ?? ''),
-        enabled: !!selectedWorkspaceId,
-    });
-    const { data: usage } = useQuery({
-        ...workspaceUsageQueryOptions(selectedWorkspaceId ?? ''),
-        enabled: !!selectedWorkspaceId,
-    });
-    const { data: limits } = useQuery({
-        ...workspaceLimitsQueryOptions(selectedWorkspaceId ?? ''),
-        enabled: !!selectedWorkspaceId,
-    });
+        $api.useQuery("get", "/billing/plans");
+    const { data: subscription, isLoading: subLoading } = $api.useQuery(
+        "get", "/billing/workspace/{workspaceId}/subscription",
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
+    const { data: usage } = $api.useQuery(
+        "get", "/billing/workspace/{workspaceId}/usage",
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
+    const { data: limits } = $api.useQuery(
+        "get", "/billing/workspace/{workspaceId}/limits",
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
 
     const changePlan = useChangePlan();
 
@@ -315,8 +312,7 @@ export function BillingPage() {
                                                                 selectedWorkspaceId &&
                                                                 changePlan.mutate(
                                                                     {
-                                                                        workspaceId:
-                                                                            selectedWorkspaceId,
+                                                                        params: { path: { workspaceId: selectedWorkspaceId } },
                                                                         body: {
                                                                             planName:
                                                                                 plan.name,

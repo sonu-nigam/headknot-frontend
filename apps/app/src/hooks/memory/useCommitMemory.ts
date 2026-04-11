@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 interface UseCommitMemoryProps {
     memoryId: string;
@@ -33,9 +34,7 @@ export function useCommitMemory({
             return data;
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({
-                queryKey: ['snapshots', memoryId],
-            });
+            invalidateByPath(queryClient, "get", "/memory");
             onSuccess?.(data);
         },
         onError,

@@ -1,10 +1,8 @@
 import { QuickCaptureForm } from '@/forms/QuickCaptureForm/QuickCaptureForm';
-import { draftQueryOptions } from '@/query/options/draft';
-import { myWorkspacesQueryOptions } from '@/query/options/workspace';
 import { useAppStore } from '@/state/store';
 import { QuickCaptureFormValues } from '@/validations/form/QuickCaptureForm';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { api, $api } from '@workspace/api-client';
 import {
     Tabs,
     TabsContent,
@@ -17,12 +15,11 @@ export function QuickCapture() {
     const [activeTab, setActiveTab] = useState('note');
     const { selectedWorkspaceId } = useAppStore();
 
-    const { data: draft, isLoading: draftLoading } = useQuery({
-        ...draftQueryOptions({
-            workspaceId: selectedWorkspaceId as string,
-        }),
-        enabled: !!selectedWorkspaceId,
-    });
+    const { data: draft, isLoading: draftLoading } = $api.useQuery(
+        "get", "/drafts",
+        { params: { query: { workspaceId: selectedWorkspaceId as string } } },
+        { enabled: !!selectedWorkspaceId },
+    );
 
     const memoryId = draft?.id;
 

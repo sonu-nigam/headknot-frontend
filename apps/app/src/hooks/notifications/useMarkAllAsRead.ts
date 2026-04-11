@@ -1,19 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useMarkAllAsRead() {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async () => {
-            const { error } = await api.POST('/notifications/read-all');
-            if (error)
-                throw new Error('Failed to mark all notifications as read');
-        },
+    return $api.useMutation("post", "/notifications/read-all", {
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['notifications'],
-            });
+            invalidateByPath(queryClient, "get", "/notifications");
         },
     });
 }

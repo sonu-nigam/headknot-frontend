@@ -8,9 +8,10 @@ import {
 } from '@workspace/ui/components/dropdown-menu';
 import { SidebarMenuAction } from '@workspace/ui/components/sidebar';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function ProjectMenu({
     isMobile,
@@ -57,34 +58,14 @@ export function ProjectMenu({
 function useClusterMenuActions({ clusterId }: { clusterId: string }) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const workspaceId = useAppStore((s) => s.selectedWorkspaceId);
 
-    const { mutate: deleteCluster } = useMutation({
-        mutationFn: async (clusterId: string) => {
-            const res = await api.PATCH('/clusters/{clusterId}/trash', {
-                params: {
-                    path: {
-                        clusterId,
-                    },
-                },
-            });
-            if (res.error) {
-                return Promise.reject({
-                    message: res.error.message || 'Failed to create cluster',
-                    type: 'server',
-                });
-            }
-            return res.data;
-        },
+    const { mutate: deleteCluster } = $api.useMutation("patch", "/clusters/{clusterId}/trash", {
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['clusters', workspaceId],
-            });
+            invalidateByPath(queryClient, "get", "/clusters");
         },
     });
 
     const viewCluster = () => {
-        // Implement view cluster action
         navigate(`/clusters/${clusterId}`);
     };
 
@@ -93,7 +74,9 @@ function useClusterMenuActions({ clusterId }: { clusterId: string }) {
     };
 
     const trashCluster = () => {
-        deleteCluster(clusterId);
+        deleteCluster({
+            params: { path: { clusterId } },
+        });
     };
 
     return {

@@ -12,5 +12,8 @@
         "openapi-fetch": "^0.10.0",
         "openapi-typescript": "^7.10.1",
         "typescript": "^5.9.3"
+    },
+    "devDependencies": {
+        "openapi-react-query": "0.1.0"
     }
 }

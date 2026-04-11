@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { activityListQueryOptions } from '@/query/options/activity';
+import { $api } from '@workspace/api-client';
 import { Schemas } from '@/types/api';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -33,9 +32,9 @@ interface ActivityFeedProps {
 export function ActivityFeed({ limit = 20 }: ActivityFeedProps) {
     const [displayLimit, setDisplayLimit] = useState(limit);
 
-    const { data: activities, isLoading } = useQuery(
-        activityListQueryOptions({ offset: 0, limit: displayLimit }),
-    );
+    const { data: activities, isLoading } = $api.useQuery("get", "/activity/", {
+        params: { query: { offset: 0, limit: displayLimit } },
+    });
 
     if (isLoading) {
         return (

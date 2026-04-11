@@ -6,11 +6,10 @@ import {
     CardTitle,
 } from '@workspace/ui/components/card';
 import { ProfileForm } from '@/forms/Account/ProfileForm';
-import { useQuery } from '@tanstack/react-query';
-import { profileQueryOptions } from '@/query/options/profile';
+import { $api } from '@workspace/api-client';
 
 export function Profile() {
-    const { data: profile, isLoading } = useQuery(profileQueryOptions);
+    const { data: profile, isLoading } = $api.useQuery("get", "/profile/me");
 
     return (
         <Card>

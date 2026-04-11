@@ -68,8 +68,10 @@ export default function OnboardingPage() {
     async function onSubmit(values: WorkspaceFormValues) {
         createWorkspace.mutate(
             {
-                name: values.name,
-                description: values.description || undefined,
+                body: {
+                    name: values.name,
+                    description: values.description || undefined,
+                },
             },
             {
                 onSuccess: () => {

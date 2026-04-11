@@ -1,8 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import {
-    notificationsQueryOptions,
-    unreadCountQueryOptions,
-} from '@/query/options/notifications';
+import { $api } from '@workspace/api-client';
 import { useMarkAsRead } from '@/hooks/notifications/useMarkAsRead';
 import { useMarkAllAsRead } from '@/hooks/notifications/useMarkAllAsRead';
 import { useDeleteNotification } from '@/hooks/notifications/useDeleteNotification';
@@ -19,10 +15,10 @@ import { CheckIcon, Trash2Icon, CheckCheckIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function NotificationList() {
-    const { data: notifications, isLoading } = useQuery(
-        notificationsQueryOptions()
-    );
-    const { data: unreadCount } = useQuery(unreadCountQueryOptions);
+    const { data: notifications, isLoading } = $api.useQuery("get", "/notifications", {
+        params: { query: { limit: 20, offset: 0 } },
+    });
+    const { data: unreadCount } = $api.useQuery("get", "/notifications/unread/count");
     const markAsRead = useMarkAsRead();
     const markAllAsRead = useMarkAllAsRead();
     const deleteNotification = useDeleteNotification();
@@ -56,7 +52,7 @@ export function NotificationList() {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => markAllAsRead.mutate()}
+                            onClick={() => markAllAsRead.mutate({})}
                             disabled={markAllAsRead.isPending}
                         >
                             <CheckCheckIcon className="h-4 w-4 mr-1" />
@@ -114,7 +110,7 @@ export function NotificationList() {
                                             className="h-8 w-8"
                                             onClick={() =>
                                                 markAsRead.mutate({
-                                                    id: notification.id!,
+                                                    params: { path: { id: notification.id! } },
                                                 })
                                             }
                                             title="Mark as read"
@@ -129,7 +125,7 @@ export function NotificationList() {
                                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                             onClick={() =>
                                                 deleteNotification.mutate({
-                                                    id: notification.id!,
+                                                    params: { path: { id: notification.id! } },
                                                 })
                                             }
                                             title="Delete"

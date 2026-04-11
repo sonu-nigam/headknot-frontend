@@ -24,7 +24,7 @@ export function WorkspaceMembers({
     const handleAddMember = () => {
         if (!newMemberId.trim()) return;
         addMember.mutate(
-            { workspaceId, memberId: newMemberId.trim() },
+            { params: { path: { id: workspaceId } }, body: { memberId: newMemberId.trim() } },
             {
                 onSuccess: () => setNewMemberId(''),
             },
@@ -86,8 +86,7 @@ export function WorkspaceMembers({
                                         className="size-7 text-muted-foreground hover:text-destructive"
                                         onClick={() =>
                                             removeMember.mutate({
-                                                workspaceId,
-                                                memberId: member.value!,
+                                                params: { path: { id: workspaceId, memberId: member.value! } },
                                             })
                                         }
                                         disabled={removeMember.isPending}

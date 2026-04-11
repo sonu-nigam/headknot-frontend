@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@workspace/api-client';
+import { invalidateByPath } from '@/lib/queryKeys';
 
 export function useAddAlias() {
     const queryClient = useQueryClient();
@@ -23,12 +24,7 @@ export function useAddAlias() {
             return data;
         },
         onSuccess: (_data, variables) => {
-            queryClient.invalidateQueries({
-                queryKey: ['knowledge', 'aliases', variables.entityId],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ['knowledge', 'entity', variables.entityId],
-            });
+            invalidateByPath(queryClient, "get", "/knowledge/entities");
         },
     });
 }
