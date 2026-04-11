@@ -2051,6 +2051,12 @@ export interface components {
                 [key: string]: Record<string, never>;
             };
             /** Format: uuid */
+            documentId?: string;
+            sourceType?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceUrl?: string;
+            /** Format: uuid */
             workspaceId?: string;
             /** Format: date-time */
             createdAt?: string;

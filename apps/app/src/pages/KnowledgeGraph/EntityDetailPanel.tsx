@@ -3,10 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
-import { X, Loader2, Trash2, FileText } from 'lucide-react';
+import { X, Loader2, Trash2, ExternalLink } from 'lucide-react';
 import {
     graphEntityByIdQueryOptions,
-    graphEntityEventsQueryOptions,
     graphEntityNeighborsQueryOptions,
     graphEntityChunksQueryOptions,
 } from '@/query/options/graph';
@@ -28,9 +27,6 @@ export function EntityDetailPanel({
 
     const { data: entity, isLoading: entityLoading } = useQuery(
         graphEntityByIdQueryOptions(entityId),
-    );
-    const { data: events, isLoading: eventsLoading } = useQuery(
-        graphEntityEventsQueryOptions(entityId),
     );
     const { data: neighbors, isLoading: neighborsLoading } = useQuery(
         graphEntityNeighborsQueryOptions(entityId),
@@ -54,6 +50,11 @@ export function EntityDetailPanel({
     const normalizedType = normalizeEntityType(entity?.entityType);
     const typeColor = ENTITY_COLORS[normalizedType] ?? ENTITY_COLORS.other;
     const typeLabel = ENTITY_TYPE_LABELS[normalizedType] ?? entity?.entityType ?? 'Other';
+
+    // Deduplicate source document IDs from chunks
+    const sourceDocIds = chunks
+        ? [...new Set(chunks.map((c) => c.documentId).filter(Boolean))]
+        : [];
 
     return (
         <div className="absolute right-0 top-0 w-80 bg-card border-l h-full overflow-y-auto z-20 flex flex-col">
@@ -82,94 +83,27 @@ export function EntityDetailPanel({
                 </div>
             ) : (
                 <div className="flex-1 p-4 space-y-5">
-                    {/* Type Badge */}
-                    <Badge
-                        variant="outline"
-                        className="text-xs"
-                        style={{ borderColor: typeColor, color: typeColor }}
-                    >
-                        {typeLabel}
-                    </Badge>
-
-                    {/* Properties */}
-                    {entity?.attributes &&
-                        Object.keys(entity.attributes).length > 0 && (
-                            <>
-                                <Separator />
-                                <div>
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                        Properties
-                                    </h3>
-                                    <div className="space-y-1.5">
-                                        {Object.entries(entity.attributes).map(
-                                            ([key, value]) => (
-                                                <div
-                                                    key={key}
-                                                    className="flex items-start justify-between gap-2 text-xs"
-                                                >
-                                                    <span className="text-muted-foreground font-medium">
-                                                        {key}
-                                                    </span>
-                                                    <span className="text-right truncate max-w-[60%]">
-                                                        {String(value)}
-                                                    </span>
-                                                </div>
-                                            ),
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                    {/* Events */}
-                    <Separator />
+                    {/* Entity */}
                     <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                            Events
-                        </h3>
-                        {eventsLoading ? (
-                            <div className="flex items-center gap-2 text-muted-foreground py-2">
-                                <Loader2 className="size-3 animate-spin" />
-                                <span className="text-xs">Loading events...</span>
-                            </div>
-                        ) : events && events.length > 0 ? (
-                            <div className="space-y-1.5">
-                                {events.map((event) => (
-                                    <button
-                                        key={event.id}
-                                        onClick={() =>
-                                            event.id && onSelectNode(event.id, 'event')
-                                        }
-                                        className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted transition-colors"
-                                    >
-                                        <p className="text-xs font-medium truncate">
-                                            {event.eventType ?? 'Event'}
-                                        </p>
-                                        {event.description && (
-                                            <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                                                {event.description}
-                                            </p>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-xs text-muted-foreground">
-                                No events found.
-                            </p>
-                        )}
+                        <Badge
+                            variant="outline"
+                            className="text-xs"
+                            style={{ borderColor: typeColor, color: typeColor }}
+                        >
+                            {typeLabel}
+                        </Badge>
                     </div>
 
-                    {/* Neighbors */}
+                    {/* Connected Entities */}
                     <Separator />
                     <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                            Neighbors
+                            Connected Entities
                         </h3>
                         {neighborsLoading ? (
                             <div className="flex items-center gap-2 text-muted-foreground py-2">
                                 <Loader2 className="size-3 animate-spin" />
-                                <span className="text-xs">Loading neighbors...</span>
+                                <span className="text-xs">Loading...</span>
                             </div>
                         ) : neighbors && neighbors.length > 0 ? (
                             <div className="space-y-1.5">
@@ -204,51 +138,42 @@ export function EntityDetailPanel({
                             </div>
                         ) : (
                             <p className="text-xs text-muted-foreground">
-                                No neighbors found.
+                                No connected entities.
                             </p>
                         )}
                     </div>
 
-                    {/* Source Chunks */}
+                    {/* Source URL */}
                     <Separator />
                     <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                            <span className="flex items-center gap-1.5">
-                                <FileText className="size-3" />
-                                Source Chunks
-                            </span>
+                            Source
                         </h3>
                         {chunksLoading ? (
                             <div className="flex items-center gap-2 text-muted-foreground py-2">
                                 <Loader2 className="size-3 animate-spin" />
-                                <span className="text-xs">Loading chunks...</span>
+                                <span className="text-xs">Loading...</span>
                             </div>
-                        ) : chunks && chunks.length > 0 ? (
-                            <div className="space-y-2">
-                                {chunks.map((chunk, idx) => (
+                        ) : sourceDocIds.length > 0 ? (
+                            <div className="space-y-1.5">
+                                {sourceDocIds.map((docId) => (
                                     <div
-                                        key={chunk.chunkId ?? idx}
-                                        className="rounded-lg border px-3 py-2 space-y-1"
+                                        key={docId}
+                                        className="flex items-center gap-2 rounded-lg border px-3 py-2"
                                     >
-                                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                                            {chunk.sequenceNumber != null && (
-                                                <span>Chunk #{chunk.sequenceNumber}</span>
-                                            )}
-                                            {chunk.createdAt && (
-                                                <span>{new Date(chunk.createdAt).toLocaleDateString()}</span>
-                                            )}
-                                        </div>
-                                        {chunk.content && (
-                                            <p className="text-xs text-foreground/90 whitespace-pre-wrap line-clamp-4">
-                                                {chunk.content}
-                                            </p>
-                                        )}
+                                        <ExternalLink className="size-3 text-muted-foreground shrink-0" />
+                                        <span
+                                            className="text-xs font-mono truncate"
+                                            title={docId}
+                                        >
+                                            {docId}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <p className="text-xs text-muted-foreground">
-                                No source chunks found.
+                                No source documents.
                             </p>
                         )}
                     </div>
