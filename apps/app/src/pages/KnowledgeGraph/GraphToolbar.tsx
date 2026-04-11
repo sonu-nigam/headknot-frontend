@@ -8,8 +8,13 @@ import {
     Clock,
     PlusCircle,
     Link,
+    Trash2,
 } from 'lucide-react';
 import { useGraphStore } from '@/state/graphStore';
+import { $api } from '@workspace/api-client';
+import { useAppStore } from '@/state/store';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateByPath } from '@/lib/queryKeys';
 import { ENTITY_COLORS, EVENT_EDGE_COLOR, ENTITY_TYPE_LABELS } from './constants';
 
 interface GraphToolbarProps {
@@ -33,6 +38,14 @@ export function GraphToolbar({
     );
     const pathFinderOpen = useGraphStore((s) => s.pathFinderOpen);
     const temporalFilterOpen = useGraphStore((s) => s.temporalFilterOpen);
+    const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
+    const queryClient = useQueryClient();
+
+    const clearData = $api.useMutation("delete", "/graph/data", {
+        onSuccess: () => {
+            invalidateByPath(queryClient, "get", "/graph");
+        },
+    });
 
     return (
         <div className="w-12 bg-card border-r flex flex-col items-center py-4 gap-2">
@@ -107,6 +120,26 @@ export function GraphToolbar({
                 title="Create Event"
             >
                 <Link className="size-4" />
+            </Button>
+
+            <Separator className="w-6" />
+
+            {/* Clear Data (testing) */}
+            <Button
+                variant="ghost"
+                size="icon"
+                className="size-9 text-destructive hover:text-destructive"
+                onClick={() => {
+                    if (!selectedWorkspaceId) return;
+                    if (!confirm('Clear all graph data for this workspace?')) return;
+                    clearData.mutate({
+                        params: { query: { workspaceId: selectedWorkspaceId } },
+                    });
+                }}
+                disabled={clearData.isPending || !selectedWorkspaceId}
+                title="Clear All Graph Data"
+            >
+                <Trash2 className="size-4" />
             </Button>
 
             {/* Spacer */}

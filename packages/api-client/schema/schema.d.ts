@@ -1601,6 +1601,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/graph/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Clear all graph data for a workspace
+         * @description Deletes all entities, event nodes, documents, chunks, chunk links, and AGE graph vertices for the given workspace.
+         */
+        delete: operations["clearAll"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5493,6 +5513,26 @@ export interface operations {
             };
             /** @description Notification not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    clearAll: {
+        parameters: {
+            query: {
+                workspaceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
