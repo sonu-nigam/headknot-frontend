@@ -6,6 +6,7 @@ import {
     Maximize,
     Route,
     Clock,
+    MessageCircleQuestion,
     PlusCircle,
     Link,
     Trash2,
@@ -30,6 +31,8 @@ export function GraphToolbar({
 }: GraphToolbarProps) {
     const togglePathFinder = useGraphStore((s) => s.togglePathFinder);
     const toggleTemporalFilter = useGraphStore((s) => s.toggleTemporalFilter);
+    const toggleQAPanel = useGraphStore((s) => s.toggleQAPanel);
+    const qaPanelOpen = useGraphStore((s) => s.qaPanelOpen);
     const setCreateEntityDialogOpen = useGraphStore(
         (s) => s.setCreateEntityDialogOpen,
     );
@@ -98,6 +101,15 @@ export function GraphToolbar({
                 title="Temporal Filter"
             >
                 <Clock className="size-4" />
+            </Button>
+            <Button
+                variant={qaPanelOpen ? 'default' : 'ghost'}
+                size="icon"
+                className="size-9"
+                onClick={toggleQAPanel}
+                title="Q&A"
+            >
+                <MessageCircleQuestion className="size-4" />
             </Button>
 
             <Separator className="w-6" />

@@ -13,6 +13,7 @@ import { PathFinderPanel } from './PathFinderPanel';
 import { TemporalFilterPanel } from './TemporalFilterPanel';
 import { CreateEntityDialog } from './CreateEntityDialog';
 import { CreateEventDialog } from './CreateEventDialog';
+import { QAPanel } from './QAPanel';
 import { Loader2 } from 'lucide-react';
 
 export { KnowledgeGraphPage };
@@ -27,11 +28,13 @@ function KnowledgeGraphPage() {
         temporalFilterOpen,
         createEntityDialogOpen,
         createEventDialogOpen,
+        qaPanelOpen,
         entityTypeFilters,
         selectNode,
         clearSelection,
         togglePathFinder,
         toggleTemporalFilter,
+        toggleQAPanel,
         setCreateEntityDialogOpen,
         setCreateEventDialogOpen,
     } = useGraphStore();
@@ -194,6 +197,9 @@ function KnowledgeGraphPage() {
                 )}
                 {temporalFilterOpen && (
                     <TemporalFilterPanel onClose={toggleTemporalFilter} />
+                )}
+                {qaPanelOpen && (
+                    <QAPanel onClose={toggleQAPanel} />
                 )}
 
                 {/* Dialogs */}

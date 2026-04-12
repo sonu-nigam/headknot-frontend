@@ -18,6 +18,8 @@ interface GraphState {
     toggleEntityTypeFilter: (type: string) => void;
     setCreateEntityDialogOpen: (open: boolean) => void;
     setCreateEventDialogOpen: (open: boolean) => void;
+    qaPanelOpen: boolean;
+    toggleQAPanel: () => void;
 }
 
 export const useGraphStore = create<GraphState>((set) => ({
@@ -29,6 +31,7 @@ export const useGraphStore = create<GraphState>((set) => ({
     entityTypeFilters: new Set<string>(),
     createEntityDialogOpen: false,
     createEventDialogOpen: false,
+    qaPanelOpen: false,
 
     selectNode: (id, type) =>
         set({ selectedNodeId: id, selectedNodeType: type }),
@@ -50,4 +53,6 @@ export const useGraphStore = create<GraphState>((set) => ({
         set({ createEntityDialogOpen: open }),
     setCreateEventDialogOpen: (open) =>
         set({ createEventDialogOpen: open }),
+    toggleQAPanel: () =>
+        set((s) => ({ qaPanelOpen: !s.qaPanelOpen })),
 }));
