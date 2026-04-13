@@ -5,9 +5,11 @@ import { invalidateByPath } from '@/lib/queryKeys';
 export function useDeleteGraphEvent() {
     const queryClient = useQueryClient();
 
-    return $api.useMutation("delete", "/graph/events/{id}", {
+    return $api.useMutation("delete", "/events/{id}", {
         onSuccess: () => {
-            invalidateByPath(queryClient, "get", "/graph");
+            invalidateByPath(queryClient, "get", "/entities");
+            invalidateByPath(queryClient, "get", "/events");
+            invalidateByPath(queryClient, "get", "/query/graph");
         },
     });
 }

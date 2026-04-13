@@ -5,9 +5,11 @@ import { invalidateByPath } from '@/lib/queryKeys';
 export function useCreateGraphEvent() {
     const queryClient = useQueryClient();
 
-    return $api.useMutation("post", "/graph/events", {
+    return $api.useMutation("post", "/events", {
         onSuccess: () => {
-            invalidateByPath(queryClient, "get", "/graph");
+            invalidateByPath(queryClient, "get", "/entities");
+            invalidateByPath(queryClient, "get", "/events");
+            invalidateByPath(queryClient, "get", "/query/graph");
         },
     });
 }

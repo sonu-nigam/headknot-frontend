@@ -22,7 +22,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
     const [shouldQuery, setShouldQuery] = useState(false);
 
     const { data: entities } = $api.useQuery(
-        "get", "/graph/entities",
+        "get", "/entities",
         { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );
@@ -32,7 +32,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
         isLoading: pathLoading,
         isError: pathError,
     } = $api.useQuery(
-        "get", "/graph/query/path",
+        "get", "/query/path",
         { params: { query: { from: fromId, to: toId } } },
         { enabled: shouldQuery && !!fromId && !!toId },
     );

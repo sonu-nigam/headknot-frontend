@@ -46,7 +46,9 @@ export function GraphToolbar({
 
     const clearData = $api.useMutation("delete", "/graph/data", {
         onSuccess: () => {
-            invalidateByPath(queryClient, "get", "/graph");
+            invalidateByPath(queryClient, "get", "/entities");
+            invalidateByPath(queryClient, "get", "/events");
+            invalidateByPath(queryClient, "get", "/query/graph");
         },
     });
 

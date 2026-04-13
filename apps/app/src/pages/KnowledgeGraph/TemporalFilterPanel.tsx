@@ -21,7 +21,7 @@ export function TemporalFilterPanel({ onClose }: TemporalFilterPanelProps) {
     const [shouldQuery, setShouldQuery] = useState(false);
 
     const { data: entities } = $api.useQuery(
-        "get", "/graph/entities",
+        "get", "/entities",
         { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );
@@ -31,7 +31,7 @@ export function TemporalFilterPanel({ onClose }: TemporalFilterPanelProps) {
         isLoading: eventsLoading,
         isError: eventsError,
     } = $api.useQuery(
-        "get", "/graph/query/temporal",
+        "get", "/query/temporal",
         { params: { query: { entityId, from: fromDate, to: toDate } } },
         { enabled: shouldQuery && !!entityId && !!fromDate && !!toDate },
     );

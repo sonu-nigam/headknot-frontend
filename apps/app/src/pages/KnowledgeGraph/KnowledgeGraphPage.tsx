@@ -1,6 +1,5 @@
-import { useRef, useMemo } from 'react';
-import { useQueries } from '@tanstack/react-query';
-import { api, $api } from '@workspace/api-client';
+import { useRef } from 'react';
+import { $api } from '@workspace/api-client';
 import AppLayout from '@/components/AppLayout';
 import { useAppStore } from '@/state/store';
 import { useGraphStore } from '@/state/graphStore';
@@ -45,52 +44,15 @@ function KnowledgeGraphPage() {
         fitToScreen: () => void;
     } | null>(null);
 
-    // 1. Fetch all entities
-    const { data: entities, isLoading: entitiesLoading } = $api.useQuery(
-        "get", "/graph/entities",
+    // Fetch full graph visualization data in a single request
+    const { data: graphData, isLoading } = $api.useQuery(
+        "get", "/query/graph",
         { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );
 
-    // 2. Fetch event list (no subject/object, just IDs)
-    const { data: eventList, isLoading: eventsLoading } = $api.useQuery(
-        "get", "/graph/events",
-        { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
-        { enabled: !!selectedWorkspaceId },
-    );
-
-    // 3. Extract event IDs and fetch details (which include subject/object)
-    const eventIds = useMemo(
-        () =>
-            (eventList ?? [])
-                .map((e) => e.id)
-                .filter((id): id is string => !!id),
-        [eventList],
-    );
-
-    const eventQueries = useQueries({
-        queries: eventIds.map(id => ({
-            queryKey: ["get", "/graph/events/{id}", { params: { path: { id } } }] as const,
-            queryFn: async () => {
-                const { data, error } = await api.GET("/graph/events/{id}", { params: { path: { id } } });
-                if (error) throw error;
-                return data;
-            },
-        })),
-    });
-    const eventDetails = eventQueries
-        .filter(q => q.data != null)
-        .map(q => q.data!);
-    const detailsLoading = eventQueries.some(q => q.isLoading);
-
-    // 4. Transform into d3 nodes/links
-    const { nodes, links } = useGraphData(
-        entities,
-        eventDetails,
-        entityTypeFilters,
-    );
-
-    const isLoading = entitiesLoading || eventsLoading || detailsLoading;
+    // Transform into d3 nodes/links
+    const { nodes, links } = useGraphData(graphData, entityTypeFilters);
 
     const handleNodeClick = (nodeId: string) => {
         if (!nodeId) {
@@ -146,13 +108,13 @@ function KnowledgeGraphPage() {
                             <div className="h-8 bg-card border-t flex items-center px-4 gap-4 text-xs text-muted-foreground shrink-0">
                                 <span>
                                     <strong className="text-foreground">
-                                        {entities?.length ?? 0}
+                                        {graphData?.nodes?.length ?? 0}
                                     </strong>{' '}
                                     entities
                                 </span>
                                 <span>
                                     <strong className="text-foreground">
-                                        {eventDetails.length}
+                                        {graphData?.edges?.length ?? 0}
                                     </strong>{' '}
                                     events
                                 </span>

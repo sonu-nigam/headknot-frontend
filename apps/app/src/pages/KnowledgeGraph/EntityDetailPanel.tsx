@@ -21,17 +21,17 @@ export function EntityDetailPanel({
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     const { data: entity, isLoading: entityLoading } = $api.useQuery(
-        "get", "/graph/entities/{id}",
+        "get", "/entities/{id}",
         { params: { path: { id: entityId } } },
         { enabled: !!entityId },
     );
     const { data: neighbors, isLoading: neighborsLoading } = $api.useQuery(
-        "get", "/graph/entities/{id}/neighbors",
+        "get", "/entities/{id}/neighbors",
         { params: { path: { id: entityId } } },
         { enabled: !!entityId },
     );
     const { data: chunks, isLoading: chunksLoading } = $api.useQuery(
-        "get", "/graph/entities/{id}/chunks",
+        "get", "/entities/{id}/chunks",
         { params: { path: { id: entityId } } },
         { enabled: !!entityId },
     );

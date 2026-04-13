@@ -173,16 +173,36 @@ export function ForceGraph({
         // ---- link labels (event type) ----
         const linkLabelGroup = zoomContainer.append('g').attr('class', 'link-labels');
 
-        const linkLabelSelection = linkLabelGroup
-            .selectAll<SVGTextElement, SimLink>('text')
+        const linkLabelGroups = linkLabelGroup
+            .selectAll<SVGGElement, SimLink>('g')
             .data(simLinks)
-            .join('text')
+            .join('g');
+
+        // Background rect for each link label
+        linkLabelGroups
+            .append('rect')
+            .attr('class', 'link-label-bg')
+            .attr('rx', 3)
+            .attr('fill', 'rgba(0,0,0,0.7)')
+            .attr('pointer-events', 'none');
+
+        linkLabelGroups
+            .append('text')
             .text((d) => d.eventLabel.replace(/_/g, ' ').toLowerCase())
             .attr('text-anchor', 'middle')
             .attr('fill', '#9ca3af')
-            .attr('font-size', '9px')
+            .attr('font-size', '10px')
             .attr('pointer-events', 'none')
-            .attr('dy', -6);
+            .attr('dy', -8)
+            .each(function () {
+                const bbox = (this as SVGTextElement).getBBox();
+                d3.select(this.parentNode as Element)
+                    .select('.link-label-bg')
+                    .attr('x', bbox.x - 3)
+                    .attr('y', bbox.y - 1)
+                    .attr('width', bbox.width + 6)
+                    .attr('height', bbox.height + 2);
+            });
 
         // ---- node groups ----
         const nodeGroup = zoomContainer.append('g').attr('class', 'nodes');
@@ -227,16 +247,33 @@ export function ForceGraph({
         });
 
         // ---- Labels below nodes ----
-        nodeSelection
-            .append('text')
-            .attr('class', 'node-label')
-            .text((d) => truncateLabel(d.label))
-            .attr('text-anchor', 'middle')
-            .attr('dy', ENTITY_RADIUS + 14)
-            .attr('fill', '#d1d5db')
-            .attr('font-size', '11px')
-            .attr('font-weight', '600')
-            .attr('pointer-events', 'none');
+        nodeSelection.each(function (d) {
+            const g = d3.select(this);
+            const label = truncateLabel(d.label);
+
+            // Background rect for readability
+            const text = g
+                .append('text')
+                .attr('class', 'node-label')
+                .text(label)
+                .attr('text-anchor', 'middle')
+                .attr('dy', ENTITY_RADIUS + 16)
+                .attr('fill', '#e5e7eb')
+                .attr('font-size', '12px')
+                .attr('font-weight', '600')
+                .attr('pointer-events', 'none');
+
+            // Measure text and insert background rect before it
+            const bbox = (text.node() as SVGTextElement).getBBox();
+            g.insert('rect', '.node-label')
+                .attr('x', bbox.x - 3)
+                .attr('y', bbox.y - 1)
+                .attr('width', bbox.width + 6)
+                .attr('height', bbox.height + 2)
+                .attr('rx', 3)
+                .attr('fill', 'rgba(0,0,0,0.7)')
+                .attr('pointer-events', 'none');
+        });
 
         // ---- Hover effects ----
         nodeSelection
@@ -276,6 +313,11 @@ export function ForceGraph({
         nodeSelection.call(drag);
 
         // ---- simulation ----
+        // Scale forces based on graph size so large graphs spread out more
+        const nodeCount = simNodes.length;
+        const linkDist = Math.max(300, 200 + nodeCount * 4);
+        const chargeStrength = Math.min(-400, -(300 + nodeCount * 8));
+
         const simulation = d3
             .forceSimulation<SimNode>(simNodes)
             .force(
@@ -283,11 +325,13 @@ export function ForceGraph({
                 d3
                     .forceLink<SimNode, SimLink>(simLinks)
                     .id((d) => d.id)
-                    .distance(160),
+                    .distance(linkDist),
             )
-            .force('charge', d3.forceManyBody().strength(-350))
+            .force('charge', d3.forceManyBody().strength(chargeStrength))
             .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collide', d3.forceCollide(40));
+            .force('x', d3.forceX(width / 2).strength(0.03))
+            .force('y', d3.forceY(height / 2).strength(0.03))
+            .force('collide', d3.forceCollide(70));
 
         simulation.on('tick', () => {
             linkSelection
@@ -302,16 +346,11 @@ export function ForceGraph({
                 .attr('x2', (d) => (d.target as SimNode).x!)
                 .attr('y2', (d) => (d.target as SimNode).y!);
 
-            linkLabelSelection
-                .attr('x', (d) => {
+            linkLabelGroups
+                .attr('transform', (d) => {
                     const s = d.source as SimNode;
                     const t = d.target as SimNode;
-                    return (s.x! + t.x!) / 2;
-                })
-                .attr('y', (d) => {
-                    const s = d.source as SimNode;
-                    const t = d.target as SimNode;
-                    return (s.y! + t.y!) / 2;
+                    return `translate(${(s.x! + t.x!) / 2},${(s.y! + t.y!) / 2})`;
                 });
 
             nodeSelection.attr('transform', (d) => `translate(${d.x},${d.y})`);
@@ -336,7 +375,7 @@ export function ForceGraph({
 
         const nodeGroups = svg.selectAll<SVGGElement, SimNode>('g.nodes > g');
         const visibleLinks = svg.selectAll<SVGLineElement, SimLink>('line.visible-link');
-        const linkLabels = svg.selectAll<SVGTextElement, SimLink>('g.link-labels > text');
+        const linkLabelGrps = svg.selectAll<SVGGElement, SimLink>('g.link-labels > g');
 
         if (highlightedPath && highlightedPath.length > 0) {
             const pathSet = new Set(highlightedPath);
@@ -365,15 +404,16 @@ export function ForceGraph({
                     .attr('marker-end', inPath ? 'url(#arrow-highlight)' : 'url(#arrow-event)');
             });
 
-            linkLabels.each(function (d) {
+            linkLabelGrps.each(function (d) {
                 const srcId = linkId(d.source!);
                 const tgtId = linkId(d.target!);
                 const inPath = pathSet.has(srcId) && pathSet.has(tgtId);
-                d3.select(this)
+                const grp = d3.select(this);
+                grp.transition().duration(300).attr('opacity', inPath ? 1 : 0.1);
+                grp.select('text')
                     .transition()
                     .duration(300)
-                    .attr('fill', inPath ? HIGHLIGHT_COLOR : '#9ca3af')
-                    .attr('opacity', inPath ? 1 : 0.1);
+                    .attr('fill', inPath ? HIGHLIGHT_COLOR : '#9ca3af');
             });
 
             return;
@@ -406,13 +446,14 @@ export function ForceGraph({
                         .attr('marker-end', isSelected ? 'url(#arrow-highlight)' : 'url(#arrow-event)');
                 });
 
-                linkLabels.each(function (d) {
+                linkLabelGrps.each(function (d) {
                     const isSelected = d.eventId === selectedNodeId;
-                    d3.select(this)
+                    const grp = d3.select(this);
+                    grp.transition().duration(300).attr('opacity', isSelected ? 1 : 0.1);
+                    grp.select('text')
                         .transition()
                         .duration(300)
-                        .attr('fill', isSelected ? HIGHLIGHT_COLOR : '#9ca3af')
-                        .attr('opacity', isSelected ? 1 : 0.1);
+                        .attr('fill', isSelected ? HIGHLIGHT_COLOR : '#9ca3af');
                 });
 
                 return;
@@ -459,7 +500,7 @@ export function ForceGraph({
                     .attr('stroke-width', connected ? 3 : 2);
             });
 
-            linkLabels.each(function (d) {
+            linkLabelGrps.each(function (d) {
                 const connected = connectedEventIds.has(d.eventId);
                 d3.select(this)
                     .transition()
@@ -485,11 +526,14 @@ export function ForceGraph({
             .attr('stroke-opacity', 0.5)
             .attr('stroke-width', 2)
             .attr('marker-end', 'url(#arrow-event)');
-        linkLabels
+        linkLabelGrps
             .transition()
             .duration(300)
-            .attr('fill', '#9ca3af')
             .attr('opacity', 1);
+        linkLabelGrps.select('text')
+            .transition()
+            .duration(300)
+            .attr('fill', '#9ca3af');
     }, [selectedNodeId, highlightedPath, width, height, nodes, links]);
 
     return (

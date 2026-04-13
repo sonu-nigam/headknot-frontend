@@ -6,7 +6,7 @@ export interface GraphNode {
     label: string;
     type: 'entity';
     entityType?: string;
-    data: Schemas['GraphEntityResponse'];
+    data: Schemas['Node'];
 }
 
 export interface GraphLink {
@@ -14,66 +14,62 @@ export interface GraphLink {
     target: string;
     eventId: string;
     eventLabel: string;
-    eventData: Schemas['EventNodeDetailResponse'];
+    eventData: Schemas['Edge'];
 }
 
 export function useGraphData(
-    entities: Schemas['GraphEntityResponse'][] | undefined,
-    eventDetails: Schemas['EventNodeDetailResponse'][] | undefined,
+    graphData: Schemas['GraphVisualizationResponse'] | undefined,
     entityTypeFilters: Set<string>,
 ) {
     return useMemo(() => {
         const nodes: GraphNode[] = [];
         const links: GraphLink[] = [];
 
-        if (!entities) return { nodes, links };
+        if (!graphData?.nodes) return { nodes, links };
 
         const entityMap = new Set<string>();
 
-        for (const entity of entities) {
-            if (!entity.id) continue;
+        for (const node of graphData.nodes) {
+            if (!node.id) continue;
             if (
                 entityTypeFilters.size > 0 &&
-                entity.entityType &&
-                !entityTypeFilters.has(entity.entityType.toLowerCase())
+                node.entityType &&
+                !entityTypeFilters.has(node.entityType.toLowerCase())
             ) {
                 continue;
             }
-            entityMap.add(entity.id);
+            entityMap.add(node.id);
             nodes.push({
-                id: entity.id,
-                label: entity.name ?? 'Unnamed',
+                id: node.id,
+                label: node.name ?? 'Unnamed',
                 type: 'entity',
-                entityType: entity.entityType?.toLowerCase(),
-                data: entity,
+                entityType: node.entityType?.toLowerCase(),
+                data: node,
             });
         }
 
-        if (!eventDetails) return { nodes, links };
+        if (!graphData.edges) return { nodes, links };
 
-        const addedEvents = new Set<string>();
+        const addedEdges = new Set<string>();
 
-        for (const event of eventDetails) {
-            if (!event.id) continue;
-            if (addedEvents.has(event.id)) continue;
+        for (const edge of graphData.edges) {
+            if (!edge.id) continue;
+            if (addedEdges.has(edge.id)) continue;
 
-            const subjectId = event.subject?.id;
-            const objectId = event.object?.id;
+            if (!edge.source || !edge.target) continue;
+            if (!entityMap.has(edge.source) || !entityMap.has(edge.target)) continue;
 
-            if (!subjectId || !objectId) continue;
-            if (!entityMap.has(subjectId) || !entityMap.has(objectId)) continue;
-
-            addedEvents.add(event.id);
+            addedEdges.add(edge.id);
 
             links.push({
-                source: subjectId,
-                target: objectId,
-                eventId: event.id,
-                eventLabel: event.eventType ?? 'Event',
-                eventData: event,
+                source: edge.source,
+                target: edge.target,
+                eventId: edge.id,
+                eventLabel: edge.eventType ?? 'Event',
+                eventData: edge,
             });
         }
 
         return { nodes, links };
-    }, [entities, eventDetails, entityTypeFilters]);
+    }, [graphData, entityTypeFilters]);
 }

@@ -21,7 +21,7 @@ export function EventDetailPanel({
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     const { data: event, isLoading } = $api.useQuery(
-        "get", "/graph/events/{id}",
+        "get", "/events/{id}",
         { params: { path: { id: eventId } } },
         { enabled: !!eventId },
     );

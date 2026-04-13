@@ -5,9 +5,11 @@ import { invalidateByPath } from '@/lib/queryKeys';
 export function useCreateGraphEntity() {
     const queryClient = useQueryClient();
 
-    return $api.useMutation("post", "/graph/entities", {
+    return $api.useMutation("post", "/entities", {
         onSuccess: () => {
-            invalidateByPath(queryClient, "get", "/graph");
+            invalidateByPath(queryClient, "get", "/entities");
+            invalidateByPath(queryClient, "get", "/events");
+            invalidateByPath(queryClient, "get", "/query/graph");
         },
     });
 }

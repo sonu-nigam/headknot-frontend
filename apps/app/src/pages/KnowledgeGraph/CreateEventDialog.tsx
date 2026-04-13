@@ -58,7 +58,7 @@ export function CreateEventDialog({
     const createMutation = useCreateGraphEvent();
 
     const { data: entities } = $api.useQuery(
-        "get", "/graph/entities",
+        "get", "/entities",
         { params: { query: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );

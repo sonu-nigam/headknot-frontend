@@ -603,7 +603,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/events": {
+    "/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -621,7 +621,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/entities": {
+    "/entities": {
         parameters: {
             query?: never;
             header?: never;
@@ -952,6 +952,60 @@ export interface paths {
          * @description Hybrid search across memories, spaces, and other content using full-text search + vector similarity. Returns an AI-generated primary answer with source attribution, plus alternative results.
          */
         get: operations["search_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/query/temporal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find events for entity within time range */
+        get: operations["temporalQuery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/query/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find paths between two entities */
+        get: operations["findPaths"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/query/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get full graph visualization data
+         * @description Returns all nodes and edges for a workspace in a single response
+         */
+        get: operations["getGraphVisualization"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1320,41 +1374,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/query/temporal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Find events for entity within time range */
-        get: operations["temporalQuery"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/query/path": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Find paths between two entities */
-        get: operations["findPaths"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/graph/events/{id}": {
+    "/events/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1372,7 +1392,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/entities/{id}": {
+    "/entities/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1390,7 +1410,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/entities/{id}/neighbors": {
+    "/entities/{id}/neighbors": {
         parameters: {
             query?: never;
             header?: never;
@@ -1407,7 +1427,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/entities/{id}/events": {
+    "/entities/{id}/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -1424,7 +1444,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/graph/entities/{id}/chunks": {
+    "/entities/{id}/chunks": {
         parameters: {
             query?: never;
             header?: never;
@@ -2183,6 +2203,52 @@ export interface components {
             snippet?: string;
             responseType?: string;
         };
+        EventNodeResponse: {
+            /** Format: uuid */
+            id?: string;
+            eventType?: string;
+            description?: string;
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /** Format: double */
+            confidence?: number;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
+            temporalType?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        GraphPathResponse: {
+            entities?: components["schemas"]["GraphEntityResponse"][];
+            eventNodes?: components["schemas"]["EventNodeResponse"][];
+        };
+        Edge: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            source?: string;
+            /** Format: uuid */
+            target?: string;
+            eventType?: string;
+            description?: string;
+            /** Format: double */
+            confidence?: number;
+        };
+        GraphVisualizationResponse: {
+            nodes?: components["schemas"]["Node"][];
+            edges?: components["schemas"]["Edge"][];
+        };
+        Node: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            entityType?: string;
+        };
         /** @description Notification details response */
         NotificationResponse: {
             /**
@@ -2258,30 +2324,6 @@ export interface components {
              * @description Last sync timestamp
              */
             lastSyncedAt?: string;
-        };
-        EventNodeResponse: {
-            /** Format: uuid */
-            id?: string;
-            eventType?: string;
-            description?: string;
-            metadata?: {
-                [key: string]: Record<string, never>;
-            };
-            /** Format: double */
-            confidence?: number;
-            /** Format: date-time */
-            validFrom?: string;
-            /** Format: date-time */
-            validTo?: string;
-            temporalType?: string;
-            /** Format: uuid */
-            workspaceId?: string;
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        GraphPathResponse: {
-            entities?: components["schemas"]["GraphEntityResponse"][];
-            eventNodes?: components["schemas"]["EventNodeResponse"][];
         };
         ChunkResponse: {
             /** Format: uuid */
@@ -4475,6 +4517,76 @@ export interface operations {
             };
         };
     };
+    temporalQuery: {
+        parameters: {
+            query: {
+                entityId: string;
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventNodeResponse"][];
+                };
+            };
+        };
+    };
+    findPaths: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                maxDepth?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphPathResponse"][];
+                };
+            };
+        };
+    };
+    getGraphVisualization: {
+        parameters: {
+            query: {
+                workspaceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphVisualizationResponse"];
+                };
+            };
+        };
+    };
     listNotifications: {
         parameters: {
             query?: {
@@ -5050,54 +5162,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    temporalQuery: {
-        parameters: {
-            query: {
-                entityId: string;
-                from: string;
-                to: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventNodeResponse"][];
-                };
-            };
-        };
-    };
-    findPaths: {
-        parameters: {
-            query: {
-                from: string;
-                to: string;
-                maxDepth?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GraphPathResponse"][];
-                };
             };
         };
     };
