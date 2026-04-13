@@ -2090,16 +2090,19 @@ export interface components {
             attributes?: {
                 [key: string]: Record<string, never>;
             };
-            /** Format: uuid */
-            documentId?: string;
-            sourceType?: string;
-            /** Format: uuid */
-            sourceId?: string;
-            sourceUrl?: string;
+            sources?: components["schemas"]["SourceResponse"][];
             /** Format: uuid */
             workspaceId?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        SourceResponse: {
+            /** Format: uuid */
+            documentId?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceType?: string;
+            sourceUrl?: string;
         };
         CreateGraphEntityRequest: {
             name?: string;

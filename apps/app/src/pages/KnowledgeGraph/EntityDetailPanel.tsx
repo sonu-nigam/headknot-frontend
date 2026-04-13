@@ -30,12 +30,6 @@ export function EntityDetailPanel({
         { params: { path: { id: entityId } } },
         { enabled: !!entityId },
     );
-    const { data: chunks, isLoading: chunksLoading } = $api.useQuery(
-        "get", "/entities/{id}/chunks",
-        { params: { path: { id: entityId } } },
-        { enabled: !!entityId },
-    );
-
     const deleteMutation = useDeleteGraphEntity();
 
     const handleDelete = () => {
@@ -52,10 +46,7 @@ export function EntityDetailPanel({
     const typeColor = ENTITY_COLORS[normalizedType] ?? ENTITY_COLORS.other;
     const typeLabel = ENTITY_TYPE_LABELS[normalizedType] ?? entity?.entityType ?? 'Other';
 
-    // Deduplicate source document IDs from chunks
-    const sourceDocIds = chunks
-        ? [...new Set(chunks.map((c) => c.documentId).filter(Boolean))]
-        : [];
+    const sources = entity?.sources ?? [];
 
     return (
         <div className="absolute right-0 top-0 w-80 bg-card border-l h-full overflow-y-auto z-20 flex flex-col">
@@ -144,37 +135,47 @@ export function EntityDetailPanel({
                         )}
                     </div>
 
-                    {/* Source URL */}
+                    {/* Sources */}
                     <Separator />
                     <div>
                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                            Source
+                            Sources
                         </h3>
-                        {chunksLoading ? (
-                            <div className="flex items-center gap-2 text-muted-foreground py-2">
-                                <Loader2 className="size-3 animate-spin" />
-                                <span className="text-xs">Loading...</span>
-                            </div>
-                        ) : sourceDocIds.length > 0 ? (
+                        {sources.length > 0 ? (
                             <div className="space-y-1.5">
-                                {sourceDocIds.map((docId) => (
-                                    <div
-                                        key={docId}
-                                        className="flex items-center gap-2 rounded-lg border px-3 py-2"
-                                    >
-                                        <ExternalLink className="size-3 text-muted-foreground shrink-0" />
-                                        <span
-                                            className="text-xs font-mono truncate"
-                                            title={docId}
+                                {sources.map((source, idx) =>
+                                    source.sourceUrl ? (
+                                        <a
+                                            key={source.sourceId ?? idx}
+                                            href={source.sourceUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 rounded-lg border px-3 py-2 hover:bg-muted transition-colors"
                                         >
-                                            {docId}
-                                        </span>
-                                    </div>
-                                ))}
+                                            <ExternalLink className="size-3 text-primary shrink-0" />
+                                            <span
+                                                className="text-xs text-primary truncate underline"
+                                                title={source.sourceUrl}
+                                            >
+                                                {source.sourceUrl}
+                                            </span>
+                                        </a>
+                                    ) : (
+                                        <div
+                                            key={source.sourceId ?? idx}
+                                            className="flex items-center gap-2 rounded-lg border px-3 py-2"
+                                        >
+                                            <ExternalLink className="size-3 text-muted-foreground shrink-0" />
+                                            <span className="text-xs font-mono truncate text-muted-foreground" title={source.documentId}>
+                                                {source.sourceType ?? source.documentId ?? 'Unknown'}
+                                            </span>
+                                        </div>
+                                    ),
+                                )}
                             </div>
                         ) : (
                             <p className="text-xs text-muted-foreground">
-                                No source documents.
+                                No sources.
                             </p>
                         )}
                     </div>
