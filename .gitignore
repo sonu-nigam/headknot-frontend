@@ -86,4 +86,7 @@ Thumbs.db
 tmp/
 temp/
 
+# MCP config
+.mcp.json
+
 # Docker / local
