@@ -52,13 +52,13 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
 # Stage 3: Production stage for "Website"
-FROM nginx:alpine AS website-production
+# FROM nginx:alpine AS website-production
 # Point this to wherever your website build output lives
-COPY --from=builder /app/apps/website/dist /usr/share/nginx/html
-RUN echo 'server { \
-    listen 80; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { try_files $uri $uri/ /index.html; } \
-}' > /etc/nginx/conf.d/default.conf
-CMD ["nginx", "-g", "daemon off;"]
+# COPY --from=builder /app/apps/website/dist /usr/share/nginx/html
+# RUN echo 'server { \
+#     listen 80; \
+#     root /usr/share/nginx/html; \
+#     index index.html; \
+#     location / { try_files $uri $uri/ /index.html; } \
+# }' > /etc/nginx/conf.d/default.conf
+# CMD ["nginx", "-g", "daemon off;"]
