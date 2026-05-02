@@ -3,14 +3,25 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+            target: app-production
+            args:
+                VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
         ports:
             - '3000:80'
         environment:
             - NODE_ENV=production
+            - API_BACKEND_URL=${API_BACKEND_URL:-https://api.headknot.app}
         restart: unless-stopped
-        # Uncomment if you need to connect to a backend API running on host
-        # extra_hosts:
-        #   - "host.docker.internal:host-gateway"
+
+    # Future: uncomment when apps/website exists
+    # website:
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfile
+    #         target: website-production
+    #     ports:
+    #         - '3001:80'
+    #     restart: unless-stopped
 
     # Optional: Add a development service
     app-dev:

@@ -5,7 +5,9 @@ import createClient, {
 import createQueryClient from 'openapi-react-query';
 export type { paths, components, operations } from '../schema/schema';
 
-const baseUrl = 'http://localhost:8080/api';
+const baseUrl = import.meta.env.VITE_API_BASE
+    ? `${import.meta.env.VITE_API_BASE}/api`
+    : '/api';
 
 export const storage = {
     get access() {
