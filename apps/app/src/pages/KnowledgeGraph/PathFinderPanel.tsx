@@ -67,7 +67,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
     const entityList = entities ?? [];
 
     return (
-        <div className="absolute top-16 left-16 w-80 bg-card rounded-xl border shadow-xl z-30 flex flex-col max-h-[calc(100%-5rem)] overflow-hidden">
+        <div className="absolute top-4 left-4 w-80 bg-card rounded-xl border shadow-xl z-30 flex flex-col max-h-[calc(100%-5rem)] overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b">
                 <h3 className="text-sm font-semibold">Path Finder</h3>

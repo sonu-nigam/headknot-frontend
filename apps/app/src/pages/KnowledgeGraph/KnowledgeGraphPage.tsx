@@ -73,16 +73,9 @@ function KnowledgeGraphPage() {
                 { label: 'Knowledge Graph' },
             ]}
         >
-            <div className="flex-1 flex overflow-hidden relative">
-                {/* Left Toolbar */}
-                <GraphToolbar
-                    onZoomIn={() => canvasRef.current?.zoomIn()}
-                    onZoomOut={() => canvasRef.current?.zoomOut()}
-                    onFitToScreen={() => canvasRef.current?.fitToScreen()}
-                />
-
+            <div className="h-[calc(100vh-4rem)] flex overflow-hidden relative">
                 {/* Main Graph Area */}
-                <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden relative">
                     {isLoading ? (
                         <div className="flex-1 flex items-center justify-center">
                             <div className="flex flex-col items-center gap-3">
@@ -104,8 +97,15 @@ function KnowledgeGraphPage() {
                                 onEdgeClick={handleEdgeClick}
                             />
 
+                            {/* Bottom Toolbar */}
+                            <GraphToolbar
+                                onZoomIn={() => canvasRef.current?.zoomIn()}
+                                onZoomOut={() => canvasRef.current?.zoomOut()}
+                                onFitToScreen={() => canvasRef.current?.fitToScreen()}
+                            />
+
                             {/* Status Bar */}
-                            <div className="h-8 bg-card border-t flex items-center px-4 gap-4 text-xs text-muted-foreground shrink-0">
+                            <div className="absolute top-2 left-2 z-10 bg-card/80 backdrop-blur-sm border rounded-lg px-3 py-1.5 flex items-center gap-4 text-xs text-muted-foreground">
                                 <span>
                                     <strong className="text-foreground">
                                         {graphData?.nodes?.length ?? 0}

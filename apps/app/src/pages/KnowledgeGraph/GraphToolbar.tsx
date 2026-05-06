@@ -16,7 +16,6 @@ import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useQueryClient } from '@tanstack/react-query';
 import { invalidateByPath } from '@/lib/queryKeys';
-import { ENTITY_COLORS, EVENT_EDGE_COLOR, ENTITY_TYPE_LABELS } from './constants';
 
 interface GraphToolbarProps {
     onZoomIn: () => void;
@@ -53,12 +52,12 @@ export function GraphToolbar({
     });
 
     return (
-        <div className="w-12 bg-card border-r flex flex-col items-center py-4 gap-2">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 bg-card border rounded-xl shadow-lg px-2 py-1.5">
             {/* Zoom Controls */}
             <Button
                 variant="ghost"
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={onZoomIn}
                 title="Zoom In"
             >
@@ -67,7 +66,7 @@ export function GraphToolbar({
             <Button
                 variant="ghost"
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={onZoomOut}
                 title="Zoom Out"
             >
@@ -76,20 +75,20 @@ export function GraphToolbar({
             <Button
                 variant="ghost"
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={onFitToScreen}
                 title="Fit to Screen"
             >
                 <Maximize className="size-4" />
             </Button>
 
-            <Separator className="w-6" />
+            <Separator orientation="vertical" className="h-6 mx-1" />
 
             {/* Graph Tools */}
             <Button
                 variant={pathFinderOpen ? 'default' : 'ghost'}
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={togglePathFinder}
                 title="Path Finder"
             >
@@ -98,7 +97,7 @@ export function GraphToolbar({
             <Button
                 variant={temporalFilterOpen ? 'default' : 'ghost'}
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={toggleTemporalFilter}
                 title="Temporal Filter"
             >
@@ -107,20 +106,20 @@ export function GraphToolbar({
             <Button
                 variant={qaPanelOpen ? 'default' : 'ghost'}
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={toggleQAPanel}
                 title="Q&A"
             >
                 <MessageCircleQuestion className="size-4" />
             </Button>
 
-            <Separator className="w-6" />
+            <Separator orientation="vertical" className="h-6 mx-1" />
 
             {/* Create Actions */}
             <Button
                 variant="ghost"
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={() => setCreateEntityDialogOpen(true)}
                 title="Create Entity"
             >
@@ -129,60 +128,36 @@ export function GraphToolbar({
             <Button
                 variant="ghost"
                 size="icon"
-                className="size-9"
+                className="size-8"
                 onClick={() => setCreateEventDialogOpen(true)}
                 title="Create Event"
             >
                 <Link className="size-4" />
             </Button>
 
-            <Separator className="w-6" />
+            {import.meta.env.DEV && (
+                <>
+                    <Separator orientation="vertical" className="h-6 mx-1" />
 
-            {/* Clear Data (testing) */}
-            <Button
-                variant="ghost"
-                size="icon"
-                className="size-9 text-destructive hover:text-destructive"
-                onClick={() => {
-                    if (!selectedWorkspaceId) return;
-                    if (!confirm('Clear all graph data for this workspace?')) return;
-                    clearData.mutate({
-                        params: { query: { workspaceId: selectedWorkspaceId } },
-                    });
-                }}
-                disabled={clearData.isPending || !selectedWorkspaceId}
-                title="Clear All Graph Data"
-            >
-                <Trash2 className="size-4" />
-            </Button>
-
-            {/* Spacer */}
-            <div className="flex-1" />
-
-            {/* Legend */}
-            <div className="space-y-1.5 px-1">
-                {Object.entries(ENTITY_COLORS).map(([type, color]) => (
-                    <div
-                        key={type}
-                        className="flex items-center gap-1.5"
-                        title={ENTITY_TYPE_LABELS[type] ?? type}
+                    {/* Clear Data (dev only) */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-destructive hover:text-destructive"
+                        onClick={() => {
+                            if (!selectedWorkspaceId) return;
+                            if (!confirm('Clear all graph data for this workspace?')) return;
+                            clearData.mutate({
+                                params: { query: { workspaceId: selectedWorkspaceId } },
+                            });
+                        }}
+                        disabled={clearData.isPending || !selectedWorkspaceId}
+                        title="Clear All Graph Data"
                     >
-                        <div
-                            className="size-2 rounded-full shrink-0"
-                            style={{ backgroundColor: color }}
-                        />
-                    </div>
-                ))}
-                <div
-                    className="flex items-center gap-1.5"
-                    title="Event (edge)"
-                >
-                    <div
-                        className="w-4 h-0.5 shrink-0"
-                        style={{ backgroundColor: EVENT_EDGE_COLOR }}
-                    />
-                </div>
-            </div>
+                        <Trash2 className="size-4" />
+                    </Button>
+                </>
+            )}
         </div>
     );
 }
