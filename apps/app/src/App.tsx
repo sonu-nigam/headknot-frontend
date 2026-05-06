@@ -28,14 +28,8 @@ import { ClaimsLibraryPage } from './pages/ClaimsLibrary/ClaimsLibraryPage';
 import { RefineKnowledgePage } from './pages/RefineKnowledge/RefineKnowledgePage';
 import { RelationshipGraphPage } from './pages/RelationshipGraph/RelationshipGraphPage';
 import { MemoryCenterPage } from './pages/MemoryCenter/MemoryCenterPage';
-import { ConflictsDashboardPage } from './pages/Conflicts/ConflictsDashboardPage';
-import { ConflictDetailPage } from './pages/Conflicts/ConflictDetailPage';
 import { ChangeFeedPage } from './pages/ChangeFeed/ChangeFeedPage';
-import { EntityListPage } from './pages/Entity/EntityListPage';
-import { EntityDetailPage } from './pages/Entity/EntityDetailPage';
 import { KnowledgeGraphPage } from './pages/KnowledgeGraph/KnowledgeGraphPage';
-import { RelationshipListPage } from './pages/Relationships/RelationshipListPage';
-import { TimelinePage } from './pages/Timeline/TimelinePage';
 import OnboardingPage from './pages/Onboarding/OnboardingPage';
 
 export default function App() {
@@ -174,22 +168,6 @@ export default function App() {
                 }
             />
             <Route
-                path="/conflicts"
-                element={
-                    <ProtectedRoute>
-                        <ConflictsDashboardPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/conflicts/:id"
-                element={
-                    <ProtectedRoute>
-                        <ConflictDetailPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
                 path="/changes"
                 element={
                     <ProtectedRoute>
@@ -198,42 +176,10 @@ export default function App() {
                 }
             />
             <Route
-                path="/entities"
-                element={
-                    <ProtectedRoute>
-                        <EntityListPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/entities/:entityId"
-                element={
-                    <ProtectedRoute>
-                        <EntityDetailPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
                 path="/knowledge-graph"
                 element={
                     <ProtectedRoute>
                         <KnowledgeGraphPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/relationships"
-                element={
-                    <ProtectedRoute>
-                        <RelationshipListPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/timeline"
-                element={
-                    <ProtectedRoute>
-                        <TimelinePage />
                     </ProtectedRoute>
                 }
             />

@@ -1,9 +1,5 @@
 import {
     ActivityIcon,
-    AlertTriangleIcon,
-    ClockIcon,
-    DatabaseIcon,
-    GitBranchIcon,
     HomeIcon,
     NetworkIcon,
     PlugIcon,
@@ -39,29 +35,9 @@ const data = {
             icon: NetworkIcon,
         },
         {
-            title: 'Entities',
-            url: '/entities',
-            icon: DatabaseIcon,
-        },
-        {
-            title: 'Relationships',
-            url: '/relationships',
-            icon: GitBranchIcon,
-        },
-        {
             title: 'Search',
             url: '/search',
             icon: SearchIcon,
-        },
-        {
-            title: 'Timeline',
-            url: '/timeline',
-            icon: ClockIcon,
-        },
-        {
-            title: 'Conflicts',
-            url: '/conflicts',
-            icon: AlertTriangleIcon,
         },
         {
             title: 'Activity',
