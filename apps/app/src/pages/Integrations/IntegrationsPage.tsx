@@ -24,11 +24,13 @@ import {
     CheckCircle2,
     X,
     Database,
+    RefreshCw,
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
 import { $api } from '@workspace/api-client';
 import { invalidateByPath } from '@/lib/queryKeys';
 import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
+import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
 import { Schemas } from '@/types/api';
 
 // --- Provider icon mapping ---
@@ -128,10 +130,14 @@ function CatalogCard({
     item,
     onConnect,
     isConnecting,
+    onSync,
+    isSyncing,
 }: {
     item: CatalogItem;
     onConnect: () => void;
     isConnecting: boolean;
+    onSync: () => void;
+    isSyncing: boolean;
 }) {
     const navigate = useNavigate();
     const lastSync = formatLastSync(item.integration?.lastSyncedAt);
@@ -176,15 +182,26 @@ function CatalogCard({
             </CardContent>
             <CardFooter className="border-t pt-4">
                 {item.isConnected ? (
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() =>
-                            navigate(`/integrations/${item.integration?.id}`)
-                        }
-                    >
-                        Manage
-                    </Button>
+                    <div className="flex gap-2 w-full">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={onSync}
+                            disabled={isSyncing}
+                            title="Sync Now"
+                        >
+                            <RefreshCw className={`size-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() =>
+                                navigate(`/integrations/${item.integration?.id}`)
+                            }
+                        >
+                            Manage
+                        </Button>
+                    </div>
                 ) : (
                     <Button
                         className="w-full"
@@ -245,6 +262,7 @@ export function IntegrationsPage() {
     }, { enabled: !!selectedWorkspaceId });
 
     const connectMutation = useConnectIntegration();
+    const syncMutation = useTriggerSync();
 
     const isLoading = integrationsLoading;
 
@@ -330,6 +348,14 @@ export function IntegrationsPage() {
                                     item={item}
                                     onConnect={() => handleConnect(item)}
                                     isConnecting={connectMutation.isPending}
+                                    onSync={() => {
+                                        if (item.integration?.id) {
+                                            syncMutation.mutate({
+                                                params: { path: { id: item.integration.id } },
+                                            });
+                                        }
+                                    }}
+                                    isSyncing={syncMutation.isPending}
                                 />
                             ))}
                         </div>
