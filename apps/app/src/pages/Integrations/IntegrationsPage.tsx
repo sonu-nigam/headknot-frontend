@@ -32,6 +32,7 @@ import { invalidateByPath } from '@/lib/queryKeys';
 import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
 import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
 import { Schemas } from '@/types/api';
+import { GoogleDrivePickerDialog } from './GoogleDrivePickerDialog';
 
 // --- Provider icon mapping ---
 
@@ -238,18 +239,30 @@ export function IntegrationsPage() {
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [successProvider, setSuccessProvider] = useState<string | null>(null);
+    const [googleDrivePickerState, setGoogleDrivePickerState] = useState<{
+        integrationId: string;
+    } | null>(null);
 
     // Detect OAuth callback redirect: ?connected=true&provider=notion
     useEffect(() => {
         const connected = searchParams.get('connected');
         const provider = searchParams.get('provider');
+        const type = searchParams.get('type');
+        const integrationId = searchParams.get('integrationId');
 
         if (connected === 'true' && provider) {
-            setSuccessProvider(provider);
+            if (type === 'GOOGLE_DRIVE' && integrationId) {
+                setGoogleDrivePickerState({ integrationId });
+            } else {
+                setSuccessProvider(provider);
+            }
+
             invalidateByPath(queryClient, "get", "/integrations");
 
             searchParams.delete('connected');
             searchParams.delete('provider');
+            searchParams.delete('type');
+            searchParams.delete('integrationId');
             setSearchParams(searchParams, { replace: true });
         }
     }, [searchParams, setSearchParams, queryClient]);
@@ -262,6 +275,13 @@ export function IntegrationsPage() {
     }, { enabled: !!selectedWorkspaceId });
 
     const connectMutation = useConnectIntegration();
+    const oauthInitiateMutation = $api.useMutation("post", "/integrations/oauth/{provider}/initiate", {
+        onSuccess: (data) => {
+            if (data.authorizationUrl) {
+                window.location.href = data.authorizationUrl;
+            }
+        },
+    });
     const syncMutation = useTriggerSync();
 
     const isLoading = integrationsLoading;
@@ -279,10 +299,22 @@ export function IntegrationsPage() {
         const integrationId = item.integration?.id;
         if (!integrationId) return;
 
-        connectMutation.mutate({
-            params: { path: { id: integrationId } },
-            body: { workspaceId: selectedWorkspaceId },
-        });
+        const authMethod = (item.integration?.authMethod ?? '').toUpperCase();
+
+        if (authMethod === 'OAUTH2') {
+            const provider = item.type.toLowerCase();
+            oauthInitiateMutation.mutate({
+                params: {
+                    path: { provider },
+                    query: { integrationId, workspaceId: selectedWorkspaceId },
+                },
+            });
+        } else {
+            connectMutation.mutate({
+                params: { path: { id: integrationId } },
+                body: { workspaceId: selectedWorkspaceId },
+            });
+        }
     };
 
     return (
@@ -336,6 +368,17 @@ export function IntegrationsPage() {
                         />
                     )}
 
+                    {/* Google Drive Picker */}
+                    {googleDrivePickerState && (
+                        <GoogleDrivePickerDialog
+                            integrationId={googleDrivePickerState.integrationId}
+                            onClose={() => {
+                                setGoogleDrivePickerState(null);
+                                setSuccessProvider('google_drive');
+                            }}
+                        />
+                    )}
+
                     {/* Loading */}
                     {isLoading && <LoadingState />}
 
@@ -347,7 +390,7 @@ export function IntegrationsPage() {
                                     key={item.type}
                                     item={item}
                                     onConnect={() => handleConnect(item)}
-                                    isConnecting={connectMutation.isPending}
+                                    isConnecting={connectMutation.isPending || oauthInitiateMutation.isPending}
                                     onSync={() => {
                                         if (item.integration?.id) {
                                             syncMutation.mutate({

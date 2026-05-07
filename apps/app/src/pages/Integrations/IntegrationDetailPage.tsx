@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@workspace/ui/components/button';
@@ -36,11 +37,15 @@ import {
     Database,
     Clock,
     AlertCircle,
+    FolderOpen,
 } from 'lucide-react';
 import { $api } from '@workspace/api-client';
 import { useDisconnectIntegration } from '@/hooks/integrations/useDisconnectIntegration';
 import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
 import { formatDistanceToNow, format } from 'date-fns';
+import { SlackChannelsTab } from './SlackChannelsTab';
+import { GoogleDriveFilesTab } from './GoogleDriveFilesTab';
+import { GoogleDrivePickerDialog } from './GoogleDrivePickerDialog';
 
 // --- Provider icon mapping ---
 
@@ -125,6 +130,7 @@ export function IntegrationDetailPage() {
 
     const disconnectMutation = useDisconnectIntegration();
     const syncMutation = useTriggerSync();
+    const [pickerOpen, setPickerOpen] = useState(false);
 
     const handleDisconnect = () => {
         if (!integrationId) return;
@@ -245,6 +251,12 @@ export function IntegrationDetailPage() {
                     <Tabs defaultValue="overview">
                         <TabsList>
                             <TabsTrigger value="overview">Overview</TabsTrigger>
+                            {integration.type === 'SLACK' && (
+                                <TabsTrigger value="channels">Channels</TabsTrigger>
+                            )}
+                            {integration.type === 'GOOGLE_DRIVE' && (
+                                <TabsTrigger value="files">Files</TabsTrigger>
+                            )}
                             <TabsTrigger value="sync-history">
                                 Sync History
                             </TabsTrigger>
@@ -359,9 +371,9 @@ export function IntegrationDetailPage() {
                                 </Card>
                             </section>
 
-                            {/* Sync Now */}
+                            {/* Actions */}
                             {isConnected && (
-                                <div>
+                                <div className="flex gap-3">
                                     <Button
                                         onClick={handleSync}
                                         disabled={isSyncing}
@@ -376,9 +388,41 @@ export function IntegrationDetailPage() {
                                             ? 'Syncing...'
                                             : 'Sync Now'}
                                     </Button>
+
+                                    {integration.type === 'GOOGLE_DRIVE' && integrationId && (
+                                        <Button
+                                            variant="outline"
+                                            className="gap-2"
+                                            onClick={() => setPickerOpen(true)}
+                                        >
+                                            <FolderOpen className="size-4" />
+                                            Pick Files
+                                        </Button>
+                                    )}
                                 </div>
                             )}
+
+                            {pickerOpen && integrationId && (
+                                <GoogleDrivePickerDialog
+                                    integrationId={integrationId}
+                                    onClose={() => setPickerOpen(false)}
+                                />
+                            )}
                         </TabsContent>
+
+                        {/* Slack Channels Tab */}
+                        {integration.type === 'SLACK' && integrationId && (
+                            <TabsContent value="channels" className="mt-6">
+                                <SlackChannelsTab integrationId={integrationId} />
+                            </TabsContent>
+                        )}
+
+                        {/* Google Drive Files Tab */}
+                        {integration.type === 'GOOGLE_DRIVE' && integrationId && (
+                            <TabsContent value="files" className="mt-6">
+                                <GoogleDriveFilesTab integrationId={integrationId} />
+                            </TabsContent>
+                        )}
 
                         {/* Sync History Tab */}
                         <TabsContent
