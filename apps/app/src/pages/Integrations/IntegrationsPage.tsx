@@ -22,6 +22,7 @@ import {
     Loader2,
     PlugZap,
     CheckCircle2,
+    AlertCircle,
     X,
     Database,
     RefreshCw,
@@ -118,6 +119,33 @@ function SuccessBanner({
             <button
                 onClick={onDismiss}
                 className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200"
+            >
+                <X className="size-4" />
+            </button>
+        </div>
+    );
+}
+
+// --- Error Banner ---
+
+function ErrorBanner({
+    message,
+    onDismiss,
+}: {
+    message: string;
+    onDismiss: () => void;
+}) {
+    return (
+        <div className="mb-6 flex items-start justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
+            <div className="flex items-start gap-3">
+                <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm font-medium text-destructive">
+                    {message}
+                </p>
+            </div>
+            <button
+                onClick={onDismiss}
+                className="text-destructive hover:opacity-80 shrink-0"
             >
                 <X className="size-4" />
             </button>
@@ -239,16 +267,36 @@ export function IntegrationsPage() {
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [successProvider, setSuccessProvider] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [googleDrivePickerState, setGoogleDrivePickerState] = useState<{
         integrationId: string;
     } | null>(null);
 
-    // Detect OAuth callback redirect: ?connected=true&provider=notion
+    // Detect OAuth callback redirect: ?connected=true&provider=notion or ?error=...
     useEffect(() => {
         const connected = searchParams.get('connected');
         const provider = searchParams.get('provider');
         const type = searchParams.get('type');
         const integrationId = searchParams.get('integrationId');
+        const errorParam = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
+
+        if (errorParam) {
+            const providerLabel = provider ? `${provider.charAt(0).toUpperCase()}${provider.slice(1)}` : 'Integration';
+            setErrorMessage(
+                errorDescription
+                    ? `${providerLabel} connection failed: ${errorDescription}`
+                    : `${providerLabel} connection failed: ${errorParam}`,
+            );
+            invalidateByPath(queryClient, 'get', '/integrations');
+            searchParams.delete('error');
+            searchParams.delete('error_description');
+            searchParams.delete('provider');
+            searchParams.delete('type');
+            searchParams.delete('integrationId');
+            setSearchParams(searchParams, { replace: true });
+            return;
+        }
 
         if (connected === 'true' && provider) {
             if (type === 'GOOGLE_DRIVE' && integrationId) {
@@ -275,13 +323,6 @@ export function IntegrationsPage() {
     }, { enabled: !!selectedWorkspaceId });
 
     const connectMutation = useConnectIntegration();
-    const oauthInitiateMutation = $api.useMutation("post", "/integrations/oauth/{provider}/initiate", {
-        onSuccess: (data) => {
-            if (data.authorizationUrl) {
-                window.location.href = data.authorizationUrl;
-            }
-        },
-    });
     const syncMutation = useTriggerSync();
 
     const isLoading = integrationsLoading;
@@ -301,20 +342,32 @@ export function IntegrationsPage() {
 
         const authMethod = (item.integration?.authMethod ?? '').toUpperCase();
 
-        if (authMethod === 'OAUTH2') {
-            const provider = item.type.toLowerCase();
-            oauthInitiateMutation.mutate({
-                params: {
-                    path: { provider },
-                    query: { integrationId, workspaceId: selectedWorkspaceId },
-                },
-            });
-        } else {
-            connectMutation.mutate({
+        setErrorMessage(null);
+        connectMutation.mutate(
+            {
                 params: { path: { id: integrationId } },
-                body: { workspaceId: selectedWorkspaceId },
-            });
-        }
+                body: {
+                    workspaceId: selectedWorkspaceId,
+                    ...(authMethod ? { authMethod } : {}),
+                },
+            },
+            {
+                onSuccess: (data) => {
+                    if (authMethod === 'OAUTH2' && !data?.authorizationUrl) {
+                        setErrorMessage(
+                            `${item.displayName} did not return an authorization URL. The provider may not be configured on the backend.`,
+                        );
+                    }
+                },
+                onError: (err: unknown) => {
+                    const msg =
+                        err instanceof Error && err.message
+                            ? err.message
+                            : `Failed to connect ${item.displayName}. Please try again.`;
+                    setErrorMessage(msg);
+                },
+            },
+        );
     };
 
     return (
@@ -368,6 +421,14 @@ export function IntegrationsPage() {
                         />
                     )}
 
+                    {/* Error Banner */}
+                    {errorMessage && (
+                        <ErrorBanner
+                            message={errorMessage}
+                            onDismiss={() => setErrorMessage(null)}
+                        />
+                    )}
+
                     {/* Google Drive Picker */}
                     {googleDrivePickerState && (
                         <GoogleDrivePickerDialog
@@ -390,7 +451,7 @@ export function IntegrationsPage() {
                                     key={item.type}
                                     item={item}
                                     onConnect={() => handleConnect(item)}
-                                    isConnecting={connectMutation.isPending || oauthInitiateMutation.isPending}
+                                    isConnecting={connectMutation.isPending}
                                     onSync={() => {
                                         if (item.integration?.id) {
                                             syncMutation.mutate({
