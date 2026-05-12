@@ -10,7 +10,8 @@ import '@workspace/ui/globals.css';
 const qc = new QueryClient({
     defaultOptions: {
         queries: {
-            refetchOnWindowFocus: true,
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
             staleTime: 30_000,
             experimental_prefetchInRender: true,
         },

@@ -483,6 +483,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/slack/{integrationId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync all accessible Slack channels
+         * @description Triggers an async sync of every conversation the connected user has access to (public + private channels, MPIMs, DMs). Threads from the last 90 days are extracted and published for knowledge extraction. Returns immediately.
+         */
+        post: operations["syncAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/sync/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync user-selected Slack channels
+         * @description Triggers an async sync limited to the channel IDs supplied in the request body. Mirrors the Google Drive Picker selective-sync flow. Returns immediately.
+         */
+        post: operations["syncChannels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/slack/{integrationId}/sync/channels/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync a single Slack channel
+         * @description Re-syncs threads in a single channel. Useful after granting the integration new access or after a channel was missed in an earlier run.
+         */
+        post: operations["syncSingleChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/oauth/{provider}/initiate": {
         parameters: {
             query?: never;
@@ -536,7 +596,7 @@ export interface paths {
          * Sync all Notion pages
          * @description Fetches all accessible Notion pages, extracts content, and triggers knowledge extraction (entities, claims, and relationships). This is the main entry point for ingesting Notion content.
          */
-        post: operations["syncAll"];
+        post: operations["syncAll_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -636,7 +696,7 @@ export interface paths {
          * Sync all Google Drive files
          * @description Fetches all accessible Google Drive files, extracts content, and triggers knowledge extraction (entities, claims, and relationships). This is the main entry point for ingesting Google Drive content.
          */
-        post: operations["syncAll_1"];
+        post: operations["syncAll_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -914,6 +974,26 @@ export interface paths {
          * @description Authenticate and receive an access token and refresh token
          */
         post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask a natural-language question
+         * @description Answers a question using the workspace's knowledge graph. Filters are applied as hard SQL/Cypher WHERE clauses inside the agent's graph tools, so out-of-filter data cannot leak into the answer.
+         */
+        post: operations["ask"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2026,13 +2106,12 @@ export interface components {
         };
         SourceReference: {
             /** Format: uuid */
-            claimId?: string;
-            claimText?: string;
-            sourceApp?: string;
-            /** Format: date-time */
-            validFrom?: string;
-            /** Format: date-time */
-            validTo?: string;
+            documentId?: string;
+            sourceType?: string;
+            /** Format: uuid */
+            sourceId?: string;
+            sourceUrl?: string;
+            excerpt?: string;
         };
         UnresolvedConflict: {
             /** Format: uuid */
@@ -2173,6 +2252,9 @@ export interface components {
              */
             createdAt?: string;
         };
+        SyncChannelsRequest: {
+            channelIds?: string[];
+        };
         /** @description OAuth initiation response */
         OAuthInitiateResponse: {
             /** @description Authorization URL to redirect the user to */
@@ -2310,6 +2392,39 @@ export interface components {
         LoginRequest: {
             username?: string;
             password?: string;
+        };
+        AskFiltersDto: {
+            sourceApps?: string[];
+            sourceIds?: string[];
+            entityTypes?: string[];
+            /** Format: date-time */
+            ingestedAfter?: string;
+            /** Format: date-time */
+            ingestedBefore?: string;
+            /** Format: date-time */
+            factValidAfter?: string;
+            /** Format: date-time */
+            factValidBefore?: string;
+            /** Format: double */
+            minConfidence?: number;
+        };
+        AskRequest: {
+            /** Format: uuid */
+            workspaceId: string;
+            query?: string;
+            filters?: components["schemas"]["AskFiltersDto"];
+        };
+        AskResponse: {
+            answer?: string;
+            entities?: components["schemas"]["EntitySummary"][];
+            sources?: components["schemas"]["SourceReference"][];
+        };
+        EntitySummary: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            type?: string;
+            sourceUrls?: string[];
         };
         ActivityLogResponse: {
             /** Format: uuid */
@@ -3777,6 +3892,128 @@ export interface operations {
             };
         };
     };
+    syncAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync triggered */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Not connected */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    syncChannels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncChannelsRequest"];
+            };
+        };
+        responses: {
+            /** @description Sync triggered */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description channelIds missing or empty */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Not connected */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    syncSingleChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                integrationId: string;
+                channelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync triggered */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationResponse"];
+                };
+            };
+            /** @description Not connected */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Integration not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     initiateOAuth: {
         parameters: {
             query?: {
@@ -3852,7 +4089,7 @@ export interface operations {
             };
         };
     };
-    syncAll: {
+    syncAll_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -4043,7 +4280,7 @@ export interface operations {
             };
         };
     };
-    syncAll_1: {
+    syncAll_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4610,6 +4847,44 @@ export interface operations {
             };
             /** @description Too many failed login attempts */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description Answer + cited entities + sources */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

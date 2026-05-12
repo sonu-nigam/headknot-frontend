@@ -6,6 +6,7 @@
         "build": "vite build"
     },
     "dependencies": {
+        "@cosmograph/react": "^2.3.2",
         "@hookform/resolvers": "^5.2.2",
         "@lexical/code": "^0.41.0",
         "@lexical/history": "^0.41.0",

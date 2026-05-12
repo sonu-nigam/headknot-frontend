@@ -1,28 +1,8 @@
-import { useEffect, useRef } from 'react';
-import * as d3 from 'd3';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Cosmograph, type CosmographRef } from '@cosmograph/react';
 import type { GraphNode, GraphLink } from '@/hooks/graph/useGraphData';
 import { EVENT_EDGE_COLOR } from './constants';
-import { truncateLabel, getNodeColor } from './utils';
-
-/** d3 simulation node — extends GraphNode with mutable x/y/fx/fy. */
-interface SimNode extends d3.SimulationNodeDatum {
-    id: string;
-    label: string;
-    type: 'entity';
-    entityType?: string;
-    data: GraphNode['data'];
-}
-
-/** d3 simulation link — source/target become SimNode refs after init. */
-interface SimLink extends d3.SimulationLinkDatum<SimNode> {
-    eventId: string;
-    eventLabel: string;
-}
-
-export interface ZoomContext {
-    zoomBehavior: d3.ZoomBehavior<SVGSVGElement, unknown>;
-    svgElement: SVGSVGElement;
-}
+import { getNodeColor } from './utils';
 
 export interface ForceGraphProps {
     nodes: GraphNode[];
@@ -31,517 +11,368 @@ export interface ForceGraphProps {
     highlightedPath: string[] | null;
     onNodeClick: (nodeId: string) => void;
     onEdgeClick: (eventId: string) => void;
-    onZoomReady?: (ctx: ZoomContext) => void;
-    width: number;
-    height: number;
 }
 
-const HIGHLIGHT_COLOR = '#f97316';
-const ENTITY_RADIUS = 22;
-
-function linkId(end: string | number | SimNode): string {
-    return typeof end === 'object' ? (end as SimNode).id : String(end);
+interface CosmoPoint {
+    id: string;
+    index: number;
+    label: string;
+    color: string;
+    entityType: string;
 }
 
-export function ForceGraph({
-    nodes,
-    links,
-    selectedNodeId,
-    highlightedPath,
-    onNodeClick,
-    onEdgeClick,
-    onZoomReady,
-    width,
-    height,
-}: ForceGraphProps) {
-    const svgRef = useRef<SVGSVGElement>(null);
-    const simulationRef = useRef<d3.Simulation<SimNode, SimLink> | null>(null);
-    const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+interface CosmoLink {
+    source: string;
+    target: string;
+    sourceIndex: number;
+    targetIndex: number;
+    eventId: string;
+}
 
-    const onNodeClickRef = useRef(onNodeClick);
-    onNodeClickRef.current = onNodeClick;
-    const onEdgeClickRef = useRef(onEdgeClick);
-    onEdgeClickRef.current = onEdgeClick;
+interface EdgeMeta {
+    sourceIndex: number;
+    targetIndex: number;
+    eventId: string;
+    label: string;
+}
 
-    // ---- build / rebuild simulation when data changes ----
-    useEffect(() => {
-        const svg = d3.select(svgRef.current!);
-        if (width === 0 || height === 0) return;
+interface EdgeLabel {
+    eventId: string;
+    label: string;
+    x: number;
+    y: number;
+}
 
-        svg.selectAll('*').remove();
+/** Don't render more than this many edge labels at once — DOM cost gets nasty. */
+const MAX_EDGE_LABELS = 120;
+/** Hide edge labels when zoomed out further than this. */
+const EDGE_LABEL_MIN_ZOOM = 0.6;
 
-        // ---- deep-copy data so d3 can mutate ----
-        const simNodes: SimNode[] = nodes.map((n) => ({ ...n }));
-        const simLinks: SimLink[] = links.map((l) => ({
-            source: l.source,
-            target: l.target,
-            eventId: l.eventId,
-            eventLabel: l.eventLabel,
-        }));
+interface HoverState {
+    x: number;
+    y: number;
+    label: string;
+    sub?: string;
+}
 
-        // Build adjacency count per node
-        const connectionCount = new Map<string, number>();
-        for (const l of links) {
-            connectionCount.set(l.source, (connectionCount.get(l.source) ?? 0) + 1);
-            connectionCount.set(l.target, (connectionCount.get(l.target) ?? 0) + 1);
-        }
+export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
+    function ForceGraph(
+        {
+            nodes,
+            links,
+            selectedNodeId,
+            highlightedPath,
+            onNodeClick,
+            onEdgeClick,
+        },
+        ref,
+    ) {
+        const [hover, setHover] = useState<HoverState | null>(null);
 
-        // ---- defs: arrow markers ----
-        const defs = svg.append('defs');
-        const arrowRefX = ENTITY_RADIUS + 6;
-
-        const markerData: { id: string; color: string }[] = [
-            { id: 'arrow-event', color: EVENT_EDGE_COLOR },
-            { id: 'arrow-highlight', color: HIGHLIGHT_COLOR },
-        ];
-
-        markerData.forEach(({ id, color }) => {
-            defs.append('marker')
-                .attr('id', id)
-                .attr('viewBox', '0 -5 10 10')
-                .attr('refX', arrowRefX)
-                .attr('refY', 0)
-                .attr('markerWidth', 7)
-                .attr('markerHeight', 7)
-                .attr('orient', 'auto')
-                .append('path')
-                .attr('d', 'M0,-4L8,0L0,4')
-                .attr('fill', color);
-        });
-
-        // ---- zoom container ----
-        const zoomContainer = svg.append('g').attr('class', 'zoom-container');
-
-        const zoomBehavior = d3
-            .zoom<SVGSVGElement, unknown>()
-            .scaleExtent([0.1, 4])
-            .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
-                zoomContainer.attr('transform', event.transform.toString());
-            });
-
-        svg.call(zoomBehavior);
-        zoomBehaviorRef.current = zoomBehavior;
-
-        if (onZoomReady && svgRef.current) {
-            onZoomReady({ zoomBehavior, svgElement: svgRef.current });
-        }
-
-        // ---- visible links ----
-        const linkGroup = zoomContainer.append('g').attr('class', 'links');
-
-        const linkSelection = linkGroup
-            .selectAll<SVGLineElement, SimLink>('line.visible-link')
-            .data(simLinks)
-            .join('line')
-            .attr('class', 'visible-link')
-            .attr('stroke', EVENT_EDGE_COLOR)
-            .attr('stroke-width', 2)
-            .attr('stroke-opacity', 0.5)
-            .attr('marker-end', 'url(#arrow-event)');
-
-        // ---- invisible hit-area links (wider, for clicking) ----
-        const hitAreaSelection = linkGroup
-            .selectAll<SVGLineElement, SimLink>('line.hit-area')
-            .data(simLinks)
-            .join('line')
-            .attr('class', 'hit-area')
-            .attr('stroke', 'transparent')
-            .attr('stroke-width', 14)
-            .attr('cursor', 'pointer')
-            .on('click', (_event, d) => {
-                _event.stopPropagation();
-                onEdgeClickRef.current(d.eventId);
-            })
-            .on('mouseenter', function (_event, d) {
-                // Highlight the corresponding visible link
-                linkSelection
-                    .filter((ld) => ld.eventId === d.eventId)
-                    .transition()
-                    .duration(150)
-                    .attr('stroke-width', 4)
-                    .attr('stroke-opacity', 0.9);
-            })
-            .on('mouseleave', function (_event, d) {
-                linkSelection
-                    .filter((ld) => ld.eventId === d.eventId)
-                    .transition()
-                    .duration(150)
-                    .attr('stroke-width', 2)
-                    .attr('stroke-opacity', 0.5);
-            });
-
-        // ---- link labels (event type) ----
-        const linkLabelGroup = zoomContainer.append('g').attr('class', 'link-labels');
-
-        const linkLabelGroups = linkLabelGroup
-            .selectAll<SVGGElement, SimLink>('g')
-            .data(simLinks)
-            .join('g');
-
-        // Background rect for each link label
-        linkLabelGroups
-            .append('rect')
-            .attr('class', 'link-label-bg')
-            .attr('rx', 3)
-            .attr('fill', 'rgba(0,0,0,0.7)')
-            .attr('pointer-events', 'none');
-
-        linkLabelGroups
-            .append('text')
-            .text((d) => d.eventLabel.replace(/_/g, ' ').toLowerCase())
-            .attr('text-anchor', 'middle')
-            .attr('fill', '#9ca3af')
-            .attr('font-size', '10px')
-            .attr('pointer-events', 'none')
-            .attr('dy', -8)
-            .each(function () {
-                const bbox = (this as SVGTextElement).getBBox();
-                d3.select(this.parentNode as Element)
-                    .select('.link-label-bg')
-                    .attr('x', bbox.x - 3)
-                    .attr('y', bbox.y - 1)
-                    .attr('width', bbox.width + 6)
-                    .attr('height', bbox.height + 2);
-            });
-
-        // ---- node groups ----
-        const nodeGroup = zoomContainer.append('g').attr('class', 'nodes');
-
-        const nodeSelection = nodeGroup
-            .selectAll<SVGGElement, SimNode>('g')
-            .data(simNodes, (d) => d.id)
-            .join('g')
-            .attr('cursor', 'pointer')
-            .on('click', (_event, d) => {
-                _event.stopPropagation();
-                onNodeClickRef.current(d.id);
-            });
-
-        // ---- Entity nodes: circle ----
-        nodeSelection.each(function (d) {
-            const g = d3.select(this);
-            const color = getNodeColor(d as unknown as GraphNode);
-
-            // Hover ring
-            g.append('circle')
-                .attr('class', 'hover-ring')
-                .attr('r', ENTITY_RADIUS + 5)
-                .attr('fill', 'none')
-                .attr('stroke', color)
-                .attr('stroke-width', 2)
-                .attr('stroke-opacity', 0)
-                .attr('stroke-dasharray', '4 2');
-
-            // Main circle
-            g.append('circle')
-                .attr('class', 'node-shape')
-                .attr('r', ENTITY_RADIUS)
-                .attr('fill', color)
-                .attr('stroke', '#1e1e2e')
-                .attr('stroke-width', 2);
-
-            // Tooltip
-            g.append('title').text(
-                `${d.label}\nType: ${d.entityType ?? 'unknown'}\nConnections: ${connectionCount.get(d.id) ?? 0}`,
-            );
-        });
-
-        // ---- Labels below nodes ----
-        nodeSelection.each(function (d) {
-            const g = d3.select(this);
-            const label = truncateLabel(d.label);
-
-            // Background rect for readability
-            const text = g
-                .append('text')
-                .attr('class', 'node-label')
-                .text(label)
-                .attr('text-anchor', 'middle')
-                .attr('dy', ENTITY_RADIUS + 16)
-                .attr('fill', '#e5e7eb')
-                .attr('font-size', '12px')
-                .attr('font-weight', '600')
-                .attr('pointer-events', 'none');
-
-            // Measure text and insert background rect before it
-            const bbox = (text.node() as SVGTextElement).getBBox();
-            g.insert('rect', '.node-label')
-                .attr('x', bbox.x - 3)
-                .attr('y', bbox.y - 1)
-                .attr('width', bbox.width + 6)
-                .attr('height', bbox.height + 2)
-                .attr('rx', 3)
-                .attr('fill', 'rgba(0,0,0,0.7)')
-                .attr('pointer-events', 'none');
-        });
-
-        // ---- Hover effects ----
-        nodeSelection
-            .on('mouseenter', function () {
-                d3.select(this)
-                    .select('.hover-ring')
-                    .transition()
-                    .duration(200)
-                    .attr('stroke-opacity', 0.6);
-            })
-            .on('mouseleave', function () {
-                d3.select(this)
-                    .select('.hover-ring')
-                    .transition()
-                    .duration(200)
-                    .attr('stroke-opacity', 0);
-            });
-
-        // ---- drag behaviour ----
-        const drag = d3
-            .drag<SVGGElement, SimNode>()
-            .on('start', (event, d) => {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            })
-            .on('drag', (event, d) => {
-                d.fx = event.x;
-                d.fy = event.y;
-            })
-            .on('end', (event, d) => {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
-            });
-
-        nodeSelection.call(drag);
-
-        // ---- simulation ----
-        // Scale forces based on graph size so large graphs spread out more
-        const nodeCount = simNodes.length;
-        const linkDist = Math.max(300, 200 + nodeCount * 4);
-        const chargeStrength = Math.min(-400, -(300 + nodeCount * 8));
-
-        const simulation = d3
-            .forceSimulation<SimNode>(simNodes)
-            .force(
-                'link',
-                d3
-                    .forceLink<SimNode, SimLink>(simLinks)
-                    .id((d) => d.id)
-                    .distance(linkDist),
-            )
-            .force('charge', d3.forceManyBody().strength(chargeStrength))
-            .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('x', d3.forceX(width / 2).strength(0.03))
-            .force('y', d3.forceY(height / 2).strength(0.03))
-            .force('collide', d3.forceCollide(70));
-
-        simulation.on('tick', () => {
-            linkSelection
-                .attr('x1', (d) => (d.source as SimNode).x!)
-                .attr('y1', (d) => (d.source as SimNode).y!)
-                .attr('x2', (d) => (d.target as SimNode).x!)
-                .attr('y2', (d) => (d.target as SimNode).y!);
-
-            hitAreaSelection
-                .attr('x1', (d) => (d.source as SimNode).x!)
-                .attr('y1', (d) => (d.source as SimNode).y!)
-                .attr('x2', (d) => (d.target as SimNode).x!)
-                .attr('y2', (d) => (d.target as SimNode).y!);
-
-            linkLabelGroups
-                .attr('transform', (d) => {
-                    const s = d.source as SimNode;
-                    const t = d.target as SimNode;
-                    return `translate(${(s.x! + t.x!) / 2},${(s.y! + t.y!) / 2})`;
+        const { points, edges, edgeMeta, idToIndex, edgeIdToEventId } =
+            useMemo(() => {
+                const idx = new Map<string, number>();
+                const points: CosmoPoint[] = nodes.map((n, i) => {
+                    idx.set(n.id, i);
+                    return {
+                        id: n.id,
+                        index: i,
+                        label: n.label || 'Unknown',
+                        color: getNodeColor(n),
+                        // Arrow infers schema from the first row — always a string
+                        // so the column type isn't mixed string|null.
+                        entityType: n.entityType ?? '',
+                    };
                 });
+                const edges: CosmoLink[] = [];
+                const edgeMeta: EdgeMeta[] = [];
+                const edgeIdToEventId: string[] = [];
+                for (const l of links) {
+                    const si = idx.get(l.source);
+                    const ti = idx.get(l.target);
+                    if (si === undefined || ti === undefined) continue;
+                    edges.push({
+                        source: l.source,
+                        target: l.target,
+                        sourceIndex: si,
+                        targetIndex: ti,
+                        eventId: l.eventId,
+                    });
+                    edgeMeta.push({
+                        sourceIndex: si,
+                        targetIndex: ti,
+                        eventId: l.eventId,
+                        label: (l.eventLabel ?? '')
+                            .replace(/_/g, ' ')
+                            .toLowerCase(),
+                    });
+                    edgeIdToEventId.push(l.eventId);
+                }
+                return { points, edges, edgeMeta, idToIndex: idx, edgeIdToEventId };
+            }, [nodes, links]);
 
-            nodeSelection.attr('transform', (d) => `translate(${d.x},${d.y})`);
-        });
+        // ---- reflect external selection state into Cosmograph ----
+        //
+        // Cosmograph dims non-selected points via pointGreyoutOpacity, which
+        // is exactly the "selection focus" UX we want. We drive it from the
+        // store rather than relying on selectPointOnClick, so other UIs
+        // (AskBox, PathFinder) can change selection programmatically.
+        const cosmoRef = useRef<CosmographRef | null>(null);
+        const setRefs = useCallback(
+            (instance: CosmographRef) => {
+                cosmoRef.current = instance;
+                if (typeof ref === 'function') ref(instance);
+                else if (ref) ref.current = instance;
+            },
+            [ref],
+        );
 
-        simulationRef.current = simulation;
+        useEffect(() => {
+            const cosmo = cosmoRef.current;
+            if (!cosmo) return;
 
-        // Click on empty space clears selection
-        svg.on('click', () => {
-            onNodeClickRef.current('');
-        });
-
-        return () => {
-            simulation.stop();
-        };
-    }, [nodes, links, width, height]);
-
-    // ---- highlight / selection updates (no simulation rebuild) ----
-    useEffect(() => {
-        const svg = d3.select(svgRef.current!);
-        if (width === 0 || height === 0) return;
-
-        const nodeGroups = svg.selectAll<SVGGElement, SimNode>('g.nodes > g');
-        const visibleLinks = svg.selectAll<SVGLineElement, SimLink>('line.visible-link');
-        const linkLabelGrps = svg.selectAll<SVGGElement, SimLink>('g.link-labels > g');
-
-        if (highlightedPath && highlightedPath.length > 0) {
-            const pathSet = new Set(highlightedPath);
-
-            nodeGroups.each(function (d) {
-                const g = d3.select(this);
-                const inPath = pathSet.has(d.id);
-                g.transition().duration(300).attr('opacity', inPath ? 1 : 0.15);
-                g.select('.node-shape')
-                    .transition()
-                    .duration(300)
-                    .attr('stroke', inPath ? HIGHLIGHT_COLOR : '#1e1e2e')
-                    .attr('stroke-width', inPath ? 3 : 2);
-            });
-
-            visibleLinks.each(function (d) {
-                const line = d3.select(this);
-                const srcId = linkId(d.source!);
-                const tgtId = linkId(d.target!);
-                const inPath = pathSet.has(srcId) && pathSet.has(tgtId);
-                line.transition()
-                    .duration(300)
-                    .attr('stroke', inPath ? HIGHLIGHT_COLOR : EVENT_EDGE_COLOR)
-                    .attr('stroke-opacity', inPath ? 1 : 0.1)
-                    .attr('stroke-width', inPath ? 3 : 2)
-                    .attr('marker-end', inPath ? 'url(#arrow-highlight)' : 'url(#arrow-event)');
-            });
-
-            linkLabelGrps.each(function (d) {
-                const srcId = linkId(d.source!);
-                const tgtId = linkId(d.target!);
-                const inPath = pathSet.has(srcId) && pathSet.has(tgtId);
-                const grp = d3.select(this);
-                grp.transition().duration(300).attr('opacity', inPath ? 1 : 0.1);
-                grp.select('text')
-                    .transition()
-                    .duration(300)
-                    .attr('fill', inPath ? HIGHLIGHT_COLOR : '#9ca3af');
-            });
-
-            return;
-        }
-
-        if (selectedNodeId) {
-            // Check if the selection is an edge (event)
-            const selectedEdge = visibleLinks.data().find((d) => d.eventId === selectedNodeId);
-
-            if (selectedEdge) {
-                // Event edge selected — highlight that edge and its endpoints
-                const srcId = linkId(selectedEdge.source!);
-                const tgtId = linkId(selectedEdge.target!);
-                const endpointIds = new Set([srcId, tgtId]);
-
-                nodeGroups.each(function (d) {
-                    const g = d3.select(this);
-                    const isEndpoint = endpointIds.has(d.id);
-                    g.transition().duration(300).attr('opacity', isEndpoint ? 1 : 0.15);
-                });
-
-                visibleLinks.each(function (d) {
-                    const line = d3.select(this);
-                    const isSelected = d.eventId === selectedNodeId;
-                    line.transition()
-                        .duration(300)
-                        .attr('stroke', isSelected ? HIGHLIGHT_COLOR : EVENT_EDGE_COLOR)
-                        .attr('stroke-opacity', isSelected ? 1 : 0.1)
-                        .attr('stroke-width', isSelected ? 3 : 2)
-                        .attr('marker-end', isSelected ? 'url(#arrow-highlight)' : 'url(#arrow-event)');
-                });
-
-                linkLabelGrps.each(function (d) {
-                    const isSelected = d.eventId === selectedNodeId;
-                    const grp = d3.select(this);
-                    grp.transition().duration(300).attr('opacity', isSelected ? 1 : 0.1);
-                    grp.select('text')
-                        .transition()
-                        .duration(300)
-                        .attr('fill', isSelected ? HIGHLIGHT_COLOR : '#9ca3af');
-                });
-
+            // 1) Path highlight takes precedence — highlight the path nodes.
+            if (highlightedPath && highlightedPath.length > 0) {
+                const indices: number[] = [];
+                for (const id of highlightedPath) {
+                    const i = idToIndex.get(id);
+                    if (i !== undefined) indices.push(i);
+                }
+                cosmo.selectPoints(indices);
+                cosmo.setFocusedPoint(indices[0]);
                 return;
             }
 
-            // Entity node selected — highlight adjacent edges and entities
-            const adjacentIds = new Set<string>([selectedNodeId]);
-            const connectedEventIds = new Set<string>();
+            // 2) Selection is empty → clear focus/selection.
+            if (!selectedNodeId) {
+                cosmo.unselectAllPoints?.();
+                cosmo.selectPoints(null);
+                cosmo.setFocusedPoint(undefined);
+                return;
+            }
 
-            visibleLinks.each(function (d) {
-                const srcId = linkId(d.source!);
-                const tgtId = linkId(d.target!);
-                if (srcId === selectedNodeId) {
-                    adjacentIds.add(tgtId);
-                    connectedEventIds.add(d.eventId);
+            // 3) Selected id matches a point → select + focus it (with neighbors).
+            const pointIdx = idToIndex.get(selectedNodeId);
+            if (pointIdx !== undefined) {
+                // Select this point and its connected neighbors so the cluster
+                // stays bright while everything else dims.
+                cosmo.selectPoint(pointIdx, false, true);
+                cosmo.setFocusedPoint(pointIdx);
+                return;
+            }
+
+            // 4) Selected id refers to an edge (eventId) → highlight endpoints.
+            const edgeIdx = edgeIdToEventId.indexOf(selectedNodeId);
+            if (edgeIdx >= 0) {
+                const edge = edges[edgeIdx];
+                const a = idToIndex.get(edge.source);
+                const b = idToIndex.get(edge.target);
+                const indices = [a, b].filter((i): i is number => i !== undefined);
+                cosmo.selectPoints(indices);
+                if (indices.length > 0) cosmo.setFocusedPoint(indices[0]);
+            }
+        }, [selectedNodeId, highlightedPath, idToIndex, edgeIdToEventId, edges]);
+
+        // ---- event handlers ----
+        const handleClick = useCallback(
+            (index: number | undefined) => {
+                if (index === undefined) {
+                    onNodeClick('');
+                    return;
                 }
-                if (tgtId === selectedNodeId) {
-                    adjacentIds.add(srcId);
-                    connectedEventIds.add(d.eventId);
-                }
-            });
+                const point = points[index];
+                if (point) onNodeClick(point.id);
+            },
+            [onNodeClick, points],
+        );
 
-            nodeGroups.each(function (d) {
-                const g = d3.select(this);
-                const isSelected = d.id === selectedNodeId;
-                const isAdjacent = adjacentIds.has(d.id);
-                g.transition().duration(300).attr('opacity', isAdjacent ? 1 : 0.15);
-                g.select('.node-shape')
-                    .transition()
-                    .duration(300)
-                    .attr('stroke', isSelected ? '#ffffff' : '#1e1e2e')
-                    .attr('stroke-width', isSelected ? 3 : 2);
-                if (isSelected) {
-                    g.raise();
-                }
-            });
+        const handleLinkClick = useCallback(
+            (linkIndex: number) => {
+                const eventId = edgeIdToEventId[linkIndex];
+                if (eventId) onEdgeClick(eventId);
+            },
+            [onEdgeClick, edgeIdToEventId],
+        );
 
-            visibleLinks.each(function (d) {
-                const line = d3.select(this);
-                const connected = connectedEventIds.has(d.eventId);
-                line.transition()
-                    .duration(300)
-                    .attr('stroke-opacity', connected ? 0.8 : 0.1)
-                    .attr('stroke-width', connected ? 3 : 2);
-            });
+        const handleLabelClick = useCallback(
+            (_index: number, id: string) => {
+                if (id) onNodeClick(id);
+            },
+            [onNodeClick],
+        );
 
-            linkLabelGrps.each(function (d) {
-                const connected = connectedEventIds.has(d.eventId);
-                d3.select(this)
-                    .transition()
-                    .duration(300)
-                    .attr('opacity', connected ? 1 : 0.1);
-            });
+        const handlePointMouseOver = useCallback(
+            (
+                index: number,
+                _position: [number, number],
+                event:
+                    | MouseEvent
+                    | { sourceEvent?: MouseEvent }
+                    | undefined,
+            ) => {
+                const point = points[index];
+                if (!point) return;
+                const mouseEvent =
+                    event && 'clientX' in event
+                        ? (event as MouseEvent)
+                        : (event as { sourceEvent?: MouseEvent } | undefined)?.sourceEvent;
+                if (!mouseEvent) return;
+                setHover({
+                    x: mouseEvent.clientX,
+                    y: mouseEvent.clientY,
+                    label: point.label,
+                    sub: point.entityType
+                        ? `${point.entityType.toUpperCase()}`
+                        : undefined,
+                });
+            },
+            [points],
+        );
 
-            return;
+        const handlePointMouseOut = useCallback(() => setHover(null), []);
+
+        // ---- edge label overlay ----
+        const [edgeLabels, setEdgeLabels] = useState<EdgeLabel[]>([]);
+        const rafRef = useRef<number | null>(null);
+
+        const recomputeEdgeLabels = useCallback(() => {
+            const cosmo = cosmoRef.current;
+            if (!cosmo) return;
+            const zoom = cosmo.getZoomLevel?.() ?? 1;
+            if (zoom < EDGE_LABEL_MIN_ZOOM || edgeMeta.length === 0) {
+                setEdgeLabels((prev) => (prev.length === 0 ? prev : []));
+                return;
+            }
+            const next: EdgeLabel[] = [];
+            for (let i = 0; i < edgeMeta.length; i += 1) {
+                const m = edgeMeta[i];
+                if (!m.label) continue;
+                const src = cosmo.getPointPositionByIndex?.(m.sourceIndex);
+                const tgt = cosmo.getPointPositionByIndex?.(m.targetIndex);
+                if (!src || !tgt) continue;
+                const screen = cosmo.spaceToScreenPosition?.([
+                    (src[0] + tgt[0]) / 2,
+                    (src[1] + tgt[1]) / 2,
+                ]);
+                if (!screen) continue;
+                next.push({
+                    eventId: m.eventId,
+                    label: m.label,
+                    x: screen[0],
+                    y: screen[1],
+                });
+                if (next.length >= MAX_EDGE_LABELS) break;
+            }
+            setEdgeLabels(next);
+        }, [edgeMeta]);
+
+        const scheduleRecompute = useCallback(() => {
+            if (rafRef.current !== null) return;
+            rafRef.current = requestAnimationFrame(() => {
+                rafRef.current = null;
+                recomputeEdgeLabels();
+            });
+        }, [recomputeEdgeLabels]);
+
+        useEffect(() => {
+            return () => {
+                if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+            };
+        }, []);
+
+        const handleEdgeLabelClick = useCallback(
+            (eventId: string, e: React.MouseEvent) => {
+                e.stopPropagation();
+                onEdgeClick(eventId);
+            },
+            [onEdgeClick],
+        );
+
+        if (points.length === 0) {
+            return (
+                <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+                    No graph data yet.
+                </div>
+            );
         }
 
-        // No selection — reset
-        nodeGroups.transition().duration(300).attr('opacity', 1);
-        nodeGroups
-            .select('.node-shape')
-            .transition()
-            .duration(300)
-            .attr('stroke', '#1e1e2e')
-            .attr('stroke-width', 2);
-        visibleLinks
-            .transition()
-            .duration(300)
-            .attr('stroke', EVENT_EDGE_COLOR)
-            .attr('stroke-opacity', 0.5)
-            .attr('stroke-width', 2)
-            .attr('marker-end', 'url(#arrow-event)');
-        linkLabelGrps
-            .transition()
-            .duration(300)
-            .attr('opacity', 1);
-        linkLabelGrps.select('text')
-            .transition()
-            .duration(300)
-            .attr('fill', '#9ca3af');
-    }, [selectedNodeId, highlightedPath, width, height, nodes, links]);
-
-    return (
-        <svg
-            ref={svgRef}
-            width={width}
-            height={height}
-            className="block"
-        />
-    );
-}
+        return (
+            <>
+                <Cosmograph
+                    ref={setRefs}
+                    style={{ width: '100%', height: '100%' }}
+                    points={points as unknown as Record<string, unknown>[]}
+                    links={edges as unknown as Record<string, unknown>[]}
+                    pointIdBy="id"
+                    pointIndexBy="index"
+                    pointLabelBy="label"
+                    pointColorBy="color"
+                    linkSourceBy="source"
+                    linkSourceIndexBy="sourceIndex"
+                    linkTargetBy="target"
+                    linkTargetIndexBy="targetIndex"
+                    linkDefaultColor={EVENT_EDGE_COLOR}
+                    pointDefaultSize={10}
+                    pointSizeRange={[7, 20]}
+                    pointSizeStrategy="degree"
+                    linkArrowsSizeScale={1}
+                    backgroundColor="transparent"
+                    enableSimulation
+                    simulationDecay={1000}
+                    simulationGravity={0.25}
+                    simulationRepulsion={1.0}
+                    simulationLinkSpring={1.0}
+                    simulationLinkDistance={8}
+                    simulationFriction={0.85}
+                    fitViewOnInit
+                    fitViewDelay={250}
+                    selectPointOnClick={false}
+                    focusPointOnClick={false}
+                    selectPointOnLabelClick={false}
+                    focusPointOnLabelClick={false}
+                    resetSelectionOnEmptyCanvasClick={false}
+                    showLabels
+                    showDynamicLabels
+                    showHoveredPointLabel
+                    showFocusedPointLabel
+                    pointGreyoutOpacity={0.15}
+                    linkGreyoutOpacity={0.05}
+                    focusedPointRingColor="#f97316"
+                    hoveredPointRingColor="#ffffff"
+                    onClick={handleClick}
+                    onLinkClick={handleLinkClick}
+                    onLabelClick={handleLabelClick}
+                    onPointMouseOver={handlePointMouseOver}
+                    onPointMouseOut={handlePointMouseOut}
+                    onSimulationTick={scheduleRecompute}
+                    onSimulationEnd={recomputeEdgeLabels}
+                    onZoom={scheduleRecompute}
+                />
+                {hover && (
+                    <div
+                        className="pointer-events-none fixed z-50 rounded-lg border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-xl whitespace-nowrap -translate-x-1/2 -translate-y-[calc(100%+0.5rem)]"
+                        style={{ left: hover.x, top: hover.y }}
+                    >
+                        <div className="font-medium">{hover.label || 'Unknown'}</div>
+                        {hover.sub && (
+                            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                {hover.sub}
+                            </div>
+                        )}
+                    </div>
+                )}
+                {edgeLabels.map((l) => (
+                    <button
+                        key={l.eventId}
+                        type="button"
+                        onClick={(e) => handleEdgeLabelClick(l.eventId, e)}
+                        className="absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white hover:bg-black/90 hover:text-orange-300 transition-colors whitespace-nowrap cursor-pointer"
+                        style={{ left: l.x, top: l.y }}
+                    >
+                        {l.label}
+                    </button>
+                ))}
+            </>
+        );
+    },
+);

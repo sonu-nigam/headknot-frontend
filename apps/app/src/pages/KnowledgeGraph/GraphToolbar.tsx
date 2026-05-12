@@ -52,7 +52,7 @@ export function GraphToolbar({
     });
 
     return (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 bg-card border rounded-xl shadow-lg px-2 py-1.5">
+        <div className="absolute top-2 right-2 z-20 flex flex-col items-center gap-1 bg-card border rounded-xl shadow-lg px-1.5 py-2">
             {/* Zoom Controls */}
             <Button
                 variant="ghost"
@@ -82,7 +82,7 @@ export function GraphToolbar({
                 <Maximize className="size-4" />
             </Button>
 
-            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Separator orientation="horizontal" className="w-6 my-1" />
 
             {/* Graph Tools */}
             <Button
@@ -113,7 +113,7 @@ export function GraphToolbar({
                 <MessageCircleQuestion className="size-4" />
             </Button>
 
-            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Separator orientation="horizontal" className="w-6 my-1" />
 
             {/* Create Actions */}
             <Button
@@ -137,7 +137,7 @@ export function GraphToolbar({
 
             {import.meta.env.DEV && (
                 <>
-                    <Separator orientation="vertical" className="h-6 mx-1" />
+                    <Separator orientation="horizontal" className="w-6 my-1" />
 
                     {/* Clear Data (dev only) */}
                     <Button

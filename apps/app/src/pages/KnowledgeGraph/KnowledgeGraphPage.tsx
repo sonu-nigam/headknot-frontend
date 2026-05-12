@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { $api } from '@workspace/api-client';
 import AppLayout from '@/components/AppLayout';
 import { useAppStore } from '@/state/store';
@@ -13,30 +13,30 @@ import { TemporalFilterPanel } from './TemporalFilterPanel';
 import { CreateEntityDialog } from './CreateEntityDialog';
 import { CreateEventDialog } from './CreateEventDialog';
 import { QAPanel } from './QAPanel';
+import { AskBox } from './AskBox';
 import { Loader2 } from 'lucide-react';
 
 export { KnowledgeGraphPage };
 
 function KnowledgeGraphPage() {
-    const { selectedWorkspaceId } = useAppStore();
-    const {
-        selectedNodeId,
-        selectedNodeType,
-        highlightedPath,
-        pathFinderOpen,
-        temporalFilterOpen,
-        createEntityDialogOpen,
-        createEventDialogOpen,
-        qaPanelOpen,
-        entityTypeFilters,
-        selectNode,
-        clearSelection,
-        togglePathFinder,
-        toggleTemporalFilter,
-        toggleQAPanel,
-        setCreateEntityDialogOpen,
-        setCreateEventDialogOpen,
-    } = useGraphStore();
+    const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
+
+    const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
+    const selectedNodeType = useGraphStore((s) => s.selectedNodeType);
+    const highlightedPath = useGraphStore((s) => s.highlightedPath);
+    const pathFinderOpen = useGraphStore((s) => s.pathFinderOpen);
+    const temporalFilterOpen = useGraphStore((s) => s.temporalFilterOpen);
+    const createEntityDialogOpen = useGraphStore((s) => s.createEntityDialogOpen);
+    const createEventDialogOpen = useGraphStore((s) => s.createEventDialogOpen);
+    const qaPanelOpen = useGraphStore((s) => s.qaPanelOpen);
+    const entityTypeFilters = useGraphStore((s) => s.entityTypeFilters);
+    const selectNode = useGraphStore((s) => s.selectNode);
+    const clearSelection = useGraphStore((s) => s.clearSelection);
+    const togglePathFinder = useGraphStore((s) => s.togglePathFinder);
+    const toggleTemporalFilter = useGraphStore((s) => s.toggleTemporalFilter);
+    const toggleQAPanel = useGraphStore((s) => s.toggleQAPanel);
+    const setCreateEntityDialogOpen = useGraphStore((s) => s.setCreateEntityDialogOpen);
+    const setCreateEventDialogOpen = useGraphStore((s) => s.setCreateEventDialogOpen);
 
     const canvasRef = useRef<{
         zoomIn: () => void;
@@ -54,17 +54,23 @@ function KnowledgeGraphPage() {
     // Transform into d3 nodes/links
     const { nodes, links } = useGraphData(graphData, entityTypeFilters);
 
-    const handleNodeClick = (nodeId: string) => {
-        if (!nodeId) {
-            clearSelection();
-            return;
-        }
-        selectNode(nodeId, 'entity');
-    };
+    const handleNodeClick = useCallback(
+        (nodeId: string) => {
+            if (!nodeId) {
+                clearSelection();
+                return;
+            }
+            selectNode(nodeId, 'entity');
+        },
+        [selectNode, clearSelection],
+    );
 
-    const handleEdgeClick = (eventId: string) => {
-        selectNode(eventId, 'event');
-    };
+    const handleEdgeClick = useCallback(
+        (eventId: string) => {
+            selectNode(eventId, 'event');
+        },
+        [selectNode],
+    );
 
     return (
         <AppLayout
@@ -97,12 +103,15 @@ function KnowledgeGraphPage() {
                                 onEdgeClick={handleEdgeClick}
                             />
 
-                            {/* Bottom Toolbar */}
+                            {/* Bottom Toolbar (sits above the AskBox) */}
                             <GraphToolbar
                                 onZoomIn={() => canvasRef.current?.zoomIn()}
                                 onZoomOut={() => canvasRef.current?.zoomOut()}
                                 onFitToScreen={() => canvasRef.current?.fitToScreen()}
                             />
+
+                            {/* Claude-style ask box (bottom-anchored) */}
+                            <AskBox />
 
                             {/* Status Bar */}
                             <div className="absolute top-2 left-2 z-10 bg-card/80 backdrop-blur-sm border rounded-lg px-3 py-1.5 flex items-center gap-4 text-xs text-muted-foreground">

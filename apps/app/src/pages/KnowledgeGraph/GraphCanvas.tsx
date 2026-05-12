@@ -1,14 +1,7 @@
-import {
-    forwardRef,
-    useCallback,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-    useState,
-} from 'react';
-import * as d3 from 'd3';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+import type { CosmographRef } from '@cosmograph/react';
 import type { GraphNode, GraphLink } from '@/hooks/graph/useGraphData';
-import { ForceGraph, ZoomContext } from './ForceGraph';
+import { ForceGraph } from './ForceGraph';
 
 export interface GraphCanvasProps {
     nodes: GraphNode[];
@@ -26,66 +19,33 @@ export interface GraphCanvasHandle {
 }
 
 export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
-    function GraphCanvas(
-        { nodes, links, selectedNodeId, highlightedPath, onNodeClick, onEdgeClick },
-        ref,
-    ) {
-        const containerRef = useRef<HTMLDivElement>(null);
-        const zoomCtxRef = useRef<ZoomContext | null>(null);
-        const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    function GraphCanvas(props, ref) {
+        const cosmoRef = useRef<CosmographRef | null>(null);
 
-        useEffect(() => {
-            const el = containerRef.current;
-            if (!el) return;
-
-            const observer = new ResizeObserver((entries) => {
-                for (const entry of entries) {
-                    const { width, height } = entry.contentRect;
-                    setDimensions({ width: Math.floor(width), height: Math.floor(height) });
-                }
-            });
-
-            observer.observe(el);
-            return () => observer.disconnect();
-        }, []);
-
-        const handleZoomReady = useCallback((ctx: ZoomContext) => {
-            zoomCtxRef.current = ctx;
-        }, []);
-
-        useImperativeHandle(ref, () => ({
-            zoomIn() {
-                const ctx = zoomCtxRef.current;
-                if (!ctx) return;
-                const svg = d3.select<SVGSVGElement, unknown>(ctx.svgElement);
-                ctx.zoomBehavior.scaleBy(svg.transition().duration(300), 1.3);
-            },
-            zoomOut() {
-                const ctx = zoomCtxRef.current;
-                if (!ctx) return;
-                const svg = d3.select<SVGSVGElement, unknown>(ctx.svgElement);
-                ctx.zoomBehavior.scaleBy(svg.transition().duration(300), 1 / 1.3);
-            },
-            fitToScreen() {
-                const ctx = zoomCtxRef.current;
-                if (!ctx) return;
-                const svg = d3.select<SVGSVGElement, unknown>(ctx.svgElement);
-                const { width, height } = dimensions;
-                svg.transition()
-                    .duration(500)
-                    .call(
-                        ctx.zoomBehavior.transform,
-                        d3.zoomIdentity
-                            .translate(width / 2, height / 2)
-                            .scale(1)
-                            .translate(-width / 2, -height / 2),
-                    );
-            },
-        }));
+        useImperativeHandle(
+            ref,
+            () => ({
+                zoomIn() {
+                    const cosmo = cosmoRef.current;
+                    if (!cosmo) return;
+                    const current = cosmo.getZoomLevel?.() ?? 1;
+                    cosmo.setZoomLevel?.(current * 1.3, 300);
+                },
+                zoomOut() {
+                    const cosmo = cosmoRef.current;
+                    if (!cosmo) return;
+                    const current = cosmo.getZoomLevel?.() ?? 1;
+                    cosmo.setZoomLevel?.(current / 1.3, 300);
+                },
+                fitToScreen() {
+                    cosmoRef.current?.fitView?.(500, 0.1);
+                },
+            }),
+            [],
+        );
 
         return (
             <div
-                ref={containerRef}
                 className="flex-1 relative overflow-hidden"
                 style={{
                     background:
@@ -93,19 +53,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
                     backgroundSize: '40px 40px',
                 }}
             >
-                {dimensions.width > 0 && dimensions.height > 0 && (
-                    <ForceGraph
-                        nodes={nodes}
-                        links={links}
-                        selectedNodeId={selectedNodeId}
-                        highlightedPath={highlightedPath}
-                        onNodeClick={onNodeClick}
-                        onEdgeClick={onEdgeClick}
-                        onZoomReady={handleZoomReady}
-                        width={dimensions.width}
-                        height={dimensions.height}
-                    />
-                )}
+                <ForceGraph ref={cosmoRef} {...props} />
             </div>
         );
     },
