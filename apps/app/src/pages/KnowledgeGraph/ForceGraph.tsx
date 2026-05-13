@@ -131,15 +131,20 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
             const cosmo = cosmoRef.current;
             if (!cosmo) return;
 
-            // 1) Path highlight takes precedence — highlight the path nodes.
+            // 1) Path highlight takes precedence — highlight the path nodes
+            //    and pan/zoom the camera so they're all in view (used by both
+            //    PathFinder and AskBox to spotlight relevant entities).
             if (highlightedPath && highlightedPath.length > 0) {
                 const indices: number[] = [];
                 for (const id of highlightedPath) {
                     const i = idToIndex.get(id);
                     if (i !== undefined) indices.push(i);
                 }
-                cosmo.selectPoints(indices);
-                cosmo.setFocusedPoint(indices[0]);
+                if (indices.length > 0) {
+                    cosmo.selectPoints(indices);
+                    cosmo.setFocusedPoint(indices[0]);
+                    cosmo.fitViewByIndices?.(indices, 600, 0.2);
+                }
                 return;
             }
 

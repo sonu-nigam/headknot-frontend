@@ -8,6 +8,7 @@ import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
+import { useGraphStore } from '@/state/graphStore';
 import type { Schemas } from '@/types/api';
 import {
     AskFiltersPopover,
@@ -19,12 +20,20 @@ type AskFilters = Schemas['AskFiltersDto'];
 
 export function AskBox() {
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
+    const setHighlightedPath = useGraphStore((s) => s.setHighlightedPath);
     const [query, setQuery] = useState('');
     const [filters, setFilters] = useState<AskFilters>({});
     const [filtersOpen, setFiltersOpen] = useState(false);
     const filtersAnchorRef = useRef<HTMLDivElement>(null);
 
-    const ask = $api.useMutation('post', '/ask');
+    const ask = $api.useMutation('post', '/ask', {
+        onSuccess: (data: Schemas['AskResponse']) => {
+            const ids = (data.entities ?? [])
+                .map((e) => e.id)
+                .filter((id): id is string => !!id);
+            setHighlightedPath(ids.length > 0 ? ids : null);
+        },
+    });
 
     const activeFilterCount = countActiveFilters(filters);
     const hasResult = ask.data || ask.isPending || ask.isError;
@@ -56,7 +65,8 @@ export function AskBox() {
 
     const handleDismiss = useCallback(() => {
         ask.reset();
-    }, [ask]);
+        setHighlightedPath(null);
+    }, [ask, setHighlightedPath]);
 
     const errorMessage =
         ask.error instanceof Error ? ask.error.message : undefined;
