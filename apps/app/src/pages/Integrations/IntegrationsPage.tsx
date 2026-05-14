@@ -23,15 +23,19 @@ import {
     PlugZap,
     CheckCircle2,
     AlertCircle,
+    AlertTriangle,
     X,
     Database,
     RefreshCw,
+    Play,
 } from 'lucide-react';
 import { useAppStore } from '@/state/store';
 import { $api } from '@workspace/api-client';
 import { invalidateByPath } from '@/lib/queryKeys';
 import { useConnectIntegration } from '@/hooks/integrations/useConnectIntegration';
 import { useTriggerSync } from '@/hooks/integrations/useTriggerSync';
+import { useCancelSyncRun } from '@/hooks/integrations/useCancelSyncRun';
+import { useResumeSyncRun } from '@/hooks/integrations/useResumeSyncRun';
 import { Schemas } from '@/types/api';
 import { GoogleDrivePickerDialog } from './GoogleDrivePickerDialog';
 
@@ -161,16 +165,33 @@ function CatalogCard({
     isConnecting,
     onSync,
     isSyncing,
+    onCancelRun,
+    isCancelling,
+    onResumeRun,
+    isResuming,
 }: {
     item: CatalogItem;
     onConnect: () => void;
     isConnecting: boolean;
     onSync: () => void;
     isSyncing: boolean;
+    onCancelRun: (runId: string) => void;
+    isCancelling: boolean;
+    onResumeRun: (runId: string) => void;
+    isResuming: boolean;
 }) {
     const navigate = useNavigate();
     const lastSync = formatLastSync(item.integration?.lastSyncedAt);
     const itemsIndexed = item.integration?.itemsIndexed ?? 0;
+    const currentRun = item.integration?.currentRun;
+    const runStatus = (currentRun?.status ?? '').toUpperCase();
+    const isRunning = runStatus === 'RUNNING' || runStatus === 'QUEUED';
+    const isInterrupted = runStatus === 'INTERRUPTED';
+    const isFailed = runStatus === 'FAILED';
+    const processed = currentRun?.processedItems ?? 0;
+    const total = currentRun?.totalItems ?? 0;
+    const progressPct =
+        total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : null;
 
     return (
         <Card className="group justify-between hover:border-primary/30 transition-all">
@@ -198,13 +219,56 @@ function CatalogCard({
                 <CardTitle className="text-xl">{item.displayName}</CardTitle>
                 <CardDescription>{item.description}</CardDescription>
                 {item.isConnected && (
-                    <div className="flex items-center gap-3 pt-2 text-xs text-muted-foreground">
-                        {lastSync && <span>Synced {lastSync}</span>}
-                        {itemsIndexed > 0 && (
-                            <span className="flex items-center gap-1">
-                                <Database className="size-3" />
-                                {itemsIndexed.toLocaleString()} items
-                            </span>
+                    <div className="space-y-2 pt-2">
+                        {isRunning ? (
+                            <>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                        <span className="size-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                        {runStatus === 'QUEUED' ? 'Queued' : 'Syncing'}
+                                    </span>
+                                    <span>
+                                        {processed.toLocaleString()}
+                                        {total > 0 ? ` / ${total.toLocaleString()}` : ''} items
+                                    </span>
+                                </div>
+                                <div className="h-1 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                        className={`h-full bg-blue-500 transition-all ${
+                                            progressPct === null ? 'animate-pulse w-1/3' : ''
+                                        }`}
+                                        style={
+                                            progressPct !== null
+                                                ? { width: `${progressPct}%` }
+                                                : undefined
+                                        }
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                {isInterrupted && (
+                                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                                        <AlertTriangle className="size-3" />
+                                        Interrupted
+                                    </span>
+                                )}
+                                {isFailed && (
+                                    <span className="flex items-center gap-1 text-destructive">
+                                        <AlertCircle className="size-3" />
+                                        Last sync failed
+                                    </span>
+                                )}
+                                {lastSync && !isInterrupted && !isFailed && (
+                                    <span>Synced {lastSync}</span>
+                                )}
+                                {itemsIndexed > 0 && (
+                                    <span className="flex items-center gap-1">
+                                        <Database className="size-3" />
+                                        {itemsIndexed.toLocaleString()} items
+                                    </span>
+                                )}
+                            </div>
                         )}
                     </div>
                 )}
@@ -212,15 +276,47 @@ function CatalogCard({
             <CardFooter className="border-t pt-4">
                 {item.isConnected ? (
                     <div className="flex gap-2 w-full">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={onSync}
-                            disabled={isSyncing}
-                            title="Sync Now"
-                        >
-                            <RefreshCw className={`size-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                        </Button>
+                        {isRunning && currentRun?.id ? (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => onCancelRun(currentRun.id!)}
+                                disabled={isCancelling}
+                                title="Cancel sync"
+                            >
+                                {isCancelling ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                    <X className="size-4" />
+                                )}
+                            </Button>
+                        ) : isInterrupted && currentRun?.id ? (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => onResumeRun(currentRun.id!)}
+                                disabled={isResuming}
+                                title="Resume sync"
+                            >
+                                {isResuming ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                    <Play className="size-4" />
+                                )}
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={onSync}
+                                disabled={isSyncing}
+                                title="Sync Now"
+                            >
+                                <RefreshCw
+                                    className={`size-4 ${isSyncing ? 'animate-spin' : ''}`}
+                                />
+                            </Button>
+                        )}
                         <Button
                             variant="outline"
                             className="flex-1"
@@ -324,6 +420,8 @@ export function IntegrationsPage() {
 
     const connectMutation = useConnectIntegration();
     const syncMutation = useTriggerSync();
+    const cancelRunMutation = useCancelSyncRun();
+    const resumeRunMutation = useResumeSyncRun();
 
     const isLoading = integrationsLoading;
 
@@ -446,22 +544,55 @@ export function IntegrationsPage() {
                     {/* Integration Grid */}
                     {!isLoading && catalog.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {catalog.map((item) => (
-                                <CatalogCard
-                                    key={item.type}
-                                    item={item}
-                                    onConnect={() => handleConnect(item)}
-                                    isConnecting={connectMutation.isPending}
-                                    onSync={() => {
-                                        if (item.integration?.id) {
-                                            syncMutation.mutate({
-                                                params: { path: { id: item.integration.id } },
+                            {catalog.map((item) => {
+                                const runStatus = (
+                                    item.integration?.currentRun?.status ?? ''
+                                ).toUpperCase();
+                                const isRunning =
+                                    runStatus === 'RUNNING' || runStatus === 'QUEUED';
+                                return (
+                                    <CatalogCard
+                                        key={item.type}
+                                        item={item}
+                                        onConnect={() => handleConnect(item)}
+                                        isConnecting={connectMutation.isPending}
+                                        onSync={() => {
+                                            if (item.integration?.id) {
+                                                syncMutation.mutate({
+                                                    params: {
+                                                        path: { id: item.integration.id },
+                                                    },
+                                                });
+                                            }
+                                        }}
+                                        isSyncing={syncMutation.isPending || isRunning}
+                                        onCancelRun={(runId) => {
+                                            if (!item.integration?.id) return;
+                                            cancelRunMutation.mutate({
+                                                params: {
+                                                    path: {
+                                                        id: item.integration.id,
+                                                        runId,
+                                                    },
+                                                },
                                             });
-                                        }
-                                    }}
-                                    isSyncing={syncMutation.isPending}
-                                />
-                            ))}
+                                        }}
+                                        isCancelling={cancelRunMutation.isPending}
+                                        onResumeRun={(runId) => {
+                                            if (!item.integration?.id) return;
+                                            resumeRunMutation.mutate({
+                                                params: {
+                                                    path: {
+                                                        id: item.integration.id,
+                                                        runId,
+                                                    },
+                                                },
+                                            });
+                                        }}
+                                        isResuming={resumeRunMutation.isPending}
+                                    />
+                                );
+                            })}
                         </div>
                     )}
 

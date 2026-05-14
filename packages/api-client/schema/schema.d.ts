@@ -379,6 +379,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/{id}/sync-runs/{runId}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume an interrupted / cancelled / failed sync run
+         * @description Creates a new run whose parent_run_id is set to the given run and dispatches it. Returns the new run.
+         */
+        post: operations["resumeSyncRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/sync-runs/{runId}/items/{itemId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry a single failed sync item
+         * @description Resets the item to PENDING. The next time a sync runs against this integration, the item will be retried.
+         */
+        post: operations["retrySyncItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/sync-runs/{runId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a sync run
+         * @description Sets the cooperative cancel flag. The runner stops at its next iteration boundary and transitions to CANCELLED.
+         */
+        post: operations["cancelSyncRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/{id}/disconnect": {
         parameters: {
             query?: never;
@@ -1294,6 +1354,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/integrations/{id}/sync-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List sync runs
+         * @description Returns the most recent sync runs for the integration (newest first, paged).
+         */
+        get: operations["listSyncRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/sync-runs/{runId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get sync run detail
+         * @description Returns one sync run's status.
+         */
+        get: operations["getSyncRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/{id}/sync-runs/{runId}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List sync run items
+         * @description Lists items for a sync run, optionally filtered by status.
+         */
+        get: operations["listSyncRunItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/integrations/source-requests/workspace/{workspaceId}": {
         parameters: {
             query?: never;
@@ -1647,6 +1767,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/entities/{id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get evidence quotes from the digests the entity was extracted from */
+        get: operations["getEvidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/entities/{id}/events": {
         parameters: {
             query?: never;
@@ -1656,23 +1793,6 @@ export interface paths {
         };
         /** Get events connected to entity */
         get: operations["getEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/entities/{id}/chunks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get document chunks the entity was extracted from */
-        get: operations["getChunks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2106,12 +2226,13 @@ export interface components {
         };
         SourceReference: {
             /** Format: uuid */
-            documentId?: string;
-            sourceType?: string;
-            /** Format: uuid */
-            sourceId?: string;
-            sourceUrl?: string;
-            excerpt?: string;
+            claimId?: string;
+            claimText?: string;
+            sourceApp?: string;
+            /** Format: date-time */
+            validFrom?: string;
+            /** Format: date-time */
+            validTo?: string;
         };
         UnresolvedConflict: {
             /** Format: uuid */
@@ -2175,6 +2296,8 @@ export interface components {
             itemsIndexed?: number;
             /** @description Sync status message */
             syncStatusMessage?: string;
+            /** @description Snapshot of the most recent or currently-running sync, if any. Null when the integration has never been synced. */
+            currentRun?: components["schemas"]["SyncRunResponse"];
             /**
              * Format: date-time
              * @description Creation timestamp
@@ -2183,6 +2306,133 @@ export interface components {
             /**
              * Format: date-time
              * @description Last update timestamp
+             */
+            updatedAt?: string;
+        };
+        /** @description Sync run details */
+        SyncRunResponse: {
+            /**
+             * Format: uuid
+             * @description Sync run ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Integration ID
+             */
+            integrationId?: string;
+            /** @description Provider (e.g. NOTION, SLACK) */
+            provider?: string;
+            /** @description Status: QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED, INTERRUPTED */
+            status?: string;
+            /** @description Trigger type: MANUAL, RESUME, RECOVERY */
+            triggerType?: string;
+            /**
+             * Format: uuid
+             * @description User who triggered the run, if any
+             */
+            triggeredBy?: string;
+            /**
+             * Format: uuid
+             * @description Parent run if this is a resume
+             */
+            parentRunId?: string;
+            /**
+             * Format: int32
+             * @description Total items enumerated (may be null until enumeration completes)
+             */
+            totalItems?: number;
+            /**
+             * Format: int32
+             * @description Items moved out of PENDING (success + fail + skipped)
+             */
+            processedItems?: number;
+            /**
+             * Format: int32
+             * @description Items confirmed extracted
+             */
+            succeededItems?: number;
+            /**
+             * Format: int32
+             * @description Items that failed extraction
+             */
+            failedItems?: number;
+            /**
+             * Format: int32
+             * @description Items intentionally skipped (e.g. empty content or unchanged)
+             */
+            skippedItems?: number;
+            /** @description True if the user has requested cancellation */
+            cancelRequested?: boolean;
+            /**
+             * Format: date-time
+             * @description When the run actually began work
+             */
+            startedAt?: string;
+            /**
+             * Format: date-time
+             * @description When the run reached a terminal state
+             */
+            endedAt?: string;
+            /** @description Most recent error message, if any */
+            lastError?: string;
+            /**
+             * Format: date-time
+             * @description Created-at timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Updated-at timestamp
+             */
+            updatedAt?: string;
+        };
+        /** @description Sync run item details */
+        SyncRunItemResponse: {
+            /**
+             * Format: uuid
+             * @description Item ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Sync run ID
+             */
+            syncRunId?: string;
+            /** @description Item type: PAGE, THREAD, FILE, MESSAGE, ... */
+            itemType?: string;
+            /** @description Provider's external ID (page id, thread id, file id, ...) */
+            externalId?: string;
+            /** @description Human-readable name */
+            displayName?: string;
+            /** @description Status: PENDING, IN_PROGRESS, PUBLISHED, EXTRACTED, FAILED, SKIPPED, QUARANTINED */
+            status?: string;
+            /**
+             * Format: int32
+             * @description Number of processing attempts so far
+             */
+            attemptCount?: number;
+            /** @description Failure reason code, if any */
+            failureReason?: string;
+            /** @description Last error message, if any */
+            lastError?: string;
+            /** @description Per-item metadata (URL, mime type, channel, ...) */
+            metadata?: {
+                [key: string]: Record<string, never>;
+            };
+            /**
+             * Format: date-time
+             * @description When the item reached its current terminal state, if any
+             */
+            processedAt?: string;
+            /**
+             * Format: date-time
+             * @description Created-at timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Updated-at timestamp
              */
             updatedAt?: string;
         };
@@ -2323,7 +2573,7 @@ export interface components {
         };
         SourceResponse: {
             /** Format: uuid */
-            documentId?: string;
+            digestId?: string;
             /** Format: uuid */
             sourceId?: string;
             sourceType?: string;
@@ -2393,38 +2643,130 @@ export interface components {
             username?: string;
             password?: string;
         };
-        AskFiltersDto: {
+        /** @description Hard filters applied as SQL/Cypher WHERE clauses inside every graph tool the agent uses. The LLM cannot retrieve out-of-filter data. */
+        AskFilters: {
+            /**
+             * @description Integration source apps to restrict to. Valid values: NOTION, SLACK, GOOGLE_DRIVE, GITHUB, JIRA, CONFLUENCE.
+             * @example [
+             *       "NOTION",
+             *       "SLACK"
+             *     ]
+             */
             sourceApps?: string[];
+            /** @description Specific integration instance UUIDs to restrict to (e.g. 'this Notion workspace only'). */
             sourceIds?: string[];
+            /**
+             * @description Entity types to keep.
+             * @example [
+             *       "PERSON",
+             *       "ORGANIZATION",
+             *       "TECHNOLOGY"
+             *     ]
+             */
             entityTypes?: string[];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Keep only entities/events ingested at or after this timestamp (ISO-8601).
+             * @example 2026-01-01T00:00:00Z
+             */
             ingestedAfter?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Keep only entities/events ingested at or before this timestamp (ISO-8601).
+             */
             ingestedBefore?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Keep only relationships whose temporal validity ends at or after this timestamp.
+             * @example 2024-01-01T00:00:00Z
+             */
             factValidAfter?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Keep only relationships whose temporal validity begins at or before this timestamp.
+             */
             factValidBefore?: string;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Minimum confidence on extracted relationships [0.0–1.0].
+             * @example 0.7
+             */
             minConfidence?: number;
         };
+        /** @description Natural-language query against the workspace knowledge graph, optionally scoped by source / type / time / confidence filters. */
         AskRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Workspace whose knowledge graph to query.
+             */
             workspaceId: string;
-            query?: string;
-            filters?: components["schemas"]["AskFiltersDto"];
+            /**
+             * @description Natural-language question.
+             * @example What's our open-source stack at Acme?
+             */
+            query: string;
+            /** @description Optional filters. All fields are optional; missing = unrestricted. */
+            filters?: components["schemas"]["AskFilters"];
         };
-        AskResponse: {
-            answer?: string;
-            entities?: components["schemas"]["EntitySummary"][];
-            sources?: components["schemas"]["SourceReference"][];
-        };
-        EntitySummary: {
-            /** Format: uuid */
+        /** @description Knowledge-graph entity cited by the answer. */
+        AskEntitySummary: {
+            /**
+             * Format: uuid
+             * @description Entity UUID.
+             */
             id?: string;
+            /**
+             * @description Entity display name.
+             * @example Acme Corp
+             */
             name?: string;
+            /**
+             * @description Entity type: PERSON, PLACE, ORGANIZATION, CONCEPT, TECHNOLOGY, EVENT, OTHER.
+             * @example ORGANIZATION
+             */
             type?: string;
+            /** @description All source URLs the entity has been observed in, across every integration source. */
             sourceUrls?: string[];
+        };
+        /** @description Synthesized natural-language answer plus the entities and source documents the answer relies on. */
+        AskResponse: {
+            /**
+             * @description Concise natural-language answer (typically 2–5 sentences). If the agent could not produce one, a short honest explanation is returned instead.
+             * @example Acme uses Postgres 16, Kafka 3.7, and React on the frontend.
+             */
+            answer?: string;
+            /** @description Entities the answer relies on, in approximate relevance order. */
+            entities?: components["schemas"]["AskEntitySummary"][];
+            /** @description Source documents (one entry per document) that contributed evidence, each with a short excerpt and a direct sourceUrl to the original. */
+            sources?: components["schemas"]["AskSourceReference"][];
+        };
+        /** @description Source the answer is grounded in. */
+        AskSourceReference: {
+            /**
+             * Format: uuid
+             * @description Internal digest UUID.
+             */
+            digestId?: string;
+            /**
+             * @description Integration source app: NOTION, SLACK, GOOGLE_DRIVE, GITHUB, JIRA, CONFLUENCE.
+             * @example NOTION
+             */
+            sourceType?: string;
+            /**
+             * Format: uuid
+             * @description Integration instance UUID this source came from.
+             */
+            sourceId?: string;
+            /**
+             * @description Direct user-facing URL to the source.
+             * @example https://www.notion.so/acme/eng-stack-deadbeef
+             */
+            sourceUrl?: string;
+            /**
+             * @description Short evidence quote (≤200 chars) chosen by the LLM during compression — used for the user-facing preview.
+             * @example Our stack: Postgres 16, Kafka 3.7, React 19...
+             */
+            excerpt?: string;
         };
         ActivityLogResponse: {
             /** Format: uuid */
@@ -2586,16 +2928,15 @@ export interface components {
              */
             lastSyncedAt?: string;
         };
-        ChunkResponse: {
+        EvidenceResponse: {
             /** Format: uuid */
-            chunkId?: string;
+            digestId?: string;
             /** Format: uuid */
-            documentId?: string;
-            content?: string;
-            /** Format: int32 */
-            sequenceNumber?: number;
+            sourceItemId?: string;
+            text?: string;
             /** Format: date-time */
-            createdAt?: string;
+            occurredAt?: string;
+            sourceUrl?: string;
         };
         /** @description Usage record details response */
         UsageResponse: {
@@ -3722,6 +4063,76 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    resumeSyncRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                runId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"];
+                };
+            };
+        };
+    };
+    retrySyncItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                runId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunItemResponse"];
+                };
+            };
+        };
+    };
+    cancelSyncRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                runId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"];
+                };
             };
         };
     };
@@ -5299,6 +5710,81 @@ export interface operations {
             };
         };
     };
+    listSyncRuns: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"][];
+                };
+            };
+        };
+    };
+    getSyncRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                runId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"];
+                };
+            };
+        };
+    };
+    listSyncRunItems: {
+        parameters: {
+            query?: {
+                status?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+                runId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunItemResponse"][];
+                };
+            };
+        };
+    };
     listSourceRequests: {
         parameters: {
             query?: never;
@@ -5956,6 +6442,28 @@ export interface operations {
             };
         };
     };
+    getEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceResponse"][];
+                };
+            };
+        };
+    };
     getEvents: {
         parameters: {
             query?: never;
@@ -5974,28 +6482,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventNodeResponse"][];
-                };
-            };
-        };
-    };
-    getChunks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChunkResponse"][];
                 };
             };
         };
