@@ -6652,6 +6652,11 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
+                workspaceId?: string;
+                actorId?: string;
+                type?: string;
+                since?: string;
+                until?: string;
             };
             header?: never;
             path?: never;
