@@ -12,16 +12,31 @@ import {
     TableRow,
 } from '@workspace/ui/components/table';
 import { $api } from '@workspace/api-client';
+import { useAppStore } from '@/state/store';
+import { formatNumber } from '@/lib/format';
+import type { Schemas } from '@/types/api';
 
 interface SlackChannelsTabProps {
     integrationId: string;
 }
 
+const WORD_METRIC = 'word_count_monthly';
+
 export function SlackChannelsTab({ integrationId }: SlackChannelsTabProps) {
+    const { selectedWorkspaceId } = useAppStore();
     const { data: channels, isLoading } = $api.useQuery(
         "get",
         "/integrations/slack/{integrationId}/channels",
         { params: { path: { integrationId } } },
+    );
+    const { data: limits } = $api.useQuery(
+        'get',
+        '/billing/workspace/{workspaceId}/limits',
+        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
+        { enabled: !!selectedWorkspaceId },
+    );
+    const wordLimit = limits?.find(
+        (l: Schemas['LimitCheckResponse']) => l.metric === WORD_METRIC,
     );
 
     if (isLoading) {
@@ -49,6 +64,7 @@ export function SlackChannelsTab({ integrationId }: SlackChannelsTabProps) {
                             <TableHead>Channel</TableHead>
                             <TableHead>Members</TableHead>
                             <TableHead>Type</TableHead>
+                            <TableHead className="text-right">Words</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -70,11 +86,21 @@ export function SlackChannelsTab({ integrationId }: SlackChannelsTabProps) {
                                         ? 'Private'
                                         : 'Public'}
                                 </TableCell>
+                                <TableCell className="text-right text-sm text-muted-foreground">
+                                    {channel.wordCount != null
+                                        ? formatNumber(channel.wordCount)
+                                        : '—'}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </CardContent>
+            {wordLimit && (
+                <div className="px-4 py-3 border-t text-xs text-muted-foreground">
+                    Total this month: {formatNumber(wordLimit.current ?? 0)} words
+                </div>
+            )}
         </Card>
     );
 }

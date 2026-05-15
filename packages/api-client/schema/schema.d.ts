@@ -179,26 +179,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/billing/workspace/{workspaceId}/plan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Change plan
-         * @description Changes a workspace's subscription plan
-         */
-        put: operations["changeWorkspacePlan"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/workspaces": {
         parameters: {
             query?: never;
@@ -273,6 +253,22 @@ export interface paths {
          * @description Activates the workspace
          */
         post: operations["activateWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/stripe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["handle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -839,7 +835,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/billing/workspace/{workspaceId}/subscribe": {
+    "/billing/workspace/{workspaceId}/portal": {
         parameters: {
             query?: never;
             header?: never;
@@ -849,10 +845,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Subscribe workspace
-         * @description Subscribes a workspace to a plan
+         * Open the Stripe Customer Portal
+         * @description Returns a hosted Stripe URL where the user can update their payment method, change plans, download invoices, or cancel.
          */
-        post: operations["subscribeWorkspace"];
+        post: operations["portal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/workspace/{workspaceId}/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a Stripe Checkout session
+         * @description Returns a hosted Stripe URL that the frontend redirects the user to. Reuses the user's existing Stripe Customer (creating one on first use). When the user has not consumed their one-time 7-day trial AND withTrial=true, the resulting subscription begins with a Stripe- managed trial; otherwise billing starts immediately on completion.
+         */
+        post: operations["checkout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -869,10 +885,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Cancel subscription
-         * @description Cancels a workspace's subscription
+         * Cancel subscription at period end
+         * @description Asks Stripe to cancel the workspace's subscription at the end of the current period. The webhook will downgrade the workspace once Stripe finalizes the cancellation.
          */
-        post: operations["cancelSubscription"];
+        post: operations["cancel"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1830,7 +1846,7 @@ export interface paths {
         };
         /**
          * Get subscription
-         * @description Returns the subscription for a workspace
+         * @description Returns the workspace's current subscription status, or 404 when the workspace has no subscription yet (e.g., Stripe wasn't configured at the time of workspace creation, so the auto-trial listener didn't fire).
          */
         get: operations["getWorkspaceSubscription"];
         put?: never;
@@ -1849,8 +1865,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Check limits
-         * @description Checks all limit statuses for a workspace
+         * Check user-facing limits
+         * @description Returns the workspace's usage against its plan for the user-facing metrics only (words this month, workspaces, members, integrations). AI telemetry metrics are excluded.
          */
         get: operations["checkLimits"];
         put?: never;
@@ -1893,6 +1909,46 @@ export interface paths {
          * @description Returns a subscription plan by name
          */
         get: operations["getPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/me/trial-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the current user's trial status
+         * @description Returns whether the authenticated user has already consumed their one-time 7-day trial. The frontend uses this to decide whether to show the "Try free for 7 days" badge on the plan picker.
+         */
+        get: operations["getTrialStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activity/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export workspace activity log
+         * @description Streams the workspace's full activity log as newline-delimited JSON. Requires the plan's audit-export feature.
+         */
+        get: operations["exportActivityLog"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2130,54 +2186,6 @@ export interface components {
             emailEnabled?: boolean;
             /** @description List of disabled notification types */
             disabledTypes?: string[];
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             */
-            createdAt?: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             */
-            updatedAt?: string;
-        };
-        /** @description Change subscription plan request */
-        ChangePlanRequest: {
-            /**
-             * @description New plan name
-             * @example enterprise
-             */
-            planName?: string;
-        };
-        /** @description Workspace subscription details response */
-        SubscriptionResponse: {
-            /**
-             * Format: uuid
-             * @description Subscription ID
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Workspace ID
-             */
-            workspaceId?: string;
-            /**
-             * Format: uuid
-             * @description Plan ID
-             */
-            planId?: string;
-            /** @description Subscription status */
-            status?: string;
-            /**
-             * Format: date-time
-             * @description Subscription start timestamp
-             */
-            startedAt?: string;
-            /**
-             * Format: date-time
-             * @description Subscription expiration timestamp
-             */
-            expiresAt?: string;
             /**
              * Format: date-time
              * @description Creation timestamp
@@ -2588,13 +2596,24 @@ export interface components {
             /** Format: uuid */
             workspaceId: string;
         };
-        /** @description Subscribe workspace to a plan request */
-        SubscribeRequest: {
+        /** @description Hosted-page URL the frontend should redirect the user to */
+        CheckoutSessionResponse: {
+            /** @description Hosted Stripe URL */
+            url?: string;
+        };
+        /** @description Request to start a Stripe Checkout session */
+        CreateCheckoutRequest: {
             /**
-             * @description Plan name
-             * @example pro
+             * @description Lookup key for the target price — one of: lite_monthly, lite_yearly, pro_monthly, pro_yearly
+             * @example pro_monthly
              */
-            planName?: string;
+            priceLookupKey?: string;
+            /**
+             * @description Whether to attempt a 7-day trial. Only honoured when the user has not used their one-time trial — otherwise ignored and billing starts immediately on Checkout completion.
+             * @default false
+             * @example true
+             */
+            withTrial: boolean;
         };
         SignupRequest: {
             username?: string;
@@ -2963,10 +2982,52 @@ export interface components {
              */
             recordedAt?: string;
         };
+        /** @description Workspace subscription details response */
+        SubscriptionResponse: {
+            /**
+             * Format: uuid
+             * @description Subscription ID
+             */
+            id?: string;
+            /**
+             * Format: uuid
+             * @description Workspace ID
+             */
+            workspaceId?: string;
+            /**
+             * Format: uuid
+             * @description Plan ID
+             */
+            planId?: string;
+            /** @description Subscription status */
+            status?: string;
+            /**
+             * Format: date-time
+             * @description Subscription start timestamp
+             */
+            startedAt?: string;
+            /**
+             * Format: date-time
+             * @description Subscription expiration timestamp
+             */
+            expiresAt?: string;
+            /**
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updatedAt?: string;
+        };
         /** @description Limit check response for a metric */
         LimitCheckResponse: {
             /** @description Metric name */
             metric?: string;
+            /** @description Human-friendly metric label */
+            displayName?: string;
             /**
              * Format: int64
              * @description Current usage value
@@ -2977,6 +3038,16 @@ export interface components {
              * @description Plan limit (-1 = unlimited)
              */
             limit?: number;
+            /**
+             * Format: int64
+             * @description Units remaining until the limit (clamped at 0; -1 if unlimited)
+             */
+            remaining?: number;
+            /**
+             * Format: double
+             * @description Percent of the limit used (0-100; null if unlimited)
+             */
+            percent?: number;
             /** @description Whether usage is within the limit */
             withinLimit?: boolean;
         };
@@ -2995,14 +3066,9 @@ export interface components {
             description?: string;
             /**
              * Format: int32
-             * @description Maximum memories allowed (-1 = unlimited)
+             * @description Maximum words ingested per month (-1 = unlimited)
              */
-            maxMemories?: number;
-            /**
-             * Format: int32
-             * @description Maximum entities allowed (-1 = unlimited)
-             */
-            maxEntities?: number;
+            maxWordsMonthly?: number;
             /**
              * Format: int32
              * @description Maximum workspaces allowed (-1 = unlimited)
@@ -3013,10 +3079,29 @@ export interface components {
              * @description Maximum members per workspace (-1 = unlimited)
              */
             maxMembersPerWorkspace?: number;
+            /**
+             * Format: int32
+             * @description Maximum integrations per workspace (-1 = unlimited)
+             */
+            maxIntegrations?: number;
+            /**
+             * Format: int32
+             * @description Audit-log retention in days (-1 = unlimited)
+             */
+            auditRetentionDays?: number;
+            /** @description SSO / SAML sign-in enabled */
+            ssoEnabled?: boolean;
+            /** @description Audit-log export endpoint enabled */
+            auditExportEnabled?: boolean;
             /** @description Monthly price */
             priceMonthly?: number;
             /** @description Yearly price */
             priceYearly?: number;
+            /**
+             * Format: int32
+             * @description Trial period in days (0 = no trial)
+             */
+            trialDays?: number;
             /** @description Whether the plan is active */
             active?: boolean;
             /**
@@ -3030,6 +3115,19 @@ export interface components {
              */
             updatedAt?: string;
         };
+        /** @description Per-user one-time trial status */
+        TrialStatusResponse: {
+            /** @description Whether the user has already consumed their one-time trial */
+            trialUsed?: boolean;
+            /**
+             * Format: date-time
+             * @description When the trial was consumed (null if not yet)
+             */
+            trialUsedAt?: string;
+            /** @description Whether a fresh trial can still be granted on the next Checkout */
+            trialEligible?: boolean;
+        };
+        StreamingResponseBody: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -3683,54 +3781,6 @@ export interface operations {
             };
         };
     };
-    changeWorkspacePlan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace ID */
-                workspaceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangePlanRequest"];
-            };
-        };
-        responses: {
-            /** @description Plan changed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponse"];
-                };
-            };
-            /** @description Invalid request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription or plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     createWorkspace: {
         parameters: {
             query?: never;
@@ -3910,6 +3960,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    handle: {
+        parameters: {
+            query?: never;
+            header: {
+                "Stripe-Signature": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
             };
         };
     };
@@ -4898,48 +4970,7 @@ export interface operations {
             };
         };
     };
-    subscribeWorkspace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace ID */
-                workspaceId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscribeRequest"];
-            };
-        };
-        responses: {
-            /** @description Subscription created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponse"];
-                };
-            };
-            /** @description Invalid request or workspace already subscribed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    cancelSubscription: {
+    portal: {
         parameters: {
             query?: never;
             header?: never;
@@ -4951,24 +4982,58 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Subscription cancelled */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubscriptionResponse"];
+                    "application/json": components["schemas"]["CheckoutSessionResponse"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
+        };
+    };
+    checkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCheckoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["CheckoutSessionResponse"];
+                };
             };
-            /** @description Subscription not found */
-            404: {
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace ID */
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6498,7 +6563,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Usage records retrieved */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6506,13 +6571,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UsageResponse"][];
                 };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -6528,7 +6586,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Subscription found */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6536,20 +6594,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SubscriptionResponse"];
                 };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -6565,7 +6609,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Limit checks retrieved */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6573,13 +6617,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LimitCheckResponse"][];
                 };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -6622,13 +6659,61 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Plan found */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+        };
+    };
+    getTrialStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrialStatusResponse"];
+                };
+            };
+        };
+    };
+    exportActivityLog: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspaceId: string;
+                /** @description Only include entries on or after this instant */
+                since?: string;
+                /** @description Only include entries on or before this instant */
+                until?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description NDJSON stream of activity log entries */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/x-ndjson": components["schemas"]["StreamingResponseBody"];
+                    "application/json": components["schemas"]["StreamingResponseBody"];
                 };
             };
             /** @description Unauthorized */
@@ -6638,8 +6723,8 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Plan not found */
-            404: {
+            /** @description Plan does not include audit export */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

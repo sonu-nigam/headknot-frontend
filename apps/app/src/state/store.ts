@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export type DismissedBanner = {
+    state: string;
+    /** Unix epoch millis after which the banner is shown again. */
+    until: number;
+};
+
 type State = {
     captureMemoryFormVisible: boolean;
     /**
@@ -8,6 +14,7 @@ type State = {
      * Persisted to local storage so the selection survives reloads.
      */
     selectedWorkspaceId: string | null;
+    dismissedBillingBanner: DismissedBanner | null;
 };
 
 type Actions = {
@@ -24,6 +31,9 @@ type Actions = {
      * Convenience helper to clear the currently selected workspace.
      */
     clearSelectedWorkspaceId: () => void;
+
+    dismissBillingBanner: (state: string, ttlMs?: number) => void;
+    clearDismissedBillingBanner: () => void;
 };
 
 /**
@@ -35,12 +45,15 @@ type Actions = {
  * Note: we only persist the `selectedWorkspaceId` slice via `partialize` to avoid
  * accidentally persisting other UI state.
  */
+const DEFAULT_DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
+
 export const useAppStore = create<State & Actions>()((set) => ({
     // UI state (not persisted)
     captureMemoryFormVisible: false,
 
     // Persisted state
     selectedWorkspaceId: null,
+    dismissedBillingBanner: null,
 
     // Actions for capture memory form
     displayCaptureMemoryForm: () => set({ captureMemoryFormVisible: true }),
@@ -54,4 +67,13 @@ export const useAppStore = create<State & Actions>()((set) => ({
     setSelectedWorkspaceId: (id: string | null) =>
         set({ selectedWorkspaceId: id }),
     clearSelectedWorkspaceId: () => set({ selectedWorkspaceId: null }),
+
+    dismissBillingBanner: (state, ttlMs = DEFAULT_DISMISS_TTL_MS) =>
+        set({
+            dismissedBillingBanner: {
+                state,
+                until: Date.now() + ttlMs,
+            },
+        }),
+    clearDismissedBillingBanner: () => set({ dismissedBillingBanner: null }),
 }));

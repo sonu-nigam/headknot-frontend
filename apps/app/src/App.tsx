@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -8,6 +9,8 @@ import NotFoundPage from './pages/NotFoundPage';
 import GoogleCallback from './pages/GoogleCallback';
 import { AccountPage } from './pages/Account/AccountPage';
 import { BillingPage } from './pages/Billing/BillingPage';
+import { CheckoutSuccessPage } from './pages/Billing/CheckoutSuccessPage';
+import { CheckoutCancelPage } from './pages/Billing/CheckoutCancelPage';
 import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import Archives from './pages/Archives';
 
@@ -35,6 +38,7 @@ import OnboardingPage from './pages/Onboarding/OnboardingPage';
 export default function App() {
     const loc = useLocation();
     return (
+        <>
         <Routes location={loc}>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -241,6 +245,22 @@ export default function App() {
                 }
             />
             <Route
+                path="/billing/success"
+                element={
+                    <ProtectedRoute>
+                        <CheckoutSuccessPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/billing/cancel"
+                element={
+                    <ProtectedRoute>
+                        <CheckoutCancelPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/notifications"
                 element={
                     <ProtectedRoute>
@@ -250,5 +270,7 @@ export default function App() {
             />
             <Route path="/archives" element={<Archives />} />
         </Routes>
+        <Toaster position="top-right" richColors closeButton />
+        </>
     );
 }

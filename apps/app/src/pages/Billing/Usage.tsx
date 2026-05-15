@@ -7,129 +7,138 @@ import {
     CardHeader,
     CardTitle,
 } from '@workspace/ui/components/card';
+import { Loader2 } from 'lucide-react';
+import { formatNumber } from '@/lib/format';
+import type { Schemas } from '@/types/api';
+
+const WORD_METRIC = 'word_count_monthly';
 
 export function Usage() {
     const { selectedWorkspaceId } = useAppStore();
-    const { data: usage, isLoading: usageLoading } = $api.useQuery(
-        "get", "/billing/workspace/{workspaceId}/usage",
+    const { data: limits, isLoading } = $api.useQuery(
+        'get',
+        '/billing/workspace/{workspaceId}/limits',
         { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );
-    const { data: limits, isLoading: limitsLoading } = $api.useQuery(
-        "get", "/billing/workspace/{workspaceId}/limits",
-        { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
-        { enabled: !!selectedWorkspaceId },
-    );
-
-    const isLoading = usageLoading || limitsLoading;
 
     if (isLoading) {
         return (
             <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" />
                     Loading usage data...
                 </CardContent>
             </Card>
         );
     }
 
+    if (!limits || limits.length === 0) {
+        return (
+            <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                    No usage data available yet.
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const wordLimit = limits.find(
+        (l: Schemas['LimitCheckResponse']) => l.metric === WORD_METRIC,
+    );
+    const otherLimits = limits.filter(
+        (l: Schemas['LimitCheckResponse']) => l.metric !== WORD_METRIC,
+    );
+
     return (
         <div className="space-y-4">
-            {limits && limits.length > 0 && (
+            {wordLimit && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Plan Limits</CardTitle>
+                        <CardTitle className="text-lg">
+                            {wordLimit.displayName ?? 'Words this month'}
+                        </CardTitle>
                         <CardDescription>
-                            Your current usage against plan limits.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {limits.map((limit) => {
-                            const isUnlimited = limit.limit === -1;
-                            const percentage = isUnlimited
-                                ? 0
-                                : limit.limit && limit.limit > 0
-                                  ? Math.min(
-                                        ((limit.current ?? 0) / limit.limit) *
-                                            100,
-                                        100
-                                    )
-                                  : 0;
-                            const isOverLimit =
-                                !isUnlimited && !limit.withinLimit;
-
-                            return (
-                                <div key={limit.metric} className="space-y-1">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="capitalize">
-                                            {limit.metric?.replace(/_/g, ' ')}
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                            {limit.current ?? 0} /{' '}
-                                            {isUnlimited
-                                                ? 'Unlimited'
-                                                : limit.limit}
-                                        </span>
-                                    </div>
-                                    {!isUnlimited && (
-                                        <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full transition-all ${
-                                                    isOverLimit
-                                                        ? 'bg-destructive'
-                                                        : percentage > 80
-                                                          ? 'bg-yellow-500'
-                                                          : 'bg-primary'
-                                                }`}
-                                                style={{
-                                                    width: `${percentage}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </CardContent>
-                </Card>
-            )}
-
-            {usage && usage.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Usage Metrics</CardTitle>
-                        <CardDescription>
-                            Detailed resource usage for this workspace.
+                            Words counted across all ingested content.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-3">
-                            {usage.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className="flex items-center justify-between text-sm border-b pb-2 last:border-0"
-                                >
-                                    <span className="capitalize">
-                                        {item.metric?.replace(/_/g, ' ')}
-                                    </span>
-                                    <span className="font-medium">
-                                        {item.value}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                        <LimitBar limit={wordLimit} prominent />
                     </CardContent>
                 </Card>
             )}
 
-            {(!limits || limits.length === 0) &&
-                (!usage || usage.length === 0) && (
-                    <Card>
-                        <CardContent className="p-6 text-center text-muted-foreground">
-                            No usage data available yet.
-                        </CardContent>
-                    </Card>
-                )}
+            {otherLimits.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Plan limits</CardTitle>
+                        <CardDescription>
+                            Other resources counted against your plan.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                        {otherLimits.map(
+                            (limit: Schemas['LimitCheckResponse']) => (
+                                <LimitBar key={limit.metric} limit={limit} />
+                            ),
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+    );
+}
+
+function LimitBar({
+    limit,
+    prominent = false,
+}: {
+    limit: Schemas['LimitCheckResponse'];
+    prominent?: boolean;
+}) {
+    const isUnlimited = limit.limit === -1;
+    const current = limit.current ?? 0;
+    const limitValue = limit.limit ?? 0;
+    const percent = isUnlimited ? 0 : Math.min(limit.percent ?? 0, 100);
+    const isOverLimit = !isUnlimited && !limit.withinLimit;
+    const remaining = limit.remaining ?? 0;
+
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+                <span className={prominent ? 'font-medium' : ''}>
+                    {limit.displayName ?? limit.metric}
+                </span>
+                <span className="font-mono text-muted-foreground">
+                    {formatNumber(current)} /{' '}
+                    {isUnlimited ? 'Unlimited' : formatNumber(limitValue)}
+                </span>
+            </div>
+            {!isUnlimited && (
+                <div
+                    className={`rounded-full bg-muted overflow-hidden ${
+                        prominent ? 'h-3' : 'h-2'
+                    }`}
+                >
+                    <div
+                        className={`h-full rounded-full transition-all ${
+                            isOverLimit
+                                ? 'bg-destructive'
+                                : percent > 80
+                                  ? 'bg-yellow-500'
+                                  : 'bg-primary'
+                        }`}
+                        style={{ width: `${percent}%` }}
+                    />
+                </div>
+            )}
+            {!isUnlimited && (
+                <p className="text-xs text-muted-foreground text-right">
+                    {isOverLimit
+                        ? `Over by ${formatNumber(current - limitValue)}`
+                        : `${formatNumber(remaining)} left`}
+                </p>
+            )}
         </div>
     );
 }

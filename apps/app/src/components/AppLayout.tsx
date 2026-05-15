@@ -6,6 +6,7 @@ import { AppSidebar } from './sidebar/AppSidebar';
 import { AppHeader } from './AppHeader';
 import { ContextPanel } from './ContextPanel';
 import { SearchCommandDialog } from './SearchCommandDialog';
+import BillingBanner from './BillingBanner';
 
 export default function AppLayout({
     children,
@@ -18,6 +19,7 @@ export default function AppLayout({
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
+                <BillingBanner />
                 <AppHeader breadcrumbs={breadcrumbs} />
                 {children}
             </SidebarInset>
