@@ -3,22 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useOpenCustomerPortal } from '@/hooks/billing/useOpenCustomerPortal';
-import { useTrialStatus } from '@/hooks/billing/useTrialStatus';
 import { Button } from '@workspace/ui/components/button';
 import { AlertCircle, AlertTriangle, Info, X, Loader2 } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
 import type { Schemas } from '@/types/api';
 
 const REFETCH_INTERVAL_MS = 60_000;
 const WORD_METRIC = 'word_count_monthly';
-const TRIAL_WARNING_DAYS = 3;
 
 type BannerKind =
     | 'payment-failed'
     | 'subscription-ended'
-    | 'no-subscription-trial-available'
-    | 'no-subscription-trial-used'
-    | 'trial-ending'
+    | 'no-subscription'
     | 'word-cap-approaching'
     | 'word-cap-over';
 
@@ -57,9 +52,6 @@ export default function BillingBanner() {
             refetchInterval: REFETCH_INTERVAL_MS,
         },
     );
-
-    const { data: plans } = $api.useQuery('get', '/billing/plans');
-    const { data: trialStatus } = useTrialStatus();
 
     const openPortal = () => {
         if (!selectedWorkspaceId) return;
@@ -108,39 +100,26 @@ export default function BillingBanner() {
             };
         }
 
-        // Priority 3 — no subscription, trial available (post-signup onboarding nudge).
-        if (noSubscription && trialStatus?.trialEligible) {
+        // Priority 3 — no subscription yet (workspace created but plan not selected).
+        if (noSubscription) {
             return {
-                kind: 'no-subscription-trial-available',
+                kind: 'no-subscription',
                 severity: 'info',
                 message:
-                    'Welcome to Headknot — start your 7-day free trial.',
+                    'Pick a plan to start ingesting. Free includes 50K words/month.',
                 ctaLabel: 'Choose a plan',
                 onCta: () => navigate('/billing'),
                 dismissible: true,
             };
         }
 
-        // Priority 4 — no subscription, trial used.
-        if (noSubscription && trialStatus && !trialStatus.trialEligible) {
-            return {
-                kind: 'no-subscription-trial-used',
-                severity: 'warn',
-                message:
-                    'This workspace has no active plan. Pick one to start ingesting.',
-                ctaLabel: 'Choose a plan',
-                onCta: () => navigate('/billing'),
-                dismissible: true,
-            };
-        }
-
-        // Word cap takes precedence over trial-ending because it actively blocks usage.
+        // Word cap — hard-blocked once over (backend now returns 402); banner mirrors that.
         if (wordOver) {
             const overBy = wordCurrent - wordCap;
             return {
                 kind: 'word-cap-over',
                 severity: 'error',
-                message: `You're ${overBy.toLocaleString()} words over this month's limit. Ingest will keep working.`,
+                message: `You're ${overBy.toLocaleString()} words over this month's limit. Upgrade to keep ingesting.`,
                 ctaLabel: 'Upgrade plan',
                 onCta: () => navigate('/billing'),
                 dismissible: true,
@@ -158,38 +137,8 @@ export default function BillingBanner() {
             };
         }
 
-        // Priority 5 — trial ending soon.
-        if (status === 'ACTIVE' && subscription?.expiresAt) {
-            const currentPlan = plans?.find(
-                (p: Schemas['PlanResponse']) =>
-                    p.id === subscription.planId,
-            );
-            const trialDays = currentPlan?.trialDays ?? 0;
-            const periodEnd = new Date(subscription.expiresAt);
-            const daysLeft = differenceInDays(periodEnd, new Date());
-
-            // Treat as trial only when the plan has a trial window and we're inside it.
-            const looksLikeTrial = trialDays > 0 && daysLeft <= trialDays;
-            if (
-                looksLikeTrial &&
-                daysLeft >= 0 &&
-                daysLeft < TRIAL_WARNING_DAYS
-            ) {
-                const planLabel =
-                    currentPlan?.displayName ?? currentPlan?.name ?? 'trial';
-                return {
-                    kind: 'trial-ending',
-                    severity: 'warn',
-                    message: `Your ${planLabel} trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}. Card on file will be billed automatically — manage anytime.`,
-                    ctaLabel: 'Manage billing',
-                    onCta: openPortal,
-                    dismissible: true,
-                };
-            }
-        }
-
         return null;
-    }, [subscription, subscriptionError, limits, plans, trialStatus, navigate]);
+    }, [subscription, subscriptionError, limits, navigate]);
 
     if (!spec) return null;
 

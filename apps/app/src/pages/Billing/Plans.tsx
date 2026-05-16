@@ -3,7 +3,7 @@ import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useCreateCheckoutSession } from '@/hooks/billing/useCreateCheckoutSession';
 import { useOpenCustomerPortal } from '@/hooks/billing/useOpenCustomerPortal';
-import { useTrialStatus } from '@/hooks/billing/useTrialStatus';
+import { useSelectFreePlan } from '@/hooks/billing/useSelectFreePlan';
 import { Button } from '@workspace/ui/components/button';
 import {
     Card,
@@ -22,6 +22,7 @@ import type { Schemas } from '@/types/api';
 type BillingCycle = 'monthly' | 'yearly';
 
 const SALES_EMAIL = import.meta.env.VITE_SALES_EMAIL ?? 'sales@headknot.com';
+const PLAN_ORDER = ['free', 'lite', 'pro', 'enterprise'];
 
 export function Plans() {
     const { selectedWorkspaceId } = useAppStore();
@@ -34,9 +35,9 @@ export function Plans() {
         { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );
-    const { data: trialStatus } = useTrialStatus();
     const checkout = useCreateCheckoutSession();
     const portal = useOpenCustomerPortal();
+    const selectFree = useSelectFreePlan();
 
     if (isLoading) {
         return (
@@ -57,22 +58,25 @@ export function Plans() {
         );
     }
 
-    const order = ['lite', 'pro', 'enterprise'];
     const sortedPlans = [...plans].sort(
-        (a, b) => order.indexOf(a.name ?? '') - order.indexOf(b.name ?? ''),
+        (a, b) =>
+            PLAN_ORDER.indexOf(a.name ?? '') -
+            PLAN_ORDER.indexOf(b.name ?? ''),
     );
-
     const hasActiveSubscription = subscription?.status === 'ACTIVE';
-    const trialEligible = trialStatus?.trialEligible ?? false;
 
     const handleCheckout = (planName: string) => {
         if (!selectedWorkspaceId) return;
         checkout.mutate({
             params: { path: { workspaceId: selectedWorkspaceId } },
-            body: {
-                priceLookupKey: `${planName}_${cycle}`,
-                withTrial: trialEligible && !hasActiveSubscription,
-            },
+            body: { priceLookupKey: `${planName}_${cycle}` },
+        });
+    };
+
+    const handleSelectFree = () => {
+        if (!selectedWorkspaceId) return;
+        selectFree.mutate({
+            params: { path: { workspaceId: selectedWorkspaceId } },
         });
     };
 
@@ -85,21 +89,7 @@ export function Plans() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <div>
-                    {!hasActiveSubscription && trialEligible && (
-                        <p className="text-sm text-muted-foreground">
-                            Start any plan with a 7-day free trial. Card
-                            required; no charge during the trial.
-                        </p>
-                    )}
-                    {!hasActiveSubscription && !trialEligible && (
-                        <p className="text-sm text-muted-foreground">
-                            You've used your one-time free trial. Pick a plan
-                            to subscribe — billing starts immediately.
-                        </p>
-                    )}
-                </div>
+            <div className="flex items-center justify-end">
                 <Tabs
                     value={cycle}
                     onValueChange={(v) => setCycle(v as BillingCycle)}
@@ -116,7 +106,7 @@ export function Plans() {
                 </Tabs>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {sortedPlans.map((plan) => (
                     <PlanCard
                         key={plan.id}
@@ -127,10 +117,13 @@ export function Plans() {
                             subscription?.status === 'ACTIVE'
                         }
                         hasActiveSubscription={hasActiveSubscription}
-                        trialEligible={trialEligible}
                         isCheckoutPending={checkout.isPending}
                         isPortalPending={portal.isPending}
-                        onCheckout={() => plan.name && handleCheckout(plan.name)}
+                        isSelectFreePending={selectFree.isPending}
+                        onCheckout={() =>
+                            plan.name && handleCheckout(plan.name)
+                        }
+                        onSelectFree={handleSelectFree}
                         onManageInPortal={handleManageInPortal}
                     />
                 ))}
@@ -144,10 +137,11 @@ interface PlanCardProps {
     cycle: BillingCycle;
     isCurrent: boolean;
     hasActiveSubscription: boolean;
-    trialEligible: boolean;
     isCheckoutPending: boolean;
     isPortalPending: boolean;
+    isSelectFreePending: boolean;
     onCheckout: () => void;
+    onSelectFree: () => void;
     onManageInPortal: () => void;
 }
 
@@ -156,33 +150,31 @@ function PlanCard({
     cycle,
     isCurrent,
     hasActiveSubscription,
-    trialEligible,
     isCheckoutPending,
     isPortalPending,
+    isSelectFreePending,
     onCheckout,
+    onSelectFree,
     onManageInPortal,
 }: PlanCardProps) {
+    const isFree = plan.name === 'free';
     const isEnterprise = plan.name === 'enterprise';
     const isPro = plan.name === 'pro';
-    const recommendForTrial =
-        isPro && !hasActiveSubscription && trialEligible;
     const price = cycle === 'yearly' ? plan.priceYearly : plan.priceMonthly;
     const priceSuffix = cycle === 'yearly' ? '/yr' : '/mo';
     const planLabel = plan.displayName ?? plan.name ?? '';
-    const trialBadgeVisible =
-        !hasActiveSubscription && trialEligible && (plan.trialDays ?? 0) > 0;
 
     return (
         <Card
             className={`relative ${
-                recommendForTrial
+                isPro
                     ? 'ring-2 ring-primary'
                     : isCurrent
                       ? 'border-primary'
                       : ''
             }`}
         >
-            {recommendForTrial && (
+            {isPro && !isCurrent && (
                 <Badge className="absolute -top-2 right-4">Recommended</Badge>
             )}
 
@@ -200,6 +192,8 @@ function PlanCard({
                         <span className="text-2xl font-bold">
                             Contact sales
                         </span>
+                    ) : isFree ? (
+                        <span className="text-2xl font-bold">Free</span>
                     ) : (
                         <>
                             <span className="text-2xl font-bold">${price}</span>
@@ -209,19 +203,6 @@ function PlanCard({
                         </>
                     )}
                 </div>
-
-                {!isEnterprise && trialBadgeVisible && (
-                    <Badge variant="secondary" className="mt-2 w-fit">
-                        7-day free trial · Card required
-                    </Badge>
-                )}
-                {!isEnterprise &&
-                    !trialEligible &&
-                    !hasActiveSubscription && (
-                        <p className="mt-2 text-xs text-muted-foreground">
-                            You've used your free trial.
-                        </p>
-                    )}
             </CardHeader>
 
             <CardContent>
@@ -252,7 +233,7 @@ function PlanCard({
                             plan.maxIntegrations === -1
                                 ? 'Unlimited'
                                 : plan.maxIntegrations
-                        } integrations`}
+                        } integration${plan.maxIntegrations === 1 ? '' : 's'}`}
                     />
                     <Feature
                         label={`${
@@ -271,14 +252,16 @@ function PlanCard({
             <CardFooter>
                 {renderCta({
                     plan,
+                    isFree,
                     isEnterprise,
                     isPro,
                     isCurrent,
                     hasActiveSubscription,
-                    trialEligible,
                     isCheckoutPending,
                     isPortalPending,
+                    isSelectFreePending,
                     onCheckout,
+                    onSelectFree,
                     onManageInPortal,
                 })}
             </CardFooter>
@@ -288,27 +271,31 @@ function PlanCard({
 
 interface CtaArgs {
     plan: Schemas['PlanResponse'];
+    isFree: boolean;
     isEnterprise: boolean;
     isPro: boolean;
     isCurrent: boolean;
     hasActiveSubscription: boolean;
-    trialEligible: boolean;
     isCheckoutPending: boolean;
     isPortalPending: boolean;
+    isSelectFreePending: boolean;
     onCheckout: () => void;
+    onSelectFree: () => void;
     onManageInPortal: () => void;
 }
 
 function renderCta({
     plan,
+    isFree,
     isEnterprise,
     isPro,
     isCurrent,
     hasActiveSubscription,
-    trialEligible,
     isCheckoutPending,
     isPortalPending,
+    isSelectFreePending,
     onCheckout,
+    onSelectFree,
     onManageInPortal,
 }: CtaArgs) {
     const planLabel = plan.displayName ?? plan.name ?? '';
@@ -329,9 +316,9 @@ function renderCta({
         );
     }
 
-    // User already on a different active plan → plan changes go through Customer Portal so
-    // Stripe handles proration and downgrade rules.
-    if (hasActiveSubscription) {
+    // Already on a paid plan → upgrades/downgrades go through the Customer Portal so Stripe owns
+    // proration. Free has no portal path; switching off Free requires Checkout for a paid plan.
+    if (hasActiveSubscription && !isFree) {
         return (
             <Button
                 className="w-full"
@@ -348,13 +335,29 @@ function renderCta({
         );
     }
 
-    // No active subscription — first subscribe (with or without trial).
-    const trialAvailable = trialEligible && (plan.trialDays ?? 0) > 0;
-    const label = trialAvailable
-        ? isPro
-            ? 'Start 7-day free trial'
-            : `Start trial on ${planLabel}`
-        : `Subscribe to ${planLabel}`;
+    if (isFree) {
+        if (hasActiveSubscription) {
+            return (
+                <Button className="w-full" variant="outline" disabled>
+                    Downgrade via support
+                </Button>
+            );
+        }
+        return (
+            <Button
+                className="w-full"
+                variant="outline"
+                onClick={onSelectFree}
+                disabled={isSelectFreePending}
+            >
+                {isSelectFreePending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                ) : (
+                    'Get started'
+                )}
+            </Button>
+        );
+    }
 
     return (
         <Button
@@ -366,7 +369,7 @@ function renderCta({
             {isCheckoutPending ? (
                 <Loader2 className="size-4 animate-spin" />
             ) : (
-                label
+                `Subscribe to ${planLabel}`
             )}
         </Button>
     );

@@ -13,7 +13,7 @@ import {
     CardTitle,
 } from '@workspace/ui/components/card';
 import { Badge } from '@workspace/ui/components/badge';
-import { differenceInDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { CreditCard, Loader2 } from 'lucide-react';
 import type { Schemas } from '@/types/api';
 
@@ -62,15 +62,8 @@ export function Subscription() {
     const status = (subscription?.status ?? '').toUpperCase();
     const isSuspended = status === 'SUSPENDED';
 
-    // Trial countdown: the backend's auto-trial puts the workspace into ACTIVE
-    // status with an `expiresAt` set to trial-end. Once the user pays, the
-    // webhook moves `expiresAt` forward to the next renewal. We display the
-    // upcoming date generically as the period end.
     const periodEnd = subscription?.expiresAt
         ? new Date(subscription.expiresAt)
-        : null;
-    const daysLeft = periodEnd
-        ? differenceInDays(periodEnd, new Date())
         : null;
 
     if (isLoading) {
@@ -134,26 +127,14 @@ export function Subscription() {
                                 'Unknown'}
                         </p>
                     </div>
-                    {status === 'ACTIVE' &&
-                        daysLeft !== null &&
-                        daysLeft >= 0 && (
-                            <div>
-                                <p className="text-muted-foreground">
-                                    {(currentPlan?.trialDays ?? 0) > 0 &&
-                                    daysLeft <= (currentPlan?.trialDays ?? 0)
-                                        ? 'Trial ends in'
-                                        : 'Renews on'}
-                                </p>
-                                <p className="font-medium">
-                                    {(currentPlan?.trialDays ?? 0) > 0 &&
-                                    daysLeft <= (currentPlan?.trialDays ?? 0)
-                                        ? `${daysLeft} day${daysLeft === 1 ? '' : 's'}`
-                                        : periodEnd
-                                          ? format(periodEnd, 'MMM d, yyyy')
-                                          : '--'}
-                                </p>
-                            </div>
-                        )}
+                    {status === 'ACTIVE' && periodEnd && (
+                        <div>
+                            <p className="text-muted-foreground">Renews on</p>
+                            <p className="font-medium">
+                                {format(periodEnd, 'MMM d, yyyy')}
+                            </p>
+                        </div>
+                    )}
                     {subscription.startedAt && (
                         <div>
                             <p className="text-muted-foreground">Started</p>

@@ -5,64 +5,31 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import { invalidateByPath } from '@/lib/queryKeys';
-import { useTrialStatus } from '@/hooks/billing/useTrialStatus';
-import { format } from 'date-fns';
 
 // Module-level so StrictMode's double-effect can't fire the toast twice in dev,
 // and so a fast back-nav after we redirect won't refire it either.
 let toastFiredForVisit = false;
 
 /**
- * Stripe Checkout success landing. Invalidates the billing queries (subscription/limits/trial),
- * waits briefly for the webhook to land, then redirects back to /billing with a toast that
- * differentiates "trial started" vs "subscription active" based on whether the user's trial just
- * flipped to used during this flow.
+ * Stripe Checkout success landing. Invalidates billing queries, waits briefly for the webhook to
+ * land, then redirects back to /billing with a success toast.
  */
 export function CheckoutSuccessPage() {
     const queryClient = useQueryClient();
     const [ready, setReady] = useState(false);
-    const { refetch: refetchTrialStatus } = useTrialStatus();
 
     useEffect(() => {
-        // Webhook may still be propagating; invalidate everything billing-shaped and pull fresh
-        // trial status to decide which toast copy to fire.
         invalidateByPath(queryClient, 'get', '/billing');
 
-        let cancelled = false;
-        const t = setTimeout(async () => {
-            try {
-                const { data: latest } = await refetchTrialStatus();
-                if (cancelled) return;
-                if (!toastFiredForVisit) {
-                    toastFiredForVisit = true;
-                    const usedAt = latest?.trialUsedAt
-                        ? new Date(latest.trialUsedAt)
-                        : null;
-                    const justStartedTrial =
-                        latest?.trialUsed &&
-                        usedAt &&
-                        Date.now() - usedAt.getTime() < 2 * 60 * 1000;
-
-                    if (justStartedTrial && usedAt) {
-                        const billsOn = new Date(
-                            usedAt.getTime() + 7 * 24 * 60 * 60 * 1000,
-                        );
-                        toast.success(
-                            `7-day trial started — card on file will be billed on ${format(billsOn, 'MMM d, yyyy')}.`,
-                        );
-                    } else {
-                        toast.success('Subscription active');
-                    }
-                }
-            } finally {
-                if (!cancelled) setReady(true);
+        const t = setTimeout(() => {
+            if (!toastFiredForVisit) {
+                toastFiredForVisit = true;
+                toast.success('Subscription active');
             }
+            setReady(true);
         }, 1500);
-        return () => {
-            cancelled = true;
-            clearTimeout(t);
-        };
-    }, [queryClient, refetchTrialStatus]);
+        return () => clearTimeout(t);
+    }, [queryClient]);
 
     if (ready) {
         return <Navigate to="/billing" replace />;
