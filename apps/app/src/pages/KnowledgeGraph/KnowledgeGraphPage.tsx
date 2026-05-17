@@ -157,6 +157,8 @@ function KnowledgeGraphPage() {
                 {selectedNodeId && selectedNodeType === 'event' && (
                     <EventDetailPanel
                         eventId={selectedNodeId}
+                        allEdges={graphData?.edges ?? []}
+                        allNodes={graphData?.nodes ?? []}
                         onClose={clearSelection}
                         onSelectNode={(id, type) => selectNode(id, type)}
                     />

@@ -16,24 +16,13 @@ import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useCreateGraphEvent } from '@/hooks/graph/useCreateGraphEvent';
 
-const EVENT_TYPES = [
-    'WORKS_AT',
-    'FOUNDED',
-    'ACQUIRED',
-    'MEMBER_OF',
-    'LOCATED_IN',
-    'RELATED_TO',
-    'CAUSED',
-    'PARTICIPATED_IN',
-    'PRODUCED',
-    'USES',
-    'CUSTOM',
-] as const;
-
 const TEMPORAL_TYPES = ['ATEMPORAL', 'STATIC', 'DYNAMIC'] as const;
 
 const schema = z.object({
-    eventType: z.enum(EVENT_TYPES),
+    relationship: z
+        .string()
+        .min(1, 'Relationship is required')
+        .max(100, 'Keep the phrase under 100 characters'),
     description: z.string().optional(),
     confidence: z.coerce.number().min(0).max(1).optional(),
     validFrom: z.string().optional(),
@@ -73,7 +62,7 @@ export function CreateEventDialog({
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
-            eventType: 'RELATED_TO',
+            relationship: '',
             description: '',
             confidence: 0.9,
             validFrom: '',
@@ -90,7 +79,7 @@ export function CreateEventDialog({
         createMutation.mutate(
             {
                 body: {
-                    eventType: values.eventType,
+                    relationship: values.relationship,
                     description: values.description || undefined,
                     confidence: values.confidence,
                     validFrom: values.validFrom
@@ -118,29 +107,24 @@ export function CreateEventDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create Event</DialogTitle>
+                    <DialogTitle>Create Relationship</DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Event Type */}
+                    {/* Relationship phrase */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="event-type" className="text-xs">
-                            Event Type
+                        <Label htmlFor="relationship" className="text-xs">
+                            Relationship
                         </Label>
-                        <select
-                            id="event-type"
-                            {...register('eventType')}
-                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                            {EVENT_TYPES.map((type) => (
-                                <option key={type} value={type}>
-                                    {type.replace(/_/g, ' ')}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.eventType && (
+                        <Input
+                            id="relationship"
+                            placeholder='e.g. "works at", "natural satellite of"'
+                            className="h-9"
+                            {...register('relationship')}
+                        />
+                        {errors.relationship && (
                             <p className="text-xs text-destructive">
-                                {errors.eventType.message}
+                                {errors.relationship.message}
                             </p>
                         )}
                     </div>
@@ -285,7 +269,7 @@ export function CreateEventDialog({
                             {createMutation.isPending && (
                                 <Loader2 className="size-3 animate-spin" />
                             )}
-                            Create Event
+                            Create Relationship
                         </Button>
                     </DialogFooter>
                 </form>

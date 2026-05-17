@@ -194,7 +194,7 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
                                                         style={{ backgroundColor: EVENT_NODE_COLOR }}
                                                     />
                                                     <span className="text-[10px] text-muted-foreground">
-                                                        {firstPath.eventNodes?.[idx]?.eventType ?? 'Event'}
+                                                        {firstPath.eventNodes?.[idx]?.relationship ?? 'Relationship'}
                                                     </span>
                                                 </div>
                                             </div>

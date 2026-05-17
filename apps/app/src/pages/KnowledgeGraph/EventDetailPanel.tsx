@@ -1,46 +1,78 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
-import { X, Loader2, Trash2 } from 'lucide-react';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@workspace/ui/components/collapsible';
+import { X, Loader2, Trash2, ChevronDown } from 'lucide-react';
 import { $api } from '@workspace/api-client';
 import { useDeleteGraphEvent } from '@/hooks/graph/useDeleteGraphEvent';
-import { ENTITY_COLORS, ENTITY_TYPE_LABELS, normalizeEntityType } from './constants';
+import {
+    ENTITY_COLORS,
+    ENTITY_TYPE_LABELS,
+    normalizeEntityType,
+} from './constants';
+import type { Schemas } from '@/types/api';
 
 interface EventDetailPanelProps {
     eventId: string;
+    allEdges: Schemas['Edge'][];
+    allNodes: Schemas['Node'][];
     onClose: () => void;
     onSelectNode: (id: string, type: 'entity' | 'event') => void;
 }
 
+/**
+ * Panel for an entity-pair's relationships. When the user clicks a single edge in the graph,
+ * we resolve that edge's (subject, object) pair and surface every relationship between that
+ * same pair — clicked edge first, then siblings. Each row expands to show description,
+ * confidence, and temporal fields.
+ */
 export function EventDetailPanel({
     eventId,
+    allEdges,
+    allNodes,
     onClose,
     onSelectNode,
 }: EventDetailPanelProps) {
-    const [confirmDelete, setConfirmDelete] = useState(false);
-
-    const { data: event, isLoading } = $api.useQuery(
-        "get", "/events/{id}",
+    // Hydrate the clicked event for subject/object resolution + delete.
+    const { data: clickedEvent, isLoading } = $api.useQuery(
+        'get',
+        '/events/{id}',
         { params: { path: { id: eventId } } },
         { enabled: !!eventId },
     );
 
-    const deleteMutation = useDeleteGraphEvent();
+    const subjectId = clickedEvent?.subject?.id;
+    const objectId = clickedEvent?.object?.id;
 
-    const handleDelete = () => {
-        if (!confirmDelete) {
-            setConfirmDelete(true);
-            return;
-        }
-        deleteMutation.mutate({ params: { path: { id: eventId } } }, {
-            onSuccess: () => onClose(),
-        });
-    };
+    // All edges in either direction between this pair, with the clicked edge ordered first.
+    const pairRelationships = useMemo(() => {
+        if (!subjectId || !objectId) return [] as Schemas['Edge'][];
+        const matches = allEdges.filter(
+            (e) =>
+                (e.source === subjectId && e.target === objectId) ||
+                (e.source === objectId && e.target === subjectId),
+        );
+        const clicked = matches.find((e) => e.id === eventId);
+        const rest = matches.filter((e) => e.id !== eventId);
+        return clicked ? [clicked, ...rest] : matches;
+    }, [allEdges, subjectId, objectId, eventId]);
+
+    const subjectNode = useMemo(
+        () => allNodes.find((n) => n.id === subjectId),
+        [allNodes, subjectId],
+    );
+    const objectNode = useMemo(
+        () => allNodes.find((n) => n.id === objectId),
+        [allNodes, objectId],
+    );
 
     return (
         <div className="absolute right-0 top-0 w-80 bg-card border-l h-full overflow-y-auto z-20 flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
                 <div className="min-w-0 flex-1">
                     {isLoading ? (
@@ -51,15 +83,24 @@ export function EventDetailPanel({
                     ) : (
                         <div>
                             <h2 className="text-sm font-semibold truncate">
-                                {event?.eventType ?? 'Event'}
+                                {subjectNode?.name ?? 'A'}{' '}
+                                <span className="text-muted-foreground">↔</span>{' '}
+                                {objectNode?.name ?? 'B'}
                             </h2>
                             <p className="text-[10px] text-muted-foreground mt-0.5">
-                                Event Node
+                                {pairRelationships.length} relationship
+                                {pairRelationships.length === 1 ? '' : 's'}{' '}
+                                between these entities
                             </p>
                         </div>
                     )}
                 </div>
-                <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={onClose}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 shrink-0"
+                    onClick={onClose}
+                >
                     <X className="size-4" />
                 </Button>
             </div>
@@ -69,173 +110,206 @@ export function EventDetailPanel({
                     <Loader2 className="size-6 animate-spin text-muted-foreground" />
                 </div>
             ) : (
-                <div className="flex-1 p-4 space-y-5">
-                    {/* Description */}
-                    {event?.description && (
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            {event.description}
-                        </p>
-                    )}
+                <div className="flex-1 p-4 space-y-4">
+                    {/* Endpoints */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <EndpointCard
+                            label="Subject"
+                            node={subjectNode}
+                            onSelect={() =>
+                                subjectId && onSelectNode(subjectId, 'entity')
+                            }
+                        />
+                        <EndpointCard
+                            label="Object"
+                            node={objectNode}
+                            onSelect={() =>
+                                objectId && onSelectNode(objectId, 'entity')
+                            }
+                        />
+                    </div>
 
-                    {/* Confidence */}
-                    {event?.confidence !== undefined && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">Confidence:</span>
-                            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-primary rounded-full"
-                                    style={{ width: `${Math.round(event.confidence * 100)}%` }}
-                                />
-                            </div>
-                            <span className="text-xs font-mono font-medium">
-                                {Math.round(event.confidence * 100)}%
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Temporal Info */}
-                    {(event?.validFrom || event?.temporalType) && (
-                        <div className="space-y-1.5">
-                            {event?.temporalType && (
-                                <Badge variant="outline" className="text-[10px]">
-                                    {event.temporalType}
-                                </Badge>
-                            )}
-                            {event?.validFrom && (
-                                <p className="text-xs text-muted-foreground">
-                                    From: {new Date(event.validFrom).toLocaleDateString(undefined, {
-                                        year: 'numeric', month: 'short', day: 'numeric',
-                                    })}
-                                </p>
-                            )}
-                            {event?.validTo && (
-                                <p className="text-xs text-muted-foreground">
-                                    To: {new Date(event.validTo).toLocaleDateString(undefined, {
-                                        year: 'numeric', month: 'short', day: 'numeric',
-                                    })}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Subject Entity */}
                     <Separator />
-                    <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                            Subject
+
+                    {/* Relationships list */}
+                    <div className="space-y-2">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            Relationships
                         </h3>
-                        {event?.subject ? (
-                            <button
-                                onClick={() =>
-                                    event.subject?.id &&
-                                    onSelectNode(event.subject.id, 'entity')
-                                }
-                                className="w-full text-left rounded-lg border px-3 py-2.5 hover:bg-muted transition-colors"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className="size-2 rounded-full shrink-0"
-                                        style={{
-                                            backgroundColor:
-                                                ENTITY_COLORS[normalizeEntityType(event.subject.entityType)] ?? ENTITY_COLORS.other,
-                                        }}
-                                    />
-                                    <p className="text-xs font-medium truncate">
-                                        {event.subject.name ?? 'Unnamed'}
-                                    </p>
-                                    <Badge variant="outline" className="ml-auto text-[10px] shrink-0">
-                                        {ENTITY_TYPE_LABELS[normalizeEntityType(event.subject.entityType)] ?? event.subject.entityType}
-                                    </Badge>
-                                </div>
-                            </button>
-                        ) : (
-                            <p className="text-xs text-muted-foreground">No subject entity.</p>
+                        {pairRelationships.map((edge, idx) => (
+                            <RelationshipRow
+                                key={edge.id}
+                                edge={edge}
+                                defaultOpen={idx === 0}
+                                isClicked={edge.id === eventId}
+                            />
+                        ))}
+                        {pairRelationships.length === 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                No relationships found for this pair.
+                            </p>
                         )}
                     </div>
-
-                    {/* Object Entity */}
-                    <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                            Object
-                        </h3>
-                        {event?.object ? (
-                            <button
-                                onClick={() =>
-                                    event.object?.id &&
-                                    onSelectNode(event.object.id, 'entity')
-                                }
-                                className="w-full text-left rounded-lg border px-3 py-2.5 hover:bg-muted transition-colors"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className="size-2 rounded-full shrink-0"
-                                        style={{
-                                            backgroundColor:
-                                                ENTITY_COLORS[normalizeEntityType(event.object.entityType)] ?? ENTITY_COLORS.other,
-                                        }}
-                                    />
-                                    <p className="text-xs font-medium truncate">
-                                        {event.object.name ?? 'Unnamed'}
-                                    </p>
-                                    <Badge variant="outline" className="ml-auto text-[10px] shrink-0">
-                                        {ENTITY_TYPE_LABELS[normalizeEntityType(event.object.entityType)] ?? event.object.entityType}
-                                    </Badge>
-                                </div>
-                            </button>
-                        ) : (
-                            <p className="text-xs text-muted-foreground">No object entity.</p>
-                        )}
-                    </div>
-
-                    {/* Metadata */}
-                    {event?.metadata && Object.keys(event.metadata).length > 0 && (
-                        <>
-                            <Separator />
-                            <div>
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                    Metadata
-                                </h3>
-                                <div className="space-y-1.5">
-                                    {Object.entries(event.metadata).map(([key, value]) => (
-                                        <div key={key} className="flex items-start justify-between gap-2 text-xs">
-                                            <span className="text-muted-foreground font-medium">{key}</span>
-                                            <span className="text-right truncate max-w-[60%]">{String(value)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </>
-                    )}
                 </div>
             )}
 
-            {/* Delete Button */}
-            <div className="p-4 border-t">
-                <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={handleDelete}
-                    disabled={deleteMutation.isPending}
-                >
-                    {deleteMutation.isPending ? (
-                        <Loader2 className="size-3 animate-spin" />
-                    ) : (
-                        <Trash2 className="size-3" />
-                    )}
-                    {confirmDelete ? 'Confirm Delete' : 'Delete Event'}
-                </Button>
-                {confirmDelete && !deleteMutation.isPending && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full mt-1 text-xs"
-                        onClick={() => setConfirmDelete(false)}
-                    >
-                        Cancel
-                    </Button>
-                )}
+            {/* Delete only deletes the clicked relationship. */}
+            <DeleteFooter eventId={eventId} onDeleted={onClose} />
+        </div>
+    );
+}
+
+function EndpointCard({
+    label,
+    node,
+    onSelect,
+}: {
+    label: string;
+    node: Schemas['Node'] | undefined;
+    onSelect: () => void;
+}) {
+    if (!node) {
+        return (
+            <div className="rounded-lg border px-3 py-2 text-xs text-muted-foreground">
+                {label}: —
             </div>
+        );
+    }
+    const type = normalizeEntityType(node.entityType);
+    return (
+        <button
+            onClick={onSelect}
+            className="text-left rounded-lg border px-3 py-2 hover:bg-muted transition-colors"
+        >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                {label}
+            </p>
+            <div className="flex items-center gap-2">
+                <div
+                    className="size-2 rounded-full shrink-0"
+                    style={{
+                        backgroundColor:
+                            ENTITY_COLORS[type] ?? ENTITY_COLORS.other,
+                    }}
+                />
+                <p className="text-xs font-medium truncate">
+                    {node.name ?? 'Unnamed'}
+                </p>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+                {ENTITY_TYPE_LABELS[type] ?? node.entityType}
+            </p>
+        </button>
+    );
+}
+
+function RelationshipRow({
+    edge,
+    defaultOpen,
+    isClicked,
+}: {
+    edge: Schemas['Edge'];
+    defaultOpen: boolean;
+    isClicked: boolean;
+}) {
+    const [open, setOpen] = useState(defaultOpen);
+    return (
+        <Collapsible open={open} onOpenChange={setOpen}>
+            <CollapsibleTrigger asChild>
+                <button
+                    className={`w-full flex items-center justify-between gap-2 rounded-lg border px-3 py-2 hover:bg-muted transition-colors text-left ${
+                        isClicked ? 'border-primary/60 bg-primary/5' : ''
+                    }`}
+                >
+                    <span className="text-xs font-medium truncate">
+                        {edge.relationship ?? 'Relationship'}
+                    </span>
+                    <ChevronDown
+                        className={`size-3 shrink-0 transition-transform ${
+                            open ? 'rotate-180' : ''
+                        }`}
+                    />
+                </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-1.5 px-3 py-2">
+                {edge.description && (
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        {edge.description}
+                    </p>
+                )}
+                {edge.confidence !== undefined && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground">
+                            Confidence
+                        </span>
+                        <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-primary rounded-full"
+                                style={{
+                                    width: `${Math.round((edge.confidence ?? 0) * 100)}%`,
+                                }}
+                            />
+                        </div>
+                        <span className="text-[10px] font-mono">
+                            {Math.round((edge.confidence ?? 0) * 100)}%
+                        </span>
+                    </div>
+                )}
+                <Badge variant="outline" className="text-[10px]">
+                    {edge.source === edge.target ? 'self' : 'directed'}
+                </Badge>
+            </CollapsibleContent>
+        </Collapsible>
+    );
+}
+
+function DeleteFooter({
+    eventId,
+    onDeleted,
+}: {
+    eventId: string;
+    onDeleted: () => void;
+}) {
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const deleteMutation = useDeleteGraphEvent();
+    const handleDelete = () => {
+        if (!confirmDelete) {
+            setConfirmDelete(true);
+            return;
+        }
+        deleteMutation.mutate(
+            { params: { path: { id: eventId } } },
+            { onSuccess: () => onDeleted() },
+        );
+    };
+    return (
+        <div className="p-4 border-t">
+            <Button
+                variant="destructive"
+                size="sm"
+                className="w-full gap-2"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+            >
+                {deleteMutation.isPending ? (
+                    <Loader2 className="size-3 animate-spin" />
+                ) : (
+                    <Trash2 className="size-3" />
+                )}
+                {confirmDelete
+                    ? 'Confirm Delete'
+                    : 'Delete this relationship'}
+            </Button>
+            {confirmDelete && !deleteMutation.isPending && (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-1 text-xs"
+                    onClick={() => setConfirmDelete(false)}
+                >
+                    Cancel
+                </Button>
+            )}
         </div>
     );
 }

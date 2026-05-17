@@ -157,7 +157,7 @@ export function TemporalFilterPanel({ onClose }: TemporalFilterPanelProps) {
                                             className="rounded-lg border px-3 py-2"
                                         >
                                             <p className="text-xs font-medium truncate">
-                                                {event.eventType ?? 'Event'}
+                                                {event.relationship ?? 'Relationship'}
                                             </p>
                                             {event.validFrom && (
                                                 <p className="text-[10px] text-muted-foreground mt-0.5">

@@ -65,7 +65,7 @@ export function useGraphData(
                 source: edge.source,
                 target: edge.target,
                 eventId: edge.id,
-                eventLabel: edge.eventType ?? 'Event',
+                eventLabel: edge.relationship ?? 'Relationship',
                 eventData: edge,
             });
         }

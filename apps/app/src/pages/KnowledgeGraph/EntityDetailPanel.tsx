@@ -47,6 +47,8 @@ export function EntityDetailPanel({
     const typeLabel = ENTITY_TYPE_LABELS[normalizedType] ?? entity?.entityType ?? 'Other';
 
     const sources = entity?.sources ?? [];
+    const attributes = entity?.attributes ?? {};
+    const attributeEntries = Object.entries(attributes);
 
     return (
         <div className="absolute right-0 top-0 w-80 bg-card border-l h-full overflow-y-auto z-20 flex flex-col">
@@ -85,6 +87,35 @@ export function EntityDetailPanel({
                             {typeLabel}
                         </Badge>
                     </div>
+
+                    {/* Attributes */}
+                    {attributeEntries.length > 0 && (
+                        <>
+                            <Separator />
+                            <div>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                                    Attributes
+                                </h3>
+                                <div className="space-y-1">
+                                    {attributeEntries.map(([key, value]) => (
+                                        <div
+                                            key={key}
+                                            className="flex items-start justify-between gap-2 text-xs"
+                                        >
+                                            <span className="text-muted-foreground font-medium">
+                                                {key}
+                                            </span>
+                                            <span className="text-right truncate max-w-[60%]">
+                                                {typeof value === 'object' && value !== null
+                                                    ? JSON.stringify(value)
+                                                    : String(value)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* Connected Entities */}
                     <Separator />
