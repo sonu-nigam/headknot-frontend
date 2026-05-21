@@ -50,6 +50,8 @@ const PROVIDER_ICONS: Record<string, React.ReactNode> = {
     CONFLUENCE: <BookOpen className="size-7" />,
 };
 
+const COMING_SOON: ReadonlySet<string> = new Set(['GITHUB', 'JIRA', 'CONFLUENCE']);
+
 function getProviderIcon(type?: string) {
     return PROVIDER_ICONS[type ?? ''] ?? <PlugZap className="size-7" />;
 }
@@ -78,6 +80,7 @@ interface CatalogItem {
     displayName: string;
     description: string;
     isConnected: boolean;
+    isComingSoon: boolean;
 }
 
 function mergeCatalog(
@@ -94,10 +97,12 @@ function mergeCatalog(
             displayName: i.displayName ?? key,
             description: i.description ?? '',
             isConnected: status === 'CONNECTED' || status === 'SYNCING',
+            isComingSoon: COMING_SOON.has(key),
         });
     }
     return items.sort((a, b) => {
         if (a.isConnected !== b.isConnected) return a.isConnected ? -1 : 1;
+        if (a.isComingSoon !== b.isComingSoon) return a.isComingSoon ? 1 : -1;
         return a.displayName.localeCompare(b.displayName);
     });
 }
@@ -207,6 +212,14 @@ function CatalogCard({
                         >
                             <span className="size-1.5 rounded-full bg-emerald-500" />
                             Connected
+                        </Badge>
+                    ) : item.isComingSoon ? (
+                        <Badge
+                            variant="outline"
+                            className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 gap-1.5"
+                        >
+                            <span className="size-1.5 rounded-full bg-amber-500" />
+                            Coming Soon
                         </Badge>
                     ) : (
                         <Badge variant="secondary" className="text-muted-foreground">
@@ -331,10 +344,12 @@ function CatalogCard({
                     <Button
                         className="w-full"
                         onClick={onConnect}
-                        disabled={isConnecting}
+                        disabled={isConnecting || item.isComingSoon}
                     >
                         {isConnecting ? (
                             <Loader2 className="size-4 animate-spin" />
+                        ) : item.isComingSoon ? (
+                            'Coming Soon'
                         ) : (
                             'Connect'
                         )}
