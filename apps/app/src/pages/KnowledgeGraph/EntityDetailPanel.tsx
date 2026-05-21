@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
-import { X, Loader2, Trash2, ExternalLink } from 'lucide-react';
+import { X, Loader2, ExternalLink } from 'lucide-react';
 import { $api } from '@workspace/api-client';
-import { useDeleteGraphEntity } from '@/hooks/graph/useDeleteGraphEntity';
 import { ENTITY_COLORS, ENTITY_TYPE_LABELS, normalizeEntityType } from './constants';
 
 interface EntityDetailPanelProps {
@@ -18,8 +16,6 @@ export function EntityDetailPanel({
     onClose,
     onSelectNode,
 }: EntityDetailPanelProps) {
-    const [confirmDelete, setConfirmDelete] = useState(false);
-
     const { data: entity, isLoading: entityLoading } = $api.useQuery(
         "get", "/entities/{id}",
         { params: { path: { id: entityId } } },
@@ -30,17 +26,6 @@ export function EntityDetailPanel({
         { params: { path: { id: entityId } } },
         { enabled: !!entityId },
     );
-    const deleteMutation = useDeleteGraphEntity();
-
-    const handleDelete = () => {
-        if (!confirmDelete) {
-            setConfirmDelete(true);
-            return;
-        }
-        deleteMutation.mutate({ params: { path: { id: entityId } } }, {
-            onSuccess: () => onClose(),
-        });
-    };
 
     const normalizedType = normalizeEntityType(entity?.entityType);
     const typeColor = ENTITY_COLORS[normalizedType] ?? ENTITY_COLORS.other;
@@ -212,34 +197,6 @@ export function EntityDetailPanel({
                     </div>
                 </div>
             )}
-
-            {/* Delete Button */}
-            <div className="p-4 border-t">
-                <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={handleDelete}
-                    disabled={deleteMutation.isPending}
-                >
-                    {deleteMutation.isPending ? (
-                        <Loader2 className="size-3 animate-spin" />
-                    ) : (
-                        <Trash2 className="size-3" />
-                    )}
-                    {confirmDelete ? 'Confirm Delete' : 'Delete Entity'}
-                </Button>
-                {confirmDelete && !deleteMutation.isPending && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full mt-1 text-xs"
-                        onClick={() => setConfirmDelete(false)}
-                    >
-                        Cancel
-                    </Button>
-                )}
-            </div>
         </div>
     );
 }

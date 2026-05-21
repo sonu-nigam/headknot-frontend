@@ -7,8 +7,6 @@ interface GraphState {
     pathFinderOpen: boolean;
     temporalFilterOpen: boolean;
     entityTypeFilters: Set<string>;
-    createEntityDialogOpen: boolean;
-    createEventDialogOpen: boolean;
 
     selectNode: (id: string, type: 'entity' | 'event') => void;
     clearSelection: () => void;
@@ -16,8 +14,6 @@ interface GraphState {
     togglePathFinder: () => void;
     toggleTemporalFilter: () => void;
     toggleEntityTypeFilter: (type: string) => void;
-    setCreateEntityDialogOpen: (open: boolean) => void;
-    setCreateEventDialogOpen: (open: boolean) => void;
     qaPanelOpen: boolean;
     toggleQAPanel: () => void;
 }
@@ -29,8 +25,6 @@ export const useGraphStore = create<GraphState>((set) => ({
     pathFinderOpen: false,
     temporalFilterOpen: false,
     entityTypeFilters: new Set<string>(),
-    createEntityDialogOpen: false,
-    createEventDialogOpen: false,
     qaPanelOpen: false,
 
     selectNode: (id, type) =>
@@ -49,10 +43,6 @@ export const useGraphStore = create<GraphState>((set) => ({
             else next.add(type);
             return { entityTypeFilters: next };
         }),
-    setCreateEntityDialogOpen: (open) =>
-        set({ createEntityDialogOpen: open }),
-    setCreateEventDialogOpen: (open) =>
-        set({ createEventDialogOpen: open }),
     toggleQAPanel: () =>
         set((s) => ({ qaPanelOpen: !s.qaPanelOpen })),
 }));

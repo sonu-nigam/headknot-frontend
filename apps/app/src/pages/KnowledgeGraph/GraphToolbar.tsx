@@ -7,8 +7,6 @@ import {
     Route,
     Clock,
     MessageCircleQuestion,
-    PlusCircle,
-    Link,
     Trash2,
 } from 'lucide-react';
 import { useGraphStore } from '@/state/graphStore';
@@ -32,12 +30,6 @@ export function GraphToolbar({
     const toggleTemporalFilter = useGraphStore((s) => s.toggleTemporalFilter);
     const toggleQAPanel = useGraphStore((s) => s.toggleQAPanel);
     const qaPanelOpen = useGraphStore((s) => s.qaPanelOpen);
-    const setCreateEntityDialogOpen = useGraphStore(
-        (s) => s.setCreateEntityDialogOpen,
-    );
-    const setCreateEventDialogOpen = useGraphStore(
-        (s) => s.setCreateEventDialogOpen,
-    );
     const pathFinderOpen = useGraphStore((s) => s.pathFinderOpen);
     const temporalFilterOpen = useGraphStore((s) => s.temporalFilterOpen);
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
@@ -111,28 +103,6 @@ export function GraphToolbar({
                 title="Q&A"
             >
                 <MessageCircleQuestion className="size-4" />
-            </Button>
-
-            <Separator orientation="horizontal" className="w-6 my-1" />
-
-            {/* Create Actions */}
-            <Button
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                onClick={() => setCreateEntityDialogOpen(true)}
-                title="Create Entity"
-            >
-                <PlusCircle className="size-4" />
-            </Button>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="size-8"
-                onClick={() => setCreateEventDialogOpen(true)}
-                title="Create Event"
-            >
-                <Link className="size-4" />
             </Button>
 
             {import.meta.env.DEV && (

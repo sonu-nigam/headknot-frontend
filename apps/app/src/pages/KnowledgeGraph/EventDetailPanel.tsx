@@ -7,9 +7,8 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@workspace/ui/components/collapsible';
-import { X, Loader2, Trash2, ChevronDown } from 'lucide-react';
+import { X, Loader2, ChevronDown } from 'lucide-react';
 import { $api } from '@workspace/api-client';
-import { useDeleteGraphEvent } from '@/hooks/graph/useDeleteGraphEvent';
 import {
     ENTITY_COLORS,
     ENTITY_TYPE_LABELS,
@@ -38,7 +37,7 @@ export function EventDetailPanel({
     onClose,
     onSelectNode,
 }: EventDetailPanelProps) {
-    // Hydrate the clicked event for subject/object resolution + delete.
+    // Hydrate the clicked event for subject/object resolution.
     const { data: clickedEvent, isLoading } = $api.useQuery(
         'get',
         '/events/{id}',
@@ -152,9 +151,6 @@ export function EventDetailPanel({
                     </div>
                 </div>
             )}
-
-            {/* Delete only deletes the clicked relationship. */}
-            <DeleteFooter eventId={eventId} onDeleted={onClose} />
         </div>
     );
 }
@@ -263,53 +259,3 @@ function RelationshipRow({
     );
 }
 
-function DeleteFooter({
-    eventId,
-    onDeleted,
-}: {
-    eventId: string;
-    onDeleted: () => void;
-}) {
-    const [confirmDelete, setConfirmDelete] = useState(false);
-    const deleteMutation = useDeleteGraphEvent();
-    const handleDelete = () => {
-        if (!confirmDelete) {
-            setConfirmDelete(true);
-            return;
-        }
-        deleteMutation.mutate(
-            { params: { path: { id: eventId } } },
-            { onSuccess: () => onDeleted() },
-        );
-    };
-    return (
-        <div className="p-4 border-t">
-            <Button
-                variant="destructive"
-                size="sm"
-                className="w-full gap-2"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-            >
-                {deleteMutation.isPending ? (
-                    <Loader2 className="size-3 animate-spin" />
-                ) : (
-                    <Trash2 className="size-3" />
-                )}
-                {confirmDelete
-                    ? 'Confirm Delete'
-                    : 'Delete this relationship'}
-            </Button>
-            {confirmDelete && !deleteMutation.isPending && (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-1 text-xs"
-                    onClick={() => setConfirmDelete(false)}
-                >
-                    Cancel
-                </Button>
-            )}
-        </div>
-    );
-}

@@ -10,8 +10,6 @@ import { EntityDetailPanel } from './EntityDetailPanel';
 import { EventDetailPanel } from './EventDetailPanel';
 import { PathFinderPanel } from './PathFinderPanel';
 import { TemporalFilterPanel } from './TemporalFilterPanel';
-import { CreateEntityDialog } from './CreateEntityDialog';
-import { CreateEventDialog } from './CreateEventDialog';
 import { QAPanel } from './QAPanel';
 import { AskBox } from './AskBox';
 import { Loader2 } from 'lucide-react';
@@ -26,8 +24,6 @@ function KnowledgeGraphPage() {
     const highlightedPath = useGraphStore((s) => s.highlightedPath);
     const pathFinderOpen = useGraphStore((s) => s.pathFinderOpen);
     const temporalFilterOpen = useGraphStore((s) => s.temporalFilterOpen);
-    const createEntityDialogOpen = useGraphStore((s) => s.createEntityDialogOpen);
-    const createEventDialogOpen = useGraphStore((s) => s.createEventDialogOpen);
     const qaPanelOpen = useGraphStore((s) => s.qaPanelOpen);
     const entityTypeFilters = useGraphStore((s) => s.entityTypeFilters);
     const selectNode = useGraphStore((s) => s.selectNode);
@@ -35,8 +31,6 @@ function KnowledgeGraphPage() {
     const togglePathFinder = useGraphStore((s) => s.togglePathFinder);
     const toggleTemporalFilter = useGraphStore((s) => s.toggleTemporalFilter);
     const toggleQAPanel = useGraphStore((s) => s.toggleQAPanel);
-    const setCreateEntityDialogOpen = useGraphStore((s) => s.setCreateEntityDialogOpen);
-    const setCreateEventDialogOpen = useGraphStore((s) => s.setCreateEventDialogOpen);
 
     const canvasRef = useRef<{
         zoomIn: () => void;
@@ -174,16 +168,6 @@ function KnowledgeGraphPage() {
                 {qaPanelOpen && (
                     <QAPanel onClose={toggleQAPanel} />
                 )}
-
-                {/* Dialogs */}
-                <CreateEntityDialog
-                    open={createEntityDialogOpen}
-                    onOpenChange={setCreateEntityDialogOpen}
-                />
-                <CreateEventDialog
-                    open={createEventDialogOpen}
-                    onOpenChange={setCreateEventDialogOpen}
-                />
             </div>
         </AppLayout>
     );
