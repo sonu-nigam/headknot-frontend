@@ -1,6 +1,12 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Cosmograph, type CosmographRef } from '@cosmograph/react';
 import type { GraphNode, GraphLink } from '@/hooks/graph/useGraphData';
+import { useAppStore } from '@/state/store';
+import {
+    loadGraphLayout,
+    saveGraphLayout,
+    type SavedPositions,
+} from '@/lib/graphLayout';
 import { EVENT_EDGE_COLOR } from './constants';
 import { getNodeColor } from './utils';
 
@@ -19,6 +25,8 @@ interface CosmoPoint {
     label: string;
     color: string;
     entityType: string;
+    x?: number;
+    y?: number;
 }
 
 interface CosmoLink {
@@ -69,11 +77,36 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
     ) {
         const [hover, setHover] = useState<HoverState | null>(null);
 
+        // Saved layout for this workspace — seeds initial node positions so the
+        // graph reopens in the same arrangement instead of a fresh random one.
+        const workspaceId = useAppStore((s) => s.selectedWorkspaceId) ?? '';
+        const savedPositions = useMemo(
+            () => loadGraphLayout(workspaceId),
+            [workspaceId],
+        );
+        const hasSavedLayout = Object.keys(savedPositions).length > 0;
+
         const { points, edges, edgeMeta, idToIndex, edgeIdToEventId } =
             useMemo(() => {
+                // Centroid of saved positions — new (unsaved) entities start here
+                // with a small jitter so the simulation pulls them into the
+                // existing cluster rather than dropping them at the origin.
+                let cx = 0;
+                let cy = 0;
+                const savedEntries = Object.values(savedPositions);
+                for (const [x, y] of savedEntries) {
+                    cx += x;
+                    cy += y;
+                }
+                if (savedEntries.length > 0) {
+                    cx /= savedEntries.length;
+                    cy /= savedEntries.length;
+                }
+
                 const idx = new Map<string, number>();
                 const points: CosmoPoint[] = nodes.map((n, i) => {
                     idx.set(n.id, i);
+                    const saved = savedPositions[n.id];
                     return {
                         id: n.id,
                         index: i,
@@ -82,6 +115,8 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                         // Arrow infers schema from the first row — always a string
                         // so the column type isn't mixed string|null.
                         entityType: n.entityType ?? '',
+                        x: saved ? saved[0] : cx + (Math.random() - 0.5) * 20,
+                        y: saved ? saved[1] : cy + (Math.random() - 0.5) * 20,
                     };
                 });
                 const edges: CosmoLink[] = [];
@@ -109,7 +144,7 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                     edgeIdToEventId.push(l.eventId);
                 }
                 return { points, edges, edgeMeta, idToIndex: idx, edgeIdToEventId };
-            }, [nodes, links]);
+            }, [nodes, links, savedPositions]);
 
         // ---- reflect external selection state into Cosmograph ----
         //
@@ -285,6 +320,36 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
             };
         }, []);
 
+        // ---- persist settled layout ----
+        const persistLayout = useCallback(() => {
+            const cosmo = cosmoRef.current;
+            if (!cosmo || !workspaceId) return;
+            const flat = cosmo.getPointPositions();
+            if (!flat) return;
+            const positions: SavedPositions = {};
+            for (let i = 0; i < points.length; i += 1) {
+                const x = flat[i * 2];
+                const y = flat[i * 2 + 1];
+                if (Number.isFinite(x) && Number.isFinite(y)) {
+                    positions[points[i].id] = [x, y];
+                }
+            }
+            saveGraphLayout(workspaceId, positions);
+        }, [workspaceId, points]);
+
+        const handleSimulationEnd = useCallback(() => {
+            recomputeEdgeLabels();
+            persistLayout();
+        }, [recomputeEdgeLabels, persistLayout]);
+
+        // Save on unmount too, in case the user navigates away before the
+        // simulation settles. Ref keeps the cleanup from capturing a stale fn.
+        const persistLayoutRef = useRef(persistLayout);
+        persistLayoutRef.current = persistLayout;
+        useEffect(() => {
+            return () => persistLayoutRef.current();
+        }, []);
+
         const handleEdgeLabelClick = useCallback(
             (eventId: string, e: React.MouseEvent) => {
                 e.stopPropagation();
@@ -312,6 +377,10 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                     pointIndexBy="index"
                     pointLabelBy="label"
                     pointColorBy="color"
+                    {...(hasSavedLayout
+                        ? { pointXBy: 'x', pointYBy: 'y' }
+                        : {})}
+                    preservePointPositionsOnDataUpdate
                     linkSourceBy="source"
                     linkSourceIndexBy="sourceIndex"
                     linkTargetBy="target"
@@ -350,7 +419,7 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                     onPointMouseOver={handlePointMouseOver}
                     onPointMouseOut={handlePointMouseOut}
                     onSimulationTick={scheduleRecompute}
-                    onSimulationEnd={recomputeEdgeLabels}
+                    onSimulationEnd={handleSimulationEnd}
                     onZoom={scheduleRecompute}
                 />
                 {hover && (
