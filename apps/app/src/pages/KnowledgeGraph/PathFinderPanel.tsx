@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
@@ -48,21 +48,22 @@ export function PathFinderPanel({ onClose }: PathFinderPanelProps) {
         setHighlightedPath(null);
     };
 
-    // When path data arrives, highlight it
     // pathResult is GraphPathResponse[] — each has { entities, eventNodes }
     const firstPath = pathResult?.[0];
-    const pathNodeIds =
-        firstPath
-            ? [
-                  ...(firstPath.entities?.map((n) => n.id).filter((id): id is string => !!id) ?? []),
-                  ...(firstPath.eventNodes?.map((e) => e.id).filter((id): id is string => !!id) ?? []),
-              ]
-            : null;
 
-    // Sync highlighted path when results change
-    if (shouldQuery && pathNodeIds && pathNodeIds.length > 0) {
-        setHighlightedPath(pathNodeIds);
-    }
+    // Highlight the path on the graph once results arrive. This must run in an effect —
+    // never during render — otherwise updating the shared graph store would trigger a
+    // re-render of KnowledgeGraphPage while PathFinderPanel is still rendering.
+    useEffect(() => {
+        if (!shouldQuery || !firstPath) return;
+        const pathNodeIds = [
+            ...(firstPath.entities?.map((n) => n.id).filter((id): id is string => !!id) ?? []),
+            ...(firstPath.eventNodes?.map((e) => e.id).filter((id): id is string => !!id) ?? []),
+        ];
+        if (pathNodeIds.length > 0) {
+            setHighlightedPath(pathNodeIds);
+        }
+    }, [shouldQuery, firstPath, setHighlightedPath]);
 
     const entityList = entities ?? [];
 
