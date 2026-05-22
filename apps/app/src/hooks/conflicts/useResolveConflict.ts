@@ -8,7 +8,6 @@ export function useResolveConflict() {
     return $api.useMutation("post", "/conflicts/{id}/resolve", {
         onSuccess: () => {
             invalidateByPath(queryClient, "get", "/conflicts");
-            invalidateByPath(queryClient, "get", "/timeline");
         },
     });
 }

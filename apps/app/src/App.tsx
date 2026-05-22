@@ -31,7 +31,6 @@ import { ClaimsLibraryPage } from './pages/ClaimsLibrary/ClaimsLibraryPage';
 import { RefineKnowledgePage } from './pages/RefineKnowledge/RefineKnowledgePage';
 import { RelationshipGraphPage } from './pages/RelationshipGraph/RelationshipGraphPage';
 import { MemoryCenterPage } from './pages/MemoryCenter/MemoryCenterPage';
-import { ChangeFeedPage } from './pages/ChangeFeed/ChangeFeedPage';
 import { KnowledgeGraphPage } from './pages/KnowledgeGraph/KnowledgeGraphPage';
 import OnboardingPage from './pages/Onboarding/OnboardingPage';
 
@@ -168,14 +167,6 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <ClaimsLibraryPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/changes"
-                element={
-                    <ProtectedRoute>
-                        <ChangeFeedPage />
                     </ProtectedRoute>
                 }
             />

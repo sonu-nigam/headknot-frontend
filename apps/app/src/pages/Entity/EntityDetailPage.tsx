@@ -195,17 +195,6 @@ function formatDate(dateStr?: string) {
     });
 }
 
-function formatDateTime(dateStr?: string) {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
-}
-
 // --- Confidence Bar ---
 
 function ConfidenceBar({ value }: { value?: number }) {
@@ -371,59 +360,6 @@ function RelationshipsTab({
                     ))}
                 </TableBody>
             </Table>
-        </div>
-    );
-}
-
-// --- Timeline Tab ---
-
-function TimelineTab({ entityId }: { entityId: string }) {
-    const { data: events, isLoading } = $api.useQuery("get", "/timeline", {
-        params: { query: { objectType: 'ENTITY', objectId: entityId } },
-    }, { enabled: !!entityId });
-
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
-
-    if (!events || events.length === 0) {
-        return (
-            <div className="text-center py-12 text-muted-foreground text-sm">
-                No timeline events yet.
-            </div>
-        );
-    }
-
-    return (
-        <div className="relative pl-6 space-y-0">
-            {/* Vertical line */}
-            <div className="absolute left-2.5 top-2 bottom-2 w-px bg-border" />
-
-            {events.map((event, i) => (
-                <div key={event.id ?? i} className="relative pb-6 last:pb-0">
-                    {/* Dot */}
-                    <div className="absolute -left-3.5 top-1.5 size-3 rounded-full bg-muted border-2 border-border" />
-                    <div className="bg-card border rounded-xl p-4">
-                        <div className="flex items-center justify-between gap-4">
-                            <span className="text-sm font-semibold">
-                                {event.eventType ?? 'Event'}
-                            </span>
-                            <span className="text-xs text-muted-foreground shrink-0">
-                                {formatDateTime(event.timestamp)}
-                            </span>
-                        </div>
-                        {event.actorName && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                                by {event.actorName}
-                            </p>
-                        )}
-                    </div>
-                </div>
-            ))}
         </div>
     );
 }
@@ -634,9 +570,6 @@ export function EntityDetailPage() {
                                 <TabsTrigger value="relationships">
                                     Relationships ({relCount})
                                 </TabsTrigger>
-                                <TabsTrigger value="timeline">
-                                    Timeline
-                                </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="claims">
@@ -651,10 +584,6 @@ export function EntityDetailPage() {
 
                             <TabsContent value="relationships">
                                 <RelationshipsTab claims={claimsList} />
-                            </TabsContent>
-
-                            <TabsContent value="timeline">
-                                <TimelineTab entityId={entityId ?? ''} />
                             </TabsContent>
                         </Tabs>
 

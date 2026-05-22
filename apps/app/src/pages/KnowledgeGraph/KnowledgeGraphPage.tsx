@@ -9,7 +9,6 @@ import { GraphToolbar } from './GraphToolbar';
 import { EntityDetailPanel } from './EntityDetailPanel';
 import { EventDetailPanel } from './EventDetailPanel';
 import { PathFinderPanel } from './PathFinderPanel';
-import { TemporalFilterPanel } from './TemporalFilterPanel';
 import { QAPanel } from './QAPanel';
 import { AskBox } from './AskBox';
 import { Loader2 } from 'lucide-react';
@@ -23,13 +22,11 @@ function KnowledgeGraphPage() {
     const selectedNodeType = useGraphStore((s) => s.selectedNodeType);
     const highlightedPath = useGraphStore((s) => s.highlightedPath);
     const pathFinderOpen = useGraphStore((s) => s.pathFinderOpen);
-    const temporalFilterOpen = useGraphStore((s) => s.temporalFilterOpen);
     const qaPanelOpen = useGraphStore((s) => s.qaPanelOpen);
     const entityTypeFilters = useGraphStore((s) => s.entityTypeFilters);
     const selectNode = useGraphStore((s) => s.selectNode);
     const clearSelection = useGraphStore((s) => s.clearSelection);
     const togglePathFinder = useGraphStore((s) => s.togglePathFinder);
-    const toggleTemporalFilter = useGraphStore((s) => s.toggleTemporalFilter);
     const toggleQAPanel = useGraphStore((s) => s.toggleQAPanel);
 
     const canvasRef = useRef<{
@@ -161,9 +158,6 @@ function KnowledgeGraphPage() {
                 {/* Floating Panels */}
                 {pathFinderOpen && (
                     <PathFinderPanel onClose={togglePathFinder} />
-                )}
-                {temporalFilterOpen && (
-                    <TemporalFilterPanel onClose={toggleTemporalFilter} />
                 )}
                 {qaPanelOpen && (
                     <QAPanel onClose={toggleQAPanel} />

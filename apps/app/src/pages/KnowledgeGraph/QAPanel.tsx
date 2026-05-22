@@ -130,20 +130,13 @@ export function QAPanel({ onClose }: QAPanelProps) {
                                             <p className="text-xs font-medium line-clamp-2" title={source.claimText ?? ''}>
                                                 {source.claimText}
                                             </p>
-                                            <div className="flex items-center gap-2">
-                                                {source.sourceApp && (
+                                            {source.sourceApp && (
+                                                <div className="flex items-center gap-2">
                                                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                                                         {source.sourceApp}
                                                     </Badge>
-                                                )}
-                                                {(source.validFrom || source.validTo) && (
-                                                    <span className="text-[10px] text-muted-foreground">
-                                                        {source.validFrom && new Date(source.validFrom).toLocaleDateString()}
-                                                        {source.validFrom && source.validTo && ' — '}
-                                                        {source.validTo && new Date(source.validTo).toLocaleDateString()}
-                                                    </span>
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

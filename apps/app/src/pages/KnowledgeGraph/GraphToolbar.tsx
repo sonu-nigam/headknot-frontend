@@ -5,7 +5,6 @@ import {
     ZoomOut,
     Maximize,
     Route,
-    Clock,
     MessageCircleQuestion,
     Trash2,
 } from 'lucide-react';
@@ -27,11 +26,9 @@ export function GraphToolbar({
     onFitToScreen,
 }: GraphToolbarProps) {
     const togglePathFinder = useGraphStore((s) => s.togglePathFinder);
-    const toggleTemporalFilter = useGraphStore((s) => s.toggleTemporalFilter);
     const toggleQAPanel = useGraphStore((s) => s.toggleQAPanel);
     const qaPanelOpen = useGraphStore((s) => s.qaPanelOpen);
     const pathFinderOpen = useGraphStore((s) => s.pathFinderOpen);
-    const temporalFilterOpen = useGraphStore((s) => s.temporalFilterOpen);
     const selectedWorkspaceId = useAppStore((s) => s.selectedWorkspaceId);
     const queryClient = useQueryClient();
 
@@ -85,15 +82,6 @@ export function GraphToolbar({
                 title="Path Finder"
             >
                 <Route className="size-4" />
-            </Button>
-            <Button
-                variant={temporalFilterOpen ? 'default' : 'ghost'}
-                size="icon"
-                className="size-8"
-                onClick={toggleTemporalFilter}
-                title="Temporal Filter"
-            >
-                <Clock className="size-4" />
             </Button>
             <Button
                 variant={qaPanelOpen ? 'default' : 'ghost'}

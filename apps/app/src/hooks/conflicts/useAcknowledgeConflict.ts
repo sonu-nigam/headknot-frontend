@@ -8,7 +8,6 @@ export function useAcknowledgeConflict() {
     return $api.useMutation("post", "/conflicts/{id}/acknowledge", {
         onSuccess: () => {
             invalidateByPath(queryClient, "get", "/conflicts");
-            invalidateByPath(queryClient, "get", "/timeline");
         },
     });
 }

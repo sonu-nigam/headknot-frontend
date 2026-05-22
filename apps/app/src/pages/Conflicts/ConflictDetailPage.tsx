@@ -6,7 +6,6 @@ import {
     AlertTriangle,
     ArrowLeft,
     CheckCircle,
-    Clock,
     Eye,
     Loader2,
     Zap,
@@ -15,7 +14,7 @@ import { Schemas } from '@/types/api';
 import { $api } from '@workspace/api-client';
 import { useAcknowledgeConflict } from '@/hooks/conflicts/useAcknowledgeConflict';
 import { useResolveConflict } from '@/hooks/conflicts/useResolveConflict';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 // --- Status Badge ---
 
@@ -80,83 +79,6 @@ function ClaimCard({
     );
 }
 
-// --- Conflict Timeline ---
-
-function ConflictTimeline({
-    events,
-    isLoading,
-}: {
-    events?: Schemas['TimelineEventResponse'][];
-    isLoading: boolean;
-}) {
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
-
-    if (!events || events.length === 0) {
-        return (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-                No timeline events yet
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-6 relative ml-4 border-l-2 border-border pl-8">
-            {events.map((event) => {
-                const dotColor =
-                    event.eventType === 'CONFLICT_DETECTED'
-                        ? 'border-destructive/50'
-                        : event.eventType === 'RESOLVED'
-                          ? 'border-green-500'
-                          : 'border-foreground';
-
-                const badgeVariant =
-                    event.eventType === 'CONFLICT_DETECTED'
-                        ? 'destructive'
-                        : event.eventType === 'RESOLVED'
-                          ? 'default'
-                          : 'secondary';
-
-                return (
-                    <div key={event.id} className="relative">
-                        <div
-                            className={`absolute -left-[41px] top-1 size-4 rounded-full bg-card border-4 ${dotColor} shadow-sm`}
-                        />
-                        <div className="bg-card p-5 rounded-lg shadow-sm">
-                            <div className="flex justify-between items-start mb-2">
-                                <span className="text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
-                                    {event.timestamp
-                                        ? format(
-                                              new Date(event.timestamp),
-                                              'MMM d, HH:mm',
-                                          )
-                                        : '—'}
-                                </span>
-                                <Badge
-                                    variant={badgeVariant as 'default' | 'secondary' | 'destructive'}
-                                    className="text-[10px]"
-                                >
-                                    {event.eventType}
-                                </Badge>
-                            </div>
-                            {event.actorName && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    By {event.actorName}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
 // --- Conflict Metadata ---
 
 function ConflictMetadata({
@@ -200,10 +122,6 @@ export function ConflictDetailPage() {
     const { data: conflict, isLoading } = $api.useQuery("get", "/conflicts/{id}", {
         params: { path: { id: id ?? '' } },
     }, { enabled: !!id });
-
-    const { data: timelineEvents, isLoading: timelineLoading } = $api.useQuery("get", "/timeline", {
-        params: { query: { objectType: 'CLAIM', objectId: conflict?.sourceClaimId ?? '' } },
-    }, { enabled: !!conflict?.sourceClaimId });
 
     const acknowledge = useAcknowledgeConflict();
     const resolve = useResolveConflict();
@@ -352,22 +270,6 @@ export function ConflictDetailPage() {
                                 label="Target Claim"
                                 claimId={conflict.targetClaimId}
                                 side="target"
-                            />
-                        </div>
-                    </section>
-
-                    {/* Timeline */}
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <Clock className="size-5 text-primary" />
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                                Timeline
-                            </h3>
-                        </div>
-                        <div className="bg-muted rounded-xl p-6">
-                            <ConflictTimeline
-                                events={timelineEvents}
-                                isLoading={timelineLoading}
                             />
                         </div>
                     </section>
