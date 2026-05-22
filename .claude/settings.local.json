@@ -79,7 +79,17 @@
       "Bash(pnpm -F app exec tsc --noEmit)",
       "Bash(apps/app/node_modules/.bin/tsc --noEmit --project apps/app/tsconfig.json)",
       "Bash(/Users/sonunigam/Documents/Work/headknot/headknot-frontend/apps/app/node_modules/.bin/tsc --noEmit)",
-      "Bash(node_modules/.bin/tsc --noEmit)"
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(pnpm lint *)",
+      "Bash(curl -sf http://localhost:8080/api/v3/api-docs)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('TRIAL_STATUS_EXISTS' if '/billing/me/trial-status' in d.get\\('paths',{}\\) else 'TRIAL_STATUS_MISSING'\\)\")",
+      "Bash(curl -sf 'http://localhost:8080/api/billing/me/trial-status' -H 'authorization: Bearer eyJraWQiOiJoZWFka25vdC1qd3Qta2V5IiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiJzb251bmlnYW0wNjRAZ21haWwuY29tIiwiYXVkIjoiaGVhZGtub3QtYXBpIiwidG9rZW5WZXJzaW9uIjowLCJyb2xlcyI6WyJST0xFX1VTRVIiXSwiaXNzIjoiaGVhZGtub3QiLCJleHAiOjE3Nzg4ODQyMDcsImlhdCI6MTc3ODg2OTgwNywidXNlcklkIjoiYWU2OWVkNzYtYzU1My00ZTVhLTkyNWUtM2I5M2RiNTk3ZmUxIiwianRpIjoiZjg4MjYzY2MtYzc5Zi00NTk2LWEwOWEtNDk4NTRmNTMxYjg1In0.FRSeooXWcgVUjm0Bnp4khJAAZ09kCBrphJz6I7F0BHk')",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' 'http://localhost:8080/api/billing/me/trial-status' -H 'authorization: Bearer eyJraWQiOiJoZWFka25vdC1qd3Qta2V5IiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiJzb251bmlnYW0wNjRAZ21haWwuY29tIiwiYXVkIjoiaGVhZGtub3QtYXBpIiwidG9rZW5WZXJzaW9uIjowLCJyb2xlcyI6WyJST0xFX1VTRVIiXSwiaXNzIjoiaGVhZGtub3QiLCJleHAiOjE3Nzg4ODQyMDcsImlhdCI6MTc3ODg2OTgwNywidXNlcklkIjoiYWU2OWVkNzYtYzU1My00ZTVhLTkyNWUtM2I5M2RiNTk3ZmUxIiwianRpIjoiZjg4MjYzY2MtYzc5Zi00NTk2LWEwOWEtNDk4NTRmNTMxYjg1In0.FRSeooXWcgVUjm0Bnp4khJAAZ09kCBrphJz6I7F0BHk')",
+      "Bash(grep -E \"\\\\.\\(prisma|sql|ts|js\\)$\")",
+      "Bash(find /Users/sonunigam/Documents/Work/headknot -type d -name \"backend\" -o -type d -name \"server\" -o -type d -name \"api\" 2>/dev/null | grep -v node_modules | head -20)",
+      "Read(//Users/sonunigam/Documents/Work/headknot/**)"
     ]
   },
   "enableAllProjectMcpServers": true,
