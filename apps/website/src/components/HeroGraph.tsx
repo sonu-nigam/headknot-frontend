@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Cosmograph } from '@cosmograph/react';
+import { useEffect, useMemo, useRef } from 'react';
+import { Cosmograph, type CosmographRef } from '@cosmograph/react';
 
 // The hero "Unified Lattice": a central Headknot hub that connects scattered
 // source tools (Notion, Slack, Jira…) and the knowledge entities extracted from
@@ -126,9 +126,23 @@ export function HeroGraph({ className }: { className?: string }) {
         return { points, links };
     }, []);
 
+    const cosmoRef = useRef<CosmographRef | null>(null);
+
+    // Keep the graph gently alive: re-energise the simulation with a tiny alpha
+    // on an interval so the nodes never fully settle. The small alpha plus high
+    // friction makes the drift slow and ambient rather than bouncy — a static
+    // frame (no pan/zoom/drag) with softly moving nodes.
+    useEffect(() => {
+        const id = window.setInterval(() => {
+            cosmoRef.current?.start?.(0.03);
+        }, 1200);
+        return () => window.clearInterval(id);
+    }, []);
+
     return (
         <div className={className}>
             <Cosmograph
+                ref={cosmoRef}
                 style={{ width: '100%', height: '100%' }}
                 points={points as unknown as Record<string, unknown>[]}
                 links={links as unknown as Record<string, unknown>[]}
@@ -151,14 +165,22 @@ export function HeroGraph({ className }: { className?: string }) {
                 linkDefaultColor="rgba(196,181,253,0.22)"
                 linkWidth={1}
                 linkArrowsSizeScale={0}
-                // Static graph: no force simulation — render the fixed layout
-                // exactly as positioned, framed to fill the canvas.
-                enableSimulation={false}
+                // Seed from the fixed concentric layout, then let a very gentle
+                // force simulation drift the nodes. High friction + slow decay
+                // keep the motion soft and slow; the interval above keeps it
+                // going forever so it never freezes.
+                enableSimulation
+                simulationGravity={0.18}
+                simulationRepulsion={0.4}
+                simulationLinkSpring={0.7}
+                simulationLinkDistance={12}
+                simulationFriction={0.92}
+                simulationDecay={100000}
                 fitViewOnInit
                 fitViewDelay={0}
                 fitViewDuration={0}
                 fitViewPadding={0.12}
-                // Static + non-interactive: never trap page scroll or move nodes.
+                // The frame itself is static — no panning, zooming or dragging.
                 enableZoom={false}
                 enableDrag={false}
                 showLabels
