@@ -17,6 +17,8 @@ export interface ForceGraphProps {
     highlightedPath: string[] | null;
     onNodeClick: (nodeId: string) => void;
     onEdgeClick: (eventId: string) => void;
+    /** Reports the selected node/edge's on-screen position so a detail card can anchor to it. */
+    onAnchorChange?: (anchor: { x: number; y: number } | null) => void;
 }
 
 interface CosmoPoint {
@@ -72,6 +74,7 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
             highlightedPath,
             onNodeClick,
             onEdgeClick,
+            onAnchorChange,
         },
         ref,
     ) {
@@ -198,6 +201,23 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                 // stays bright while everything else dims.
                 cosmo.selectPoint(pointIdx, false, true);
                 cosmo.setFocusedPoint(pointIdx);
+                // Recenter the camera on the node + its immediate neighbors so
+                // the selection is framed in view beside the detail panel.
+                // Fitting a lone point over-zooms, so an isolated node uses a
+                // large padding fraction to keep the zoom modest.
+                const focusIndices = [pointIdx];
+                for (const edge of edges) {
+                    if (edge.source === selectedNodeId) {
+                        focusIndices.push(edge.targetIndex);
+                    } else if (edge.target === selectedNodeId) {
+                        focusIndices.push(edge.sourceIndex);
+                    }
+                }
+                cosmo.fitViewByIndices?.(
+                    focusIndices,
+                    600,
+                    focusIndices.length > 1 ? 0.3 : 0.9,
+                );
                 return;
             }
 
@@ -209,7 +229,11 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                 const b = idToIndex.get(edge.target);
                 const indices = [a, b].filter((i): i is number => i !== undefined);
                 cosmo.selectPoints(indices);
-                if (indices.length > 0) cosmo.setFocusedPoint(indices[0]);
+                if (indices.length > 0) {
+                    cosmo.setFocusedPoint(indices[0]);
+                    // Recenter the camera on the two endpoints.
+                    cosmo.fitViewByIndices?.(indices, 600, 0.3);
+                }
             }
         }, [selectedNodeId, highlightedPath, idToIndex, edgeIdToEventId, edges]);
 
@@ -294,7 +318,15 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                     (src[0] + tgt[0]) / 2,
                     (src[1] + tgt[1]) / 2,
                 ]);
-                if (!screen) continue;
+                // Cosmograph can return [NaN, NaN] before the camera is
+                // initialized or for unpositioned points — skip those to keep
+                // React from warning about NaN in `style`.
+                if (
+                    !screen ||
+                    !Number.isFinite(screen[0]) ||
+                    !Number.isFinite(screen[1])
+                )
+                    continue;
                 next.push({
                     eventId: m.eventId,
                     label: m.label,
@@ -306,13 +338,77 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
             setEdgeLabels(next);
         }, [edgeMeta]);
 
+        // Report the selected node/edge's on-screen position so the detail card
+        // can float beside it and follow it as the graph pans, zooms, or settles.
+        const recomputeAnchor = useCallback(() => {
+            const cosmo = cosmoRef.current;
+            if (!onAnchorChange) return;
+            if (!cosmo || !selectedNodeId) {
+                onAnchorChange(null);
+                return;
+            }
+
+            // Selected node → anchor on the node itself.
+            const nodeIdx = idToIndex.get(selectedNodeId);
+            if (nodeIdx !== undefined) {
+                const space = cosmo.getPointPositionByIndex?.(nodeIdx);
+                const screen = space && cosmo.spaceToScreenPosition?.(space);
+                onAnchorChange(
+                    screen &&
+                        Number.isFinite(screen[0]) &&
+                        Number.isFinite(screen[1])
+                        ? { x: screen[0], y: screen[1] }
+                        : null,
+                );
+                return;
+            }
+
+            // Selected edge → anchor on the midpoint of its two endpoints.
+            const edgeIdx = edgeIdToEventId.indexOf(selectedNodeId);
+            if (edgeIdx >= 0) {
+                const edge = edges[edgeIdx];
+                const si = idToIndex.get(edge.source);
+                const ti = idToIndex.get(edge.target);
+                const src =
+                    si !== undefined
+                        ? cosmo.getPointPositionByIndex?.(si)
+                        : undefined;
+                const tgt =
+                    ti !== undefined
+                        ? cosmo.getPointPositionByIndex?.(ti)
+                        : undefined;
+                if (src && tgt) {
+                    const screen = cosmo.spaceToScreenPosition?.([
+                        (src[0] + tgt[0]) / 2,
+                        (src[1] + tgt[1]) / 2,
+                    ]);
+                    onAnchorChange(
+                        screen &&
+                            Number.isFinite(screen[0]) &&
+                            Number.isFinite(screen[1])
+                            ? { x: screen[0], y: screen[1] }
+                            : null,
+                    );
+                    return;
+                }
+            }
+
+            onAnchorChange(null);
+        }, [selectedNodeId, idToIndex, edgeIdToEventId, edges, onAnchorChange]);
+
+        // Re-anchor immediately when the selection changes (ticks/zoom handle the rest).
+        useEffect(() => {
+            recomputeAnchor();
+        }, [recomputeAnchor]);
+
         const scheduleRecompute = useCallback(() => {
             if (rafRef.current !== null) return;
             rafRef.current = requestAnimationFrame(() => {
                 rafRef.current = null;
                 recomputeEdgeLabels();
+                recomputeAnchor();
             });
-        }, [recomputeEdgeLabels]);
+        }, [recomputeEdgeLabels, recomputeAnchor]);
 
         useEffect(() => {
             return () => {
@@ -339,8 +435,9 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
 
         const handleSimulationEnd = useCallback(() => {
             recomputeEdgeLabels();
+            recomputeAnchor();
             persistLayout();
-        }, [recomputeEdgeLabels, persistLayout]);
+        }, [recomputeEdgeLabels, recomputeAnchor, persistLayout]);
 
         // Save on unmount too, in case the user navigates away before the
         // simulation settles. Ref keeps the cleanup from capturing a stale fn.

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { $api } from '@workspace/api-client';
 import AppLayout from '@/components/AppLayout';
 import { useAppStore } from '@/state/store';
@@ -63,6 +63,33 @@ function KnowledgeGraphPage() {
         [selectNode],
     );
 
+    // Detail card for the current selection. Memoized so canvas-driven anchor
+    // tracking only repositions the card — it doesn't re-render the card content.
+    const detailPanel = useMemo(() => {
+        if (!selectedNodeId) return null;
+        if (selectedNodeType === 'entity') {
+            return (
+                <EntityDetailPanel
+                    entityId={selectedNodeId}
+                    onClose={clearSelection}
+                    onSelectNode={selectNode}
+                />
+            );
+        }
+        if (selectedNodeType === 'event') {
+            return (
+                <EventDetailPanel
+                    eventId={selectedNodeId}
+                    allEdges={graphData?.edges ?? []}
+                    allNodes={graphData?.nodes ?? []}
+                    onClose={clearSelection}
+                    onSelectNode={selectNode}
+                />
+            );
+        }
+        return null;
+    }, [selectedNodeId, selectedNodeType, graphData, clearSelection, selectNode]);
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -92,6 +119,7 @@ function KnowledgeGraphPage() {
                                 highlightedPath={highlightedPath}
                                 onNodeClick={handleNodeClick}
                                 onEdgeClick={handleEdgeClick}
+                                detailPanel={detailPanel}
                             />
 
                             {/* Bottom Toolbar (sits above the AskBox) */}
@@ -136,24 +164,6 @@ function KnowledgeGraphPage() {
                         </>
                     )}
                 </div>
-
-                {/* Right Detail Panel */}
-                {selectedNodeId && selectedNodeType === 'entity' && (
-                    <EntityDetailPanel
-                        entityId={selectedNodeId}
-                        onClose={clearSelection}
-                        onSelectNode={(id, type) => selectNode(id, type)}
-                    />
-                )}
-                {selectedNodeId && selectedNodeType === 'event' && (
-                    <EventDetailPanel
-                        eventId={selectedNodeId}
-                        allEdges={graphData?.edges ?? []}
-                        allNodes={graphData?.nodes ?? []}
-                        onClose={clearSelection}
-                        onSelectNode={(id, type) => selectNode(id, type)}
-                    />
-                )}
 
                 {/* Floating Panels */}
                 {pathFinderOpen && (

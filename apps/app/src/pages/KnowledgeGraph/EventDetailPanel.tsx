@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Button } from '@workspace/ui/components/button';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
 import {
@@ -7,13 +6,14 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@workspace/ui/components/collapsible';
-import { X, Loader2, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { $api } from '@workspace/api-client';
 import {
     ENTITY_COLORS,
     ENTITY_TYPE_LABELS,
     normalizeEntityType,
 } from './constants';
+import { DetailPanel } from './DetailPanel';
 import type { Schemas } from '@/types/api';
 
 interface EventDetailPanelProps {
@@ -38,7 +38,12 @@ export function EventDetailPanel({
     onSelectNode,
 }: EventDetailPanelProps) {
     // Hydrate the clicked event for subject/object resolution.
-    const { data: clickedEvent, isLoading } = $api.useQuery(
+    const {
+        data: clickedEvent,
+        isLoading,
+        isError,
+        refetch,
+    } = $api.useQuery(
         'get',
         '/events/{id}',
         { params: { path: { id: eventId } } },
@@ -71,87 +76,66 @@ export function EventDetailPanel({
     );
 
     return (
-        <div className="absolute right-0 top-0 w-80 bg-card border-l h-full overflow-y-auto z-20 flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-                <div className="min-w-0 flex-1">
-                    {isLoading ? (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <Loader2 className="size-4 animate-spin" />
-                            <span className="text-sm">Loading...</span>
-                        </div>
-                    ) : (
-                        <div>
-                            <h2 className="text-sm font-semibold truncate">
-                                {subjectNode?.name ?? 'A'}{' '}
-                                <span className="text-muted-foreground">↔</span>{' '}
-                                {objectNode?.name ?? 'B'}
-                            </h2>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                                {pairRelationships.length} relationship
-                                {pairRelationships.length === 1 ? '' : 's'}{' '}
-                                between these entities
-                            </p>
-                        </div>
-                    )}
+        <DetailPanel
+            title={
+                <div>
+                    <h2 className="text-sm font-semibold truncate">
+                        {subjectNode?.name ?? 'A'}{' '}
+                        <span className="text-muted-foreground">↔</span>{' '}
+                        {objectNode?.name ?? 'B'}
+                    </h2>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {pairRelationships.length} relationship
+                        {pairRelationships.length === 1 ? '' : 's'}{' '}
+                        between these entities
+                    </p>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 shrink-0"
-                    onClick={onClose}
-                >
-                    <X className="size-4" />
-                </Button>
+            }
+            onClose={onClose}
+            loading={isLoading}
+            error={isError}
+            onRetry={() => refetch()}
+        >
+            {/* Endpoints */}
+            <div className="grid grid-cols-2 gap-2">
+                <EndpointCard
+                    label="Subject"
+                    node={subjectNode}
+                    onSelect={() =>
+                        subjectId && onSelectNode(subjectId, 'entity')
+                    }
+                />
+                <EndpointCard
+                    label="Object"
+                    node={objectNode}
+                    onSelect={() =>
+                        objectId && onSelectNode(objectId, 'entity')
+                    }
+                />
             </div>
 
-            {isLoading ? (
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                </div>
-            ) : (
-                <div className="flex-1 p-4 space-y-4">
-                    {/* Endpoints */}
-                    <div className="grid grid-cols-2 gap-2">
-                        <EndpointCard
-                            label="Subject"
-                            node={subjectNode}
-                            onSelect={() =>
-                                subjectId && onSelectNode(subjectId, 'entity')
-                            }
-                        />
-                        <EndpointCard
-                            label="Object"
-                            node={objectNode}
-                            onSelect={() =>
-                                objectId && onSelectNode(objectId, 'entity')
-                            }
-                        />
-                    </div>
+            <Separator />
 
-                    <Separator />
-
-                    {/* Relationships list */}
-                    <div className="space-y-2">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            Relationships
-                        </h3>
-                        {pairRelationships.map((edge, idx) => (
-                            <RelationshipRow
-                                key={edge.id}
-                                edge={edge}
-                                defaultOpen={idx === 0}
-                                isClicked={edge.id === eventId}
-                            />
-                        ))}
-                        {pairRelationships.length === 0 && (
-                            <p className="text-xs text-muted-foreground">
-                                No relationships found for this pair.
-                            </p>
-                        )}
-                    </div>
-                </div>
-            )}
-        </div>
+            {/* Relationships list */}
+            <div className="space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Relationships
+                </h3>
+                {pairRelationships.map((edge, idx) => (
+                    <RelationshipRow
+                        key={edge.id}
+                        edge={edge}
+                        defaultOpen={idx === 0}
+                        isClicked={edge.id === eventId}
+                    />
+                ))}
+                {pairRelationships.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                        No relationships found for this pair.
+                    </p>
+                )}
+            </div>
+        </DetailPanel>
     );
 }
 
@@ -188,7 +172,10 @@ function EndpointCard({
                             ENTITY_COLORS[type] ?? ENTITY_COLORS.other,
                     }}
                 />
-                <p className="text-xs font-medium truncate">
+                <p
+                    className="text-xs font-medium truncate"
+                    title={node.name ?? 'Unnamed'}
+                >
                     {node.name ?? 'Unnamed'}
                 </p>
             </div>
@@ -209,6 +196,7 @@ function RelationshipRow({
     isClicked: boolean;
 }) {
     const [open, setOpen] = useState(defaultOpen);
+    const relationship = edge.relationship ?? 'Relationship';
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
             <CollapsibleTrigger asChild>
@@ -217,8 +205,11 @@ function RelationshipRow({
                         isClicked ? 'border-primary/60 bg-primary/5' : ''
                     }`}
                 >
-                    <span className="text-xs font-medium truncate">
-                        {edge.relationship ?? 'Relationship'}
+                    <span
+                        className="text-xs font-medium truncate"
+                        title={relationship}
+                    >
+                        {relationship}
                     </span>
                     <ChevronDown
                         className={`size-3 shrink-0 transition-transform ${
@@ -258,4 +249,3 @@ function RelationshipRow({
         </Collapsible>
     );
 }
-
