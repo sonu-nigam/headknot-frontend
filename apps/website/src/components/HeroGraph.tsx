@@ -140,7 +140,7 @@ export function HeroGraph({ className }: { className?: string }) {
     }, []);
 
     return (
-        <div className={className}>
+        <div className={`hero-graph ${className ?? ''}`}>
             <Cosmograph
                 ref={cosmoRef}
                 style={{ width: '100%', height: '100%' }}
@@ -170,10 +170,14 @@ export function HeroGraph({ className }: { className?: string }) {
                 // keep the motion soft and slow; the interval above keeps it
                 // going forever so it never freezes.
                 enableSimulation
-                simulationGravity={0.18}
-                simulationRepulsion={0.4}
+                // Gravity keeps the cluster anchored to the center of the
+                // canvas so the graph never wanders off; the soft repulsion /
+                // spring just let individual nodes drift slowly in place.
+                simulationGravity={0.4}
+                simulationCenter={1}
+                simulationRepulsion={0.35}
                 simulationLinkSpring={0.7}
-                simulationLinkDistance={12}
+                simulationLinkDistance={11}
                 simulationFriction={0.92}
                 simulationDecay={100000}
                 fitViewOnInit

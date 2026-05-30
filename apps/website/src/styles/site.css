@@ -36,6 +36,13 @@ body {
     mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
+/* Hide the Cosmograph attribution badge in the hero graph. Matching on the
+   partial class keeps this working even if the library's hashed class name
+   changes between versions. */
+.hero-graph [class*='attribution'] {
+    display: none !important;
+}
+
 .text-gradient {
     background: linear-gradient(120deg, #fff 0%, #c4b5fd 55%, #7c3aed 100%);
     -webkit-background-clip: text;
