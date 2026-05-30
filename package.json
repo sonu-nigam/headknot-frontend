@@ -7,7 +7,7 @@
         "dev:app": "turbo dev --filter=@headknot/app",
         "build": "turbo build",
         "build:website": "turbo build --filter=@headknot/website",
-        "preview:website": "pnpm --filter @headknot/website preview",
+        "preview:website": "turbo preview --filter=@headknot/website",
         "lint": "turbo lint",
         "typecheck": "turbo typecheck",
         "test": "turbo test",
