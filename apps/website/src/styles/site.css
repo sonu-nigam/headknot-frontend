@@ -1,0 +1,44 @@
+@import '@workspace/ui/globals.css';
+
+@theme {
+    --color-violet-50: oklch(0.969 0.016 293.756);
+    --color-violet-400: oklch(0.702 0.183 293.541);
+    --color-violet-500: oklch(0.606 0.25 292.717);
+    --color-violet-600: oklch(0.541 0.281 293.009);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    /* Marketing site is a standalone dark surface tuned to the Headknot brand. */
+    background-color: #0b0b16;
+    color: oklch(0.985 0 0);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle aurora glow used behind hero / CTA sections. */
+.site-glow {
+    background:
+        radial-gradient(
+            60% 50% at 50% 0%,
+            rgba(124, 58, 237, 0.28) 0%,
+            rgba(124, 58, 237, 0) 70%
+        );
+}
+
+.site-grid {
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.text-gradient {
+    background: linear-gradient(120deg, #fff 0%, #c4b5fd 55%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
