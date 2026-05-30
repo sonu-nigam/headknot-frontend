@@ -3,7 +3,11 @@
     "private": true,
     "scripts": {
         "dev": "turbo dev",
+        "dev:website": "turbo dev --filter=@headknot/website",
+        "dev:app": "turbo dev --filter=@headknot/app",
         "build": "turbo build",
+        "build:website": "turbo build --filter=@headknot/website",
+        "preview:website": "pnpm --filter @headknot/website preview",
         "lint": "turbo lint",
         "typecheck": "turbo typecheck",
         "test": "turbo test",
