@@ -59,12 +59,8 @@ export function Hero() {
                     </p>
                 </div>
 
-                <div className="relative mx-auto mt-16 max-w-4xl">
-                    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent p-2 shadow-2xl">
-                        <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0d1c]">
-                            <HeroGraph className="h-[420px] w-full sm:h-[460px]" />
-                        </div>
-                    </div>
+                <div className="relative mx-auto mt-12 max-w-6xl">
+                    <HeroGraph className="h-[460px] w-full sm:h-[600px]" />
                 </div>
             </div>
         </section>

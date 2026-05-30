@@ -72,15 +72,51 @@ const EDGES: Array<[string, string]> = [
     ['roadmap', 'decisions'],
 ];
 
+// Fixed, deterministic layout so the graph renders static (no force settling):
+// the hub at the center, knowledge entities on an inner ring, and the source
+// tools on an outer ring — a clean concentric lattice.
+const INNER_RADIUS = 150;
+const OUTER_RADIUS = 300;
+
+function buildLayout(): Map<string, [number, number]> {
+    const pos = new Map<string, [number, number]>();
+    pos.set('headknot', [0, 0]);
+
+    const inner = NODES.filter(
+        (n) => n.kind === 'concept' || n.kind === 'highlight',
+    );
+    const sources = NODES.filter((n) => n.kind === 'source');
+
+    inner.forEach((n, i) => {
+        const a = -Math.PI / 2 + (i * 2 * Math.PI) / inner.length;
+        pos.set(n.id, [Math.cos(a) * INNER_RADIUS, Math.sin(a) * INNER_RADIUS]);
+    });
+    sources.forEach((n, i) => {
+        // Offset the outer ring so sources sit between the inner nodes.
+        const a =
+            -Math.PI / 2 +
+            (i * 2 * Math.PI) / sources.length +
+            Math.PI / sources.length;
+        pos.set(n.id, [Math.cos(a) * OUTER_RADIUS, Math.sin(a) * OUTER_RADIUS]);
+    });
+    return pos;
+}
+
 export function HeroGraph({ className }: { className?: string }) {
     const { points, links } = useMemo(() => {
+        const layout = buildLayout();
         const indexById = new Map(NODES.map((n, i) => [n.id, i]));
-        const points = NODES.map((n, i) => ({
-            id: n.id,
-            index: i,
-            label: n.label,
-            color: KIND_COLOR[n.kind],
-        }));
+        const points = NODES.map((n, i) => {
+            const [x, y] = layout.get(n.id) ?? [0, 0];
+            return {
+                id: n.id,
+                index: i,
+                label: n.label,
+                color: KIND_COLOR[n.kind],
+                x,
+                y,
+            };
+        });
         const links = EDGES.map(([source, target]) => ({
             source,
             target,
@@ -100,6 +136,8 @@ export function HeroGraph({ className }: { className?: string }) {
                 pointIndexBy="index"
                 pointLabelBy="label"
                 pointColorBy="color"
+                pointXBy="x"
+                pointYBy="y"
                 linkSourceBy="source"
                 linkSourceIndexBy="sourceIndex"
                 linkTargetBy="target"
@@ -109,25 +147,20 @@ export function HeroGraph({ className }: { className?: string }) {
                 // Size nodes by how connected they are — the hub becomes the
                 // visual anchor without hard-coding a size per node.
                 pointSizeStrategy="degree"
-                pointSizeRange={[6, 26]}
+                pointSizeRange={[7, 30]}
                 linkDefaultColor="rgba(196,181,253,0.22)"
                 linkWidth={1}
                 linkArrowsSizeScale={0}
-                // Gentle force layout that settles into a lattice and stops.
-                enableSimulation
-                simulationGravity={0.2}
-                simulationRepulsion={0.9}
-                simulationLinkSpring={1.1}
-                simulationLinkDistance={9}
-                simulationFriction={0.85}
-                simulationDecay={2000}
+                // Static graph: no force simulation — render the fixed layout
+                // exactly as positioned, framed to fill the canvas.
+                enableSimulation={false}
                 fitViewOnInit
-                fitViewDelay={250}
-                fitViewPadding={0.45}
-                // Decorative: let users nudge nodes, but never trap page scroll.
+                fitViewDelay={0}
+                fitViewDuration={0}
+                fitViewPadding={0.12}
+                // Static + non-interactive: never trap page scroll or move nodes.
                 enableZoom={false}
-                enableDrag
-                scalePointsOnZoom
+                enableDrag={false}
                 showLabels
                 showTopLabels
                 showTopLabelsLimit={NODES.length}
