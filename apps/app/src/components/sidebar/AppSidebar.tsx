@@ -51,8 +51,15 @@ const data = {
         },
         {
             title: 'Settings',
-            url: '/account',
+            url: '/settings',
             icon: SettingsIcon,
+            items: [
+                { title: 'Account', url: '/settings/account' },
+                { title: 'Workspace', url: '/settings/workspace' },
+                { title: 'Preferences', url: '/settings/preferences' },
+                { title: 'Notifications', url: '/settings/notifications' },
+                { title: 'Billing', url: '/settings/billing' },
+            ],
         },
     ],
 };

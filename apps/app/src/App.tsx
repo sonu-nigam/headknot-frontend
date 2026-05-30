@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -7,11 +7,15 @@ import Signup from './pages/Signup';
 import MemoryPage from './pages/Memory/MemoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GoogleCallback from './pages/GoogleCallback';
-import { AccountPage } from './pages/Account/AccountPage';
-import { BillingPage } from './pages/Billing/BillingPage';
+import { SettingsLayout } from './pages/Settings/SettingsLayout';
+import { AccountSection } from './pages/Settings/sections/AccountSection';
+import { WorkspaceSection } from './pages/Settings/sections/WorkspaceSection';
+import { PreferencesSection } from './pages/Settings/sections/PreferencesSection';
+import { NotificationsSettingsSection } from './pages/Settings/sections/NotificationsSettingsSection';
+import { BillingSection } from './pages/Settings/sections/BillingSection';
 import { CheckoutSuccessPage } from './pages/Billing/CheckoutSuccessPage';
 import { CheckoutCancelPage } from './pages/Billing/CheckoutCancelPage';
-import { NotificationsPage } from './pages/Notifications/NotificationsPage';
+import { NotificationsInboxPage } from './pages/Notifications/NotificationsInboxPage';
 import Archives from './pages/Archives';
 
 import Workspace from './pages/Workspace';
@@ -180,12 +184,26 @@ export default function App() {
             />
             <Route path="/not-found" element={<NotFoundPage />} />
             <Route
-                path="/account"
+                path="/settings"
                 element={
                     <ProtectedRoute>
-                        <AccountPage />
+                        <SettingsLayout />
                     </ProtectedRoute>
                 }
+            >
+                <Route index element={<Navigate to="account" replace />} />
+                <Route path="account" element={<AccountSection />} />
+                <Route path="workspace" element={<WorkspaceSection />} />
+                <Route path="preferences" element={<PreferencesSection />} />
+                <Route
+                    path="notifications"
+                    element={<NotificationsSettingsSection />}
+                />
+                <Route path="billing" element={<BillingSection />} />
+            </Route>
+            <Route
+                path="/account"
+                element={<Navigate to="/settings/account" replace />}
             />
             <Route
                 path="/workspace"
@@ -229,11 +247,7 @@ export default function App() {
             />
             <Route
                 path="/billing"
-                element={
-                    <ProtectedRoute>
-                        <BillingPage />
-                    </ProtectedRoute>
-                }
+                element={<Navigate to="/settings/billing" replace />}
             />
             <Route
                 path="/billing/success"
@@ -255,7 +269,7 @@ export default function App() {
                 path="/notifications"
                 element={
                     <ProtectedRoute>
-                        <NotificationsPage />
+                        <NotificationsInboxPage />
                     </ProtectedRoute>
                 }
             />

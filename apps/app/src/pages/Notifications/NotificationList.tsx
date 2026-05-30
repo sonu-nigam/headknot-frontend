@@ -1,7 +1,8 @@
+import React from 'react';
+import { Bell, CheckCheckIcon, CheckIcon, Trash2Icon } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { $api } from '@workspace/api-client';
-import { useMarkAsRead } from '@/hooks/notifications/useMarkAsRead';
-import { useMarkAllAsRead } from '@/hooks/notifications/useMarkAllAsRead';
-import { useDeleteNotification } from '@/hooks/notifications/useDeleteNotification';
+import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import {
     Card,
@@ -10,28 +11,50 @@ import {
     CardHeader,
     CardTitle,
 } from '@workspace/ui/components/card';
-import { Badge } from '@workspace/ui/components/badge';
-import { CheckIcon, Trash2Icon, CheckCheckIcon } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { useDeleteNotification } from '@/hooks/notifications/useDeleteNotification';
+import { useMarkAllAsRead } from '@/hooks/notifications/useMarkAllAsRead';
+import { useMarkAsRead } from '@/hooks/notifications/useMarkAsRead';
+import type { Schemas } from '@/types/api';
+import {
+    EmptyState,
+    SectionError,
+    SectionSkeleton,
+} from '@/pages/Settings/components/SectionStates';
+
+const PAGE_SIZE = 20;
 
 export function NotificationList() {
-    const { data: notifications, isLoading } = $api.useQuery("get", "/notifications", {
-        params: { query: { limit: 20, offset: 0 } },
+    const [pages, setPages] = React.useState(1);
+    const limit = pages * PAGE_SIZE;
+
+    const {
+        data: notifications,
+        isLoading,
+        isError,
+        refetch,
+    } = $api.useQuery('get', '/notifications', {
+        params: { query: { limit, offset: 0 } },
     });
-    const { data: unreadCount } = $api.useQuery("get", "/notifications/unread/count");
+    const { data: unreadCount } = $api.useQuery(
+        'get',
+        '/notifications/unread/count',
+    );
+
     const markAsRead = useMarkAsRead();
     const markAllAsRead = useMarkAllAsRead();
     const deleteNotification = useDeleteNotification();
 
-    if (isLoading) {
+    if (isLoading) return <SectionSkeleton rows={5} />;
+    if (isError) {
         return (
-            <Card>
-                <CardContent className="p-6">
-                    Loading notifications...
-                </CardContent>
-            </Card>
+            <SectionError
+                message="Couldn't load notifications."
+                onRetry={() => refetch()}
+            />
         );
     }
+
+    const hasMore = (notifications?.length ?? 0) >= limit;
 
     return (
         <Card>
@@ -55,7 +78,7 @@ export function NotificationList() {
                             onClick={() => markAllAsRead.mutate({})}
                             disabled={markAllAsRead.isPending}
                         >
-                            <CheckCheckIcon className="h-4 w-4 mr-1" />
+                            <CheckCheckIcon className="mr-1 size-4" />
                             Mark all read
                         </Button>
                     )}
@@ -63,79 +86,98 @@ export function NotificationList() {
             </CardHeader>
             <CardContent>
                 {!notifications?.length ? (
-                    <p className="text-center text-muted-foreground py-8">
-                        No notifications yet.
-                    </p>
+                    <EmptyState
+                        icon={Bell}
+                        title="No notifications yet"
+                        description="You're all caught up."
+                    />
                 ) : (
                     <div className="space-y-1">
-                        {notifications.map((notification) => (
+                        {notifications.map((notification: Schemas['NotificationResponse']) => (
                             <div
                                 key={notification.id}
-                                className={`flex items-start justify-between gap-3 p-3 rounded-md transition-colors ${
+                                className={`flex items-start justify-between gap-3 rounded-md p-3 transition-colors ${
                                     !notification.read
                                         ? 'bg-muted/50'
                                         : 'hover:bg-muted/30'
                                 }`}
                             >
-                                <div className="flex-1 min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
                                         {!notification.read && (
-                                            <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                                            <span className="size-2 shrink-0 rounded-full bg-primary" />
                                         )}
-                                        <p className="font-medium text-sm truncate">
+                                        <p className="truncate text-sm font-medium">
                                             {notification.title}
                                         </p>
                                     </div>
                                     {notification.message && (
-                                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                                        <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
                                             {notification.message}
                                         </p>
                                     )}
                                     {notification.createdAt && (
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                        <p className="mt-1 text-xs text-muted-foreground">
                                             {formatDistanceToNow(
-                                                new Date(
-                                                    notification.createdAt
-                                                ),
-                                                { addSuffix: true }
+                                                new Date(notification.createdAt),
+                                                { addSuffix: true },
                                             )}
                                         </p>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="flex shrink-0 items-center gap-1">
                                     {!notification.read && notification.id && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8"
+                                            className="size-8"
                                             onClick={() =>
                                                 markAsRead.mutate({
-                                                    params: { path: { id: notification.id! } },
+                                                    params: {
+                                                        path: {
+                                                            id: notification.id!,
+                                                        },
+                                                    },
                                                 })
                                             }
                                             title="Mark as read"
                                         >
-                                            <CheckIcon className="h-4 w-4" />
+                                            <CheckIcon className="size-4" />
                                         </Button>
                                     )}
                                     {notification.id && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                            className="size-8 text-muted-foreground hover:text-destructive"
                                             onClick={() =>
                                                 deleteNotification.mutate({
-                                                    params: { path: { id: notification.id! } },
+                                                    params: {
+                                                        path: {
+                                                            id: notification.id!,
+                                                        },
+                                                    },
                                                 })
                                             }
                                             title="Delete"
                                         >
-                                            <Trash2Icon className="h-4 w-4" />
+                                            <Trash2Icon className="size-4" />
                                         </Button>
                                     )}
                                 </div>
                             </div>
                         ))}
+                        {hasMore && (
+                            <div className="flex justify-center pt-3">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPages((p) => p + 1)}
+                                >
+                                    Load more
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 )}
             </CardContent>

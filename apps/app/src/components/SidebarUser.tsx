@@ -112,11 +112,11 @@ export function SidebarUser() {
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={() => navigate('/account')}>
+                            <DropdownMenuItem onClick={() => navigate('/settings/account')}>
                                 <BadgeCheckIcon />
                                 Account
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate('/billing')}>
+                            <DropdownMenuItem onClick={() => navigate('/settings/billing')}>
                                 <CreditCardIcon />
                                 Billing
                             </DropdownMenuItem>

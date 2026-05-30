@@ -4,7 +4,7 @@ import {
     ProfileFormValues,
 } from '@/validations/form/profileForm';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, components } from '@workspace/api-client';
+import { api } from '@workspace/api-client';
 import {
     Form,
     FormControl,
@@ -16,6 +16,7 @@ import {
 import { Input } from '@workspace/ui/components/input';
 import { Textarea } from '@workspace/ui/components/textarea';
 import { Button } from '@workspace/ui/components/button';
+import { toast } from 'sonner';
 
 import { Schemas } from '@/types/api';
 
@@ -47,6 +48,10 @@ export function ProfileForm({
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-profile'] });
+            toast.success('Profile updated');
+        },
+        onError: (e: Error) => {
+            toast.error("Couldn't update profile: " + e.message);
         },
     });
 

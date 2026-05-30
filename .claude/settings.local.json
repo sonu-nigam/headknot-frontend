@@ -89,7 +89,17 @@
       "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' 'http://localhost:8080/api/billing/me/trial-status' -H 'authorization: Bearer eyJraWQiOiJoZWFka25vdC1qd3Qta2V5IiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiJzb251bmlnYW0wNjRAZ21haWwuY29tIiwiYXVkIjoiaGVhZGtub3QtYXBpIiwidG9rZW5WZXJzaW9uIjowLCJyb2xlcyI6WyJST0xFX1VTRVIiXSwiaXNzIjoiaGVhZGtub3QiLCJleHAiOjE3Nzg4ODQyMDcsImlhdCI6MTc3ODg2OTgwNywidXNlcklkIjoiYWU2OWVkNzYtYzU1My00ZTVhLTkyNWUtM2I5M2RiNTk3ZmUxIiwianRpIjoiZjg4MjYzY2MtYzc5Zi00NTk2LWEwOWEtNDk4NTRmNTMxYjg1In0.FRSeooXWcgVUjm0Bnp4khJAAZ09kCBrphJz6I7F0BHk')",
       "Bash(grep -E \"\\\\.\\(prisma|sql|ts|js\\)$\")",
       "Bash(find /Users/sonunigam/Documents/Work/headknot -type d -name \"backend\" -o -type d -name \"server\" -o -type d -name \"api\" 2>/dev/null | grep -v node_modules | head -20)",
-      "Read(//Users/sonunigam/Documents/Work/headknot/**)"
+      "Read(//Users/sonunigam/Documents/Work/headknot/**)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(git push *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm --filter app exec tsc --noEmit)",
+      "Bash(timeout 90 pnpm --filter app build)",
+      "Bash(pnpm --filter app build)",
+      "Bash(pnpm --filter app dev)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"vite\")"
     ]
   },
   "enableAllProjectMcpServers": true,

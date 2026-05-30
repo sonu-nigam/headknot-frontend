@@ -15,7 +15,12 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@workspace/ui/components/sidebar';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+
+function isItemActive(pathname: string, url: string) {
+    if (url === '/') return pathname === '/';
+    return pathname === url || pathname.startsWith(url + '/');
+}
 
 export function PlatformNav({
     items,
@@ -31,17 +36,19 @@ export function PlatformNav({
         }[];
     }[];
 }) {
+    const { pathname } = useLocation();
     return (
         <SidebarGroup>
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
                     const Icon = item.icon;
+                    const active = isItemActive(pathname, item.url);
                     return !!item.items?.length ? (
                         <Collapsible
                             key={item.title}
                             asChild
-                            defaultOpen={item.isActive}
+                            defaultOpen={active}
                             className="group/collapsible"
                         >
                             <SidebarMenuItem>
@@ -49,6 +56,7 @@ export function PlatformNav({
                                     <SidebarMenuButton
                                         asChild
                                         tooltip={item.title}
+                                        isActive={active}
                                     >
                                         <Link to={item.url}>
                                             {Icon && <Icon />}
@@ -62,7 +70,13 @@ export function PlatformNav({
                                             <SidebarMenuSubItem
                                                 key={subItem.title}
                                             >
-                                                <SidebarMenuSubButton asChild>
+                                                <SidebarMenuSubButton
+                                                    asChild
+                                                    isActive={isItemActive(
+                                                        pathname,
+                                                        subItem.url,
+                                                    )}
+                                                >
                                                     <Link to={subItem.url}>
                                                         <span>
                                                             {subItem.title}
@@ -77,7 +91,11 @@ export function PlatformNav({
                         </Collapsible>
                     ) : (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild tooltip={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                tooltip={item.title}
+                                isActive={active}
+                            >
                                 <Link to={item.url}>
                                     {Icon && <Icon />}
                                     <span>{item.title}</span>
