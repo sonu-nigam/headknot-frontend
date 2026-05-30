@@ -156,6 +156,9 @@ importers:
 
   apps/website:
     dependencies:
+      '@cosmograph/react':
+        specifier: ^2.3.2
+        version: 2.3.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui

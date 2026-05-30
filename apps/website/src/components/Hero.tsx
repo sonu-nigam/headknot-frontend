@@ -1,6 +1,6 @@
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
-import { GraphVisual } from './GraphVisual';
+import { HeroGraph } from './HeroGraph';
 
 const APP_URL = 'https://app.headknot.com';
 
@@ -61,8 +61,8 @@ export function Hero() {
 
                 <div className="relative mx-auto mt-16 max-w-4xl">
                     <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent p-2 shadow-2xl">
-                        <div className="rounded-xl border border-white/10 bg-[#0d0d1c]">
-                            <GraphVisual className="h-auto w-full" />
+                        <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0d1c]">
+                            <HeroGraph className="h-[420px] w-full sm:h-[460px]" />
                         </div>
                     </div>
                 </div>
