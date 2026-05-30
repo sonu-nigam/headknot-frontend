@@ -102,7 +102,13 @@ function buildLayout(): Map<string, [number, number]> {
     return pos;
 }
 
+// Fraction of the viewport left as margin when framing the graph — lower fills
+// more of the canvas.
+const FIT_PADDING = 0.3;
+
 export function HeroGraph({ className }: { className?: string }) {
+    const cosmoRef = useRef<CosmographRef | null>(null);
+
     const { points, links } = useMemo(() => {
         const layout = buildLayout();
         const indexById = new Map(NODES.map((n, i) => [n.id, i]));
@@ -126,18 +132,28 @@ export function HeroGraph({ className }: { className?: string }) {
         return { points, links };
     }, []);
 
-    const cosmoRef = useRef<CosmographRef | null>(null);
-
-    // Keep the graph gently alive: re-energise the simulation with a tiny alpha
-    // on an interval so the nodes never fully settle. The small alpha plus high
-    // friction makes the drift slow and ambient rather than bouncy — a static
-    // frame (no pan/zoom/drag) with softly moving nodes.
+    // A force simulation is Cosmograph's only way to move nodes (re-uploading
+    // positions per frame is not), so we keep a perpetual, very gentle drift by
+    // re-energising it with a tiny alpha. A separate, continuous re-fit keeps
+    // the slowly-drifting cluster centered and filling the frame — so visually
+    // the graph stays put in the middle while its nodes wobble very slowly.
     useEffect(() => {
-        const id = window.setInterval(() => {
-            cosmoRef.current?.start?.(0.03);
-        }, 1200);
-        return () => window.clearInterval(id);
+        const nudge = window.setInterval(() => {
+            cosmoRef.current?.start?.(0.008);
+        }, 3000);
+        const refit = window.setInterval(() => {
+            cosmoRef.current?.fitView?.(900, FIT_PADDING);
+        }, 900);
+        return () => {
+            window.clearInterval(nudge);
+            window.clearInterval(refit);
+        };
     }, []);
+
+    // Fit as soon as the initial layout settles, so it's framed immediately.
+    const handleSimulationEnd = () => {
+        cosmoRef.current?.fitView?.(600, FIT_PADDING);
+    };
 
     return (
         <div className={`hero-graph ${className ?? ''}`}>
@@ -163,28 +179,25 @@ export function HeroGraph({ className }: { className?: string }) {
                 pointSizeStrategy="degree"
                 pointSizeRange={[7, 30]}
                 linkDefaultColor="rgba(196,181,253,0.22)"
-                linkWidth={1}
                 linkArrowsSizeScale={0}
-                // Seed from the fixed concentric layout, then let a very gentle
-                // force simulation drift the nodes. High friction + slow decay
-                // keep the motion soft and slow; the interval above keeps it
-                // going forever so it never freezes.
+                // Near-zero gravity is the key to a STABLE spread: gravity is
+                // what pulls nodes together, so keeping it tiny stops re-heating
+                // from collapsing the layout. The center force pins the centroid
+                // (no wandering) while repulsion + links hold the spacing. High
+                // friction keeps the motion slow and soft.
                 enableSimulation
-                // Gravity keeps the cluster anchored to the center of the
-                // canvas so the graph never wanders off; the soft repulsion /
-                // spring just let individual nodes drift slowly in place.
-                simulationGravity={0.4}
+                simulationGravity={0.03}
                 simulationCenter={1}
-                simulationRepulsion={0.35}
-                simulationLinkSpring={0.7}
-                simulationLinkDistance={11}
-                simulationFriction={0.92}
-                simulationDecay={100000}
-                fitViewOnInit
-                fitViewDelay={0}
-                fitViewDuration={0}
-                fitViewPadding={0.12}
-                // The frame itself is static — no panning, zooming or dragging.
+                simulationRepulsion={2}
+                simulationLinkSpring={0.4}
+                simulationLinkDistance={40}
+                simulationFriction={0.9}
+                simulationDecay={1000}
+                // Camera fit is driven imperatively after the layout settles
+                // (and re-fit after each gentle nudge) to keep it centered.
+                fitViewOnInit={false}
+                onSimulationEnd={handleSimulationEnd}
+                // The frame is static — no panning, zooming or dragging.
                 enableZoom={false}
                 enableDrag={false}
                 showLabels
