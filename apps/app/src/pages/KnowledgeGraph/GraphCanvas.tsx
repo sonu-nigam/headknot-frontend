@@ -1,5 +1,6 @@
 import {
     forwardRef,
+    useEffect,
     useImperativeHandle,
     useLayoutEffect,
     useRef,
@@ -41,6 +42,19 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
         const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(
             null,
         );
+
+        // The detail card only appears once the clicked node has finished
+        // animating into focus — reset on every selection change, then flip true
+        // when ForceGraph reports the focus animation settled.
+        const [panelReady, setPanelReady] = useState(false);
+        useEffect(() => {
+            setPanelReady(false);
+            if (!selectedNodeId) return;
+            // Safety net: reveal the card even if the animation event is missed
+            // (focus animation is ~600ms).
+            const t = window.setTimeout(() => setPanelReady(true), 800);
+            return () => window.clearTimeout(t);
+        }, [selectedNodeId]);
 
         // Snapshot the viewport (camera position + zoom) when a selection begins,
         // and restore it when the panel closes — so closing the details rewinds
@@ -103,9 +117,12 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
                     selectedNodeId={selectedNodeId}
                     highlightedPath={highlightedPath}
                     onAnchorChange={setAnchor}
+                    onFocusSettled={() => setPanelReady(true)}
                 />
                 {detailPanel && (
-                    <FloatingDetail anchor={anchor}>{detailPanel}</FloatingDetail>
+                    <FloatingDetail anchor={anchor} visible={panelReady}>
+                        {detailPanel}
+                    </FloatingDetail>
                 )}
             </div>
         );

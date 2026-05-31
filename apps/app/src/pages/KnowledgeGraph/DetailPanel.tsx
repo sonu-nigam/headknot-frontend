@@ -125,9 +125,12 @@ export function DetailPanel({
  */
 export function FloatingDetail({
     anchor,
+    visible = true,
     children,
 }: {
     anchor: { x: number; y: number } | null;
+    /** When false the card stays mounted (so it can fetch) but hidden. */
+    visible?: boolean;
     children: ReactNode;
 }) {
     const ref = useRef<HTMLDivElement>(null);
@@ -187,7 +190,7 @@ export function FloatingDetail({
             style={{
                 left: pos?.left ?? 0,
                 top: pos?.top ?? 0,
-                visibility: pos ? 'visible' : 'hidden',
+                visibility: pos && visible ? 'visible' : 'hidden',
             }}
         >
             {children}

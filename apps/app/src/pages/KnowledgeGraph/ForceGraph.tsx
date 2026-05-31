@@ -29,6 +29,8 @@ export interface ForceGraphProps {
     onEdgeClick: (eventId: string) => void;
     /** Reports the selected node/edge's on-screen position so a detail card can anchor to it. */
     onAnchorChange?: (anchor: { x: number; y: number } | null) => void;
+    /** Fires when the selection's focus/fit animation finishes (node is in view). */
+    onFocusSettled?: () => void;
 }
 
 /** Imperative surface consumed by GraphCanvas (camera + viewport snapshot). */
@@ -111,6 +113,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             onNodeClick,
             onEdgeClick,
             onAnchorChange,
+            onFocusSettled,
         },
         ref,
     ) {
@@ -226,8 +229,18 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
         const labelsShownRef = useRef(true);
 
         // Latest props/derived, so the once-wired handlers never go stale.
-        const cbRef = useRef({ onNodeClick, onEdgeClick, onAnchorChange });
-        cbRef.current = { onNodeClick, onEdgeClick, onAnchorChange };
+        const cbRef = useRef({
+            onNodeClick,
+            onEdgeClick,
+            onAnchorChange,
+            onFocusSettled,
+        });
+        cbRef.current = {
+            onNodeClick,
+            onEdgeClick,
+            onAnchorChange,
+            onFocusSettled,
+        };
         const selRef = useRef({ selectedNodeId, highlightedPath });
         selRef.current = { selectedNodeId, highlightedPath };
         const dataRef = useRef(derived);
@@ -581,7 +594,14 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 scheduleAnchor();
             });
             network.on('dragging', scheduleAnchor);
-            network.on('animationFinished', scheduleAnchor);
+            network.on('animationFinished', () => {
+                // The focus/fit animation is done and the node is framed —
+                // recompute its anchor and let the detail card become visible.
+                recomputeAnchor();
+                if (selRef.current.selectedNodeId) {
+                    cbRef.current.onFocusSettled?.();
+                }
+            });
             network.on('dragEnd', () => {
                 persistLayout();
                 scheduleAnchor();
