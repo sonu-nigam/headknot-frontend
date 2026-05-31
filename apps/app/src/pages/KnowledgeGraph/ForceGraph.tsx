@@ -54,8 +54,15 @@ const LABEL_DIM = 'rgba(255,255,255,0.2)';
 /** Dark halo behind label text so it stays readable over edges and the dot grid. */
 const LABEL_STROKE = 'rgba(11,11,22,0.92)';
 const NODE_LABEL_SIZE = 13;
+const EDGE_LABEL_SIZE = 10;
 /** Above this many edges, drop on-canvas labels — drawing thousands of text strokes is costly. */
 const EDGE_LABEL_CAP = 200;
+/**
+ * Show labels only when zoomed in past this scale. Below it the graph is small
+ * enough that labels would overlap into unreadable fragments, so we hide them
+ * entirely — either a full label is shown or none is.
+ */
+const LABEL_MIN_SCALE = 0.65;
 
 /** Node label styling — constant size + dark halo so labels are always legible. */
 function nodeFont(lit: boolean) {
@@ -215,6 +222,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
         const rafRef = useRef<number | null>(null);
         const lastPointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
         const stabilizedRef = useRef(false);
+        const labelsShownRef = useRef(true);
 
         // Latest props/derived, so the once-wired handlers never go stale.
         const cbRef = useRef({ onNodeClick, onEdgeClick, onAnchorChange });
@@ -389,6 +397,34 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             cb.onAnchorChange(null);
         }, []);
 
+        // Show full labels only when zoomed in past LABEL_MIN_SCALE; otherwise
+        // hide them so we never show overlapping fragments. Only writes to the
+        // DataSets when the threshold is actually crossed (or when forced).
+        const applyLabelVisibility = useCallback((force = false) => {
+            const net = networkRef.current;
+            const nodesDs = nodesDsRef.current;
+            const edgesDs = edgesDsRef.current;
+            if (!net || !nodesDs || !edgesDs) return;
+            const scale = net.getScale();
+            const show = !Number.isFinite(scale) || scale >= LABEL_MIN_SCALE;
+            if (!force && show === labelsShownRef.current) return;
+            labelsShownRef.current = show;
+            const d = dataRef.current;
+            // Node labels live per-node in the DataSet — toggle their text.
+            nodesDs.update(
+                [...d.allNodeIds].map((id) => ({
+                    id,
+                    label: show ? (d.nodeMetaById.get(id)?.label ?? '') : '',
+                })),
+            );
+            // Edge labels use the global edge font (no per-edge override), so
+            // collapsing the font size to 0 reliably hides them (a per-edge
+            // DataSet label update doesn't always repaint in vis-network).
+            net.setOptions({
+                edges: { font: { size: show ? EDGE_LABEL_SIZE : 0 } },
+            });
+        }, []);
+
         const scheduleAnchor = useCallback(() => {
             if (rafRef.current !== null) return;
             rafRef.current = requestAnimationFrame(() => {
@@ -481,7 +517,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                     smooth: false,
                     arrows: { to: { enabled: true, scaleFactor: 0.5 } },
                     font: {
-                        size: 10,
+                        size: EDGE_LABEL_SIZE,
                         color: 'rgba(255,255,255,0.9)',
                         strokeWidth: 4,
                         strokeColor: 'rgba(0,0,0,0.7)',
@@ -527,7 +563,10 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 });
             });
             network.on('blurNode', () => setHover(null));
-            network.on('zoom', scheduleAnchor);
+            network.on('zoom', () => {
+                applyLabelVisibility();
+                scheduleAnchor();
+            });
             network.on('dragging', scheduleAnchor);
             network.on('animationFinished', scheduleAnchor);
             network.on('dragEnd', () => {
@@ -539,6 +578,8 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 network.setOptions({ physics: { enabled: false } });
                 persistLayout();
                 recomputeAnchor();
+                // The graph just fit to view — apply label visibility for that zoom.
+                applyLabelVisibility(true);
                 reveal();
             });
 
@@ -583,7 +624,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                     const seed = isNew ? { x: n.seedX, y: n.seedY } : {};
                     return {
                         id: n.id,
-                        label: n.label,
+                        label: labelsShownRef.current ? n.label : '',
                         value: d.degree.get(n.id) ?? 1,
                         color: baseNodeColor(n.color),
                         borderWidth: 1.5,
@@ -606,7 +647,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                     id: e.id,
                     from: e.from,
                     to: e.to,
-                    label: d.labelsEnabled && e.label ? e.label : undefined,
+                    label: d.labelsEnabled && e.label ? e.label : '',
                     color: { color: EVENT_EDGE_COLOR, inherit: false },
                 })),
             );
