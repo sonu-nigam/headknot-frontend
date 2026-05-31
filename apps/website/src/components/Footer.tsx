@@ -1,15 +1,18 @@
+import { Link } from 'react-router-dom';
 import { Logo } from './Logo';
 
 const APP_URL = 'https://app.headknot.com';
 
-const COLUMNS = [
+type FooterLink = { label: string; href: string; route?: boolean };
+
+const COLUMNS: { title: string; links: FooterLink[] }[] = [
     {
         title: 'Product',
         links: [
-            { label: 'Features', href: '#features' },
-            { label: 'How it works', href: '#how-it-works' },
-            { label: 'Use cases', href: '#use-cases' },
-            { label: 'Pricing', href: '#pricing' },
+            { label: 'Features', href: '/#features' },
+            { label: 'How it works', href: '/#how-it-works' },
+            { label: 'Use cases', href: '/#use-cases' },
+            { label: 'Pricing', href: '/#pricing' },
         ],
     },
     {
@@ -27,18 +30,21 @@ const COLUMNS = [
             { label: 'Documentation', href: '#' },
             { label: 'Changelog', href: '#' },
             { label: 'Status', href: '#' },
-            { label: 'Support', href: 'mailto:support@headknot.com' },
+            { label: 'Support', href: '/support', route: true },
         ],
     },
     {
         title: 'Legal',
         links: [
             { label: 'Privacy', href: '#' },
-            { label: 'Terms', href: '#' },
+            { label: 'Terms', href: '/terms', route: true },
             { label: 'Security', href: '#' },
         ],
     },
 ];
+
+const LINK_CLASS =
+    'text-sm text-white/55 transition-colors hover:text-white';
 
 export function Footer() {
     return (
@@ -67,12 +73,21 @@ export function Footer() {
                             <ul className="mt-4 space-y-3">
                                 {col.links.map((link) => (
                                     <li key={link.label}>
-                                        <a
-                                            href={link.href}
-                                            className="text-sm text-white/55 transition-colors hover:text-white"
-                                        >
-                                            {link.label}
-                                        </a>
+                                        {link.route ? (
+                                            <Link
+                                                to={link.href}
+                                                className={LINK_CLASS}
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        ) : (
+                                            <a
+                                                href={link.href}
+                                                className={LINK_CLASS}
+                                            >
+                                                {link.label}
+                                            </a>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

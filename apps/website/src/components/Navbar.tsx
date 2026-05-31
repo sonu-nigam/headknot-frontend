@@ -3,12 +3,14 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { Logo } from './Logo';
 
+// Section links are absolute (/#…) so they jump back to the landing page and
+// scroll, even when clicked from another route like /terms or /support.
 const LINKS = [
-    { label: 'Features', href: '#features' },
-    { label: 'How it works', href: '#how-it-works' },
-    { label: 'Use cases', href: '#use-cases' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'FAQ', href: '#faq' },
+    { label: 'Features', href: '/#features' },
+    { label: 'How it works', href: '/#how-it-works' },
+    { label: 'Use cases', href: '/#use-cases' },
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'FAQ', href: '/#faq' },
 ];
 
 const APP_URL = 'https://app.headknot.com';
@@ -33,7 +35,7 @@ export function Navbar() {
             }`}
         >
             <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-                <a href="#top" aria-label="Headknot home">
+                <a href="/" aria-label="Headknot home">
                     <Logo />
                 </a>
 

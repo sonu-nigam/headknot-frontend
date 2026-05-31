@@ -1,29 +1,36 @@
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { LogoCloud } from './components/LogoCloud';
-import { Features } from './components/Features';
-import { HowItWorks } from './components/HowItWorks';
-import { UseCases } from './components/UseCases';
-import { Pricing } from './components/Pricing';
-import { FAQ } from './components/FAQ';
-import { CTA } from './components/CTA';
-import { Footer } from './components/Footer';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Landing } from './pages/Landing';
+import { Terms } from './pages/Terms';
+import { Support } from './pages/Support';
+
+// On navigation, jump to the top for new pages, or to the targeted section when
+// the URL carries a hash (e.g. /#faq from another page).
+function ScrollManager() {
+    const { pathname, hash } = useLocation();
+    useEffect(() => {
+        if (hash) {
+            const el = document.getElementById(hash.slice(1));
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+        }
+        window.scrollTo(0, 0);
+    }, [pathname, hash]);
+    return null;
+}
 
 export default function App() {
     return (
-        <div className="min-h-screen">
-            <Navbar />
-            <main>
-                <Hero />
-                <LogoCloud />
-                <Features />
-                <HowItWorks />
-                <UseCases />
-                <Pricing />
-                <FAQ />
-                <CTA />
-            </main>
-            <Footer />
-        </div>
+        <>
+            <ScrollManager />
+            <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </>
     );
 }
