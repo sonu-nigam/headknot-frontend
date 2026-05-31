@@ -54,7 +54,9 @@ const LABEL_DIM = 'rgba(255,255,255,0.2)';
 /** Dark halo behind label text so it stays readable over edges and the dot grid. */
 const LABEL_STROKE = 'rgba(11,11,22,0.92)';
 const NODE_LABEL_SIZE = 13;
-const EDGE_LABEL_SIZE = 10;
+const EDGE_LABEL_SIZE = 11;
+/** Solid chip behind edge labels so the relationship text reads cleanly over edges/nodes. */
+const EDGE_LABEL_BG = 'rgba(11,11,22,0.9)';
 /** Above this many edges, drop on-canvas labels — drawing thousands of text strokes is costly. */
 const EDGE_LABEL_CAP = 200;
 /**
@@ -520,10 +522,10 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                     arrows: { to: { enabled: true, scaleFactor: 0.5 } },
                     font: {
                         size: EDGE_LABEL_SIZE,
-                        color: 'rgba(255,255,255,0.9)',
-                        strokeWidth: 4,
-                        strokeColor: 'rgba(0,0,0,0.7)',
-                        align: 'middle',
+                        color: 'rgba(255,255,255,0.95)',
+                        background: EDGE_LABEL_BG,
+                        strokeWidth: 0,
+                        align: 'horizontal',
                     },
                 },
                 interaction: {
