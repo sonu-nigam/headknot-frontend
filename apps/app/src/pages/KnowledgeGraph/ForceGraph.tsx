@@ -1,5 +1,15 @@
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Cosmograph, type CosmographRef } from '@cosmograph/react';
+import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import { Network } from 'vis-network';
+import { DataSet } from 'vis-data';
+import type { Edge, IdType, Node, Options } from 'vis-network';
 import type { GraphNode, GraphLink } from '@/hooks/graph/useGraphData';
 import { useAppStore } from '@/state/store';
 import {
@@ -21,42 +31,36 @@ export interface ForceGraphProps {
     onAnchorChange?: (anchor: { x: number; y: number } | null) => void;
 }
 
-interface CosmoPoint {
-    id: string;
-    index: number;
-    label: string;
-    color: string;
-    entityType: string;
-    x?: number;
-    y?: number;
+/** Imperative surface consumed by GraphCanvas (camera + viewport snapshot). */
+export interface ForceGraphHandle {
+    getViewState(): { position: { x: number; y: number }; scale: number } | null;
+    setViewState(
+        v: { position: { x: number; y: number }; scale: number },
+        durationMs: number,
+    ): void;
+    zoomBy(factor: number): void;
+    fit(): void;
 }
 
-interface CosmoLink {
-    source: string;
-    target: string;
-    sourceIndex: number;
-    targetIndex: number;
-    eventId: string;
-}
+type VisNode = Node & { id: string };
+type VisEdge = Edge & { id: string };
 
-interface EdgeMeta {
-    sourceIndex: number;
-    targetIndex: number;
-    eventId: string;
-    label: string;
-}
+const FOCUS_COLOR = '#f97316'; // orange ring on the focused node
+const HOVER_BORDER = '#ffffff';
+const NODE_DIM = 0.15; // ↔ Cosmograph pointGreyoutOpacity
+const EDGE_DIM = 0.05; // ↔ Cosmograph linkGreyoutOpacity
+const LABEL_LIT = 'rgba(255,255,255,0.85)';
+const LABEL_DIM = 'rgba(255,255,255,0.18)';
+/** Above this many edges, drop on-canvas labels — drawing thousands of text strokes is costly. */
+const EDGE_LABEL_CAP = 200;
 
-interface EdgeLabel {
-    eventId: string;
-    label: string;
-    x: number;
-    y: number;
+/** rgba() from a #rrggbb hex + alpha — used to dim node/edge colors. */
+function withAlpha(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-
-/** Don't render more than this many edge labels at once — DOM cost gets nasty. */
-const MAX_EDGE_LABELS = 120;
-/** Hide edge labels when zoomed out further than this. */
-const EDGE_LABEL_MIN_ZOOM = 0.6;
 
 interface HoverState {
     x: number;
@@ -65,7 +69,13 @@ interface HoverState {
     sub?: string;
 }
 
-export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
+interface NodeMeta {
+    label: string;
+    color: string;
+    entityType: string;
+}
+
+export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
     function ForceGraph(
         {
             nodes,
@@ -80,445 +90,593 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
     ) {
         const [hover, setHover] = useState<HoverState | null>(null);
 
-        // Saved layout for this workspace — seeds initial node positions so the
-        // graph reopens in the same arrangement instead of a fresh random one.
         const workspaceId = useAppStore((s) => s.selectedWorkspaceId) ?? '';
         const savedPositions = useMemo(
             () => loadGraphLayout(workspaceId),
             [workspaceId],
         );
-        const hasSavedLayout = Object.keys(savedPositions).length > 0;
 
-        const { points, edges, edgeMeta, idToIndex, edgeIdToEventId } =
-            useMemo(() => {
-                // Centroid of saved positions — new (unsaved) entities start here
-                // with a small jitter so the simulation pulls them into the
-                // existing cluster rather than dropping them at the origin.
-                let cx = 0;
-                let cy = 0;
-                const savedEntries = Object.values(savedPositions);
-                for (const [x, y] of savedEntries) {
-                    cx += x;
-                    cy += y;
-                }
-                if (savedEntries.length > 0) {
-                    cx /= savedEntries.length;
-                    cy /= savedEntries.length;
-                }
+        // ---- derive everything we need from the raw graph data ----
+        const derived = useMemo(() => {
+            // Centroid of saved positions — new (unsaved) entities spawn here with
+            // a small jitter so physics pulls them into the existing cluster.
+            let cx = 0;
+            let cy = 0;
+            const savedEntries = Object.values(savedPositions);
+            for (const [x, y] of savedEntries) {
+                cx += x;
+                cy += y;
+            }
+            if (savedEntries.length > 0) {
+                cx /= savedEntries.length;
+                cy /= savedEntries.length;
+            }
 
-                const idx = new Map<string, number>();
-                const points: CosmoPoint[] = nodes.map((n, i) => {
-                    idx.set(n.id, i);
-                    const saved = savedPositions[n.id];
-                    return {
-                        id: n.id,
-                        index: i,
-                        label: n.label || 'Unknown',
-                        color: getNodeColor(n),
-                        // Arrow infers schema from the first row — always a string
-                        // so the column type isn't mixed string|null.
-                        entityType: n.entityType ?? '',
-                        x: saved ? saved[0] : cx + (Math.random() - 0.5) * 20,
-                        y: saved ? saved[1] : cy + (Math.random() - 0.5) * 20,
-                    };
+            const allNodeIds = new Set<string>();
+            const nodeMetaById = new Map<string, NodeMeta>();
+            const degree = new Map<string, number>();
+            const neighbors = new Map<string, Set<string>>();
+            const incidentEdges = new Map<string, Set<string>>();
+
+            const nodeEntries = nodes.map((n) => {
+                allNodeIds.add(n.id);
+                const color = getNodeColor(n);
+                nodeMetaById.set(n.id, {
+                    label: n.label || 'Unknown',
+                    color,
+                    entityType: n.entityType ?? '',
                 });
-                const edges: CosmoLink[] = [];
-                const edgeMeta: EdgeMeta[] = [];
-                const edgeIdToEventId: string[] = [];
-                for (const l of links) {
-                    const si = idx.get(l.source);
-                    const ti = idx.get(l.target);
-                    if (si === undefined || ti === undefined) continue;
-                    edges.push({
-                        source: l.source,
-                        target: l.target,
-                        sourceIndex: si,
-                        targetIndex: ti,
-                        eventId: l.eventId,
-                    });
-                    edgeMeta.push({
-                        sourceIndex: si,
-                        targetIndex: ti,
-                        eventId: l.eventId,
-                        label: (l.eventLabel ?? '')
-                            .replace(/_/g, ' ')
-                            .toLowerCase(),
-                    });
-                    edgeIdToEventId.push(l.eventId);
-                }
-                return { points, edges, edgeMeta, idToIndex: idx, edgeIdToEventId };
-            }, [nodes, links, savedPositions]);
+                degree.set(n.id, 0);
+                neighbors.set(n.id, new Set([n.id]));
+                incidentEdges.set(n.id, new Set());
+                const saved = savedPositions[n.id];
+                return {
+                    id: n.id,
+                    label: n.label || 'Unknown',
+                    color,
+                    seedX: saved ? saved[0] : cx + (Math.random() - 0.5) * 20,
+                    seedY: saved ? saved[1] : cy + (Math.random() - 0.5) * 20,
+                };
+            });
 
-        // ---- reflect external selection state into Cosmograph ----
-        //
-        // Cosmograph dims non-selected points via pointGreyoutOpacity, which
-        // is exactly the "selection focus" UX we want. We drive it from the
-        // store rather than relying on selectPointOnClick, so other UIs
-        // (AskBox, PathFinder) can change selection programmatically.
-        const cosmoRef = useRef<CosmographRef | null>(null);
-        const setRefs = useCallback(
-            (instance: CosmographRef) => {
-                cosmoRef.current = instance;
-                if (typeof ref === 'function') ref(instance);
-                else if (ref) ref.current = instance;
-            },
-            [ref],
-        );
-
-        useEffect(() => {
-            const cosmo = cosmoRef.current;
-            if (!cosmo) return;
-
-            // 1) Path highlight takes precedence — highlight the path nodes
-            //    and pan/zoom the camera so they're all in view (used by both
-            //    PathFinder and AskBox to spotlight relevant entities).
-            if (highlightedPath && highlightedPath.length > 0) {
-                const indices: number[] = [];
-                for (const id of highlightedPath) {
-                    const i = idToIndex.get(id);
-                    if (i !== undefined) indices.push(i);
-                }
-                if (indices.length > 0) {
-                    cosmo.selectPoints(indices);
-                    cosmo.setFocusedPoint(indices[0]);
-                    cosmo.fitViewByIndices?.(indices, 600, 0.2);
-                }
-                return;
-            }
-
-            // 2) Selection is empty → clear focus/selection.
-            if (!selectedNodeId) {
-                cosmo.unselectAllPoints?.();
-                cosmo.selectPoints(null);
-                cosmo.setFocusedPoint(undefined);
-                return;
-            }
-
-            // 3) Selected id matches a point → select + focus it (with neighbors).
-            const pointIdx = idToIndex.get(selectedNodeId);
-            if (pointIdx !== undefined) {
-                // Select this point and its connected neighbors so the cluster
-                // stays bright while everything else dims.
-                cosmo.selectPoint(pointIdx, false, true);
-                cosmo.setFocusedPoint(pointIdx);
-                // Recenter the camera on the node + its immediate neighbors so
-                // the selection is framed in view beside the detail panel.
-                // Fitting a lone point over-zooms, so an isolated node uses a
-                // large padding fraction to keep the zoom modest.
-                const focusIndices = [pointIdx];
-                for (const edge of edges) {
-                    if (edge.source === selectedNodeId) {
-                        focusIndices.push(edge.targetIndex);
-                    } else if (edge.target === selectedNodeId) {
-                        focusIndices.push(edge.sourceIndex);
-                    }
-                }
-                cosmo.fitViewByIndices?.(
-                    focusIndices,
-                    600,
-                    focusIndices.length > 1 ? 0.3 : 0.9,
-                );
-                return;
-            }
-
-            // 4) Selected id refers to an edge (eventId) → highlight endpoints.
-            const edgeIdx = edgeIdToEventId.indexOf(selectedNodeId);
-            if (edgeIdx >= 0) {
-                const edge = edges[edgeIdx];
-                const a = idToIndex.get(edge.source);
-                const b = idToIndex.get(edge.target);
-                const indices = [a, b].filter((i): i is number => i !== undefined);
-                cosmo.selectPoints(indices);
-                if (indices.length > 0) {
-                    cosmo.setFocusedPoint(indices[0]);
-                    // Recenter the camera on the two endpoints.
-                    cosmo.fitViewByIndices?.(indices, 600, 0.3);
-                }
-            }
-        }, [selectedNodeId, highlightedPath, idToIndex, edgeIdToEventId, edges]);
-
-        // ---- event handlers ----
-        const handleClick = useCallback(
-            (index: number | undefined) => {
-                if (index === undefined) {
-                    onNodeClick('');
-                    return;
-                }
-                const point = points[index];
-                if (point) onNodeClick(point.id);
-            },
-            [onNodeClick, points],
-        );
-
-        const handleLinkClick = useCallback(
-            (linkIndex: number) => {
-                const eventId = edgeIdToEventId[linkIndex];
-                if (eventId) onEdgeClick(eventId);
-            },
-            [onEdgeClick, edgeIdToEventId],
-        );
-
-        const handleLabelClick = useCallback(
-            (_index: number, id: string) => {
-                if (id) onNodeClick(id);
-            },
-            [onNodeClick],
-        );
-
-        const handlePointMouseOver = useCallback(
-            (
-                index: number,
-                _position: [number, number],
-                event:
-                    | MouseEvent
-                    | { sourceEvent?: MouseEvent }
-                    | undefined,
-            ) => {
-                const point = points[index];
-                if (!point) return;
-                const mouseEvent =
-                    event && 'clientX' in event
-                        ? (event as MouseEvent)
-                        : (event as { sourceEvent?: MouseEvent } | undefined)?.sourceEvent;
-                if (!mouseEvent) return;
-                setHover({
-                    x: mouseEvent.clientX,
-                    y: mouseEvent.clientY,
-                    label: point.label,
-                    sub: point.entityType
-                        ? `${point.entityType.toUpperCase()}`
-                        : undefined,
-                });
-            },
-            [points],
-        );
-
-        const handlePointMouseOut = useCallback(() => setHover(null), []);
-
-        // ---- edge label overlay ----
-        const [edgeLabels, setEdgeLabels] = useState<EdgeLabel[]>([]);
-        const rafRef = useRef<number | null>(null);
-
-        const recomputeEdgeLabels = useCallback(() => {
-            const cosmo = cosmoRef.current;
-            if (!cosmo) return;
-            const zoom = cosmo.getZoomLevel?.() ?? 1;
-            if (zoom < EDGE_LABEL_MIN_ZOOM || edgeMeta.length === 0) {
-                setEdgeLabels((prev) => (prev.length === 0 ? prev : []));
-                return;
-            }
-            const next: EdgeLabel[] = [];
-            for (let i = 0; i < edgeMeta.length; i += 1) {
-                const m = edgeMeta[i];
-                if (!m.label) continue;
-                const src = cosmo.getPointPositionByIndex?.(m.sourceIndex);
-                const tgt = cosmo.getPointPositionByIndex?.(m.targetIndex);
-                if (!src || !tgt) continue;
-                const screen = cosmo.spaceToScreenPosition?.([
-                    (src[0] + tgt[0]) / 2,
-                    (src[1] + tgt[1]) / 2,
-                ]);
-                // Cosmograph can return [NaN, NaN] before the camera is
-                // initialized or for unpositioned points — skip those to keep
-                // React from warning about NaN in `style`.
-                if (
-                    !screen ||
-                    !Number.isFinite(screen[0]) ||
-                    !Number.isFinite(screen[1])
-                )
+            const allEdgeIds = new Set<string>();
+            const edgeMap = new Map<string, { from: string; to: string }>();
+            const seen = new Set<string>();
+            const edgeEntries: {
+                id: string;
+                from: string;
+                to: string;
+                label: string;
+            }[] = [];
+            for (const l of links) {
+                if (!allNodeIds.has(l.source) || !allNodeIds.has(l.target))
                     continue;
-                next.push({
-                    eventId: m.eventId,
-                    label: m.label,
-                    x: screen[0],
-                    y: screen[1],
+                if (seen.has(l.eventId)) continue;
+                seen.add(l.eventId);
+                allEdgeIds.add(l.eventId);
+                edgeMap.set(l.eventId, { from: l.source, to: l.target });
+                degree.set(l.source, (degree.get(l.source) ?? 0) + 1);
+                degree.set(l.target, (degree.get(l.target) ?? 0) + 1);
+                neighbors.get(l.source)?.add(l.target);
+                neighbors.get(l.target)?.add(l.source);
+                incidentEdges.get(l.source)?.add(l.eventId);
+                incidentEdges.get(l.target)?.add(l.eventId);
+                edgeEntries.push({
+                    id: l.eventId,
+                    from: l.source,
+                    to: l.target,
+                    label: (l.eventLabel ?? '').replace(/_/g, ' ').toLowerCase(),
                 });
-                if (next.length >= MAX_EDGE_LABELS) break;
-            }
-            setEdgeLabels(next);
-        }, [edgeMeta]);
-
-        // Report the selected node/edge's on-screen position so the detail card
-        // can float beside it and follow it as the graph pans, zooms, or settles.
-        const recomputeAnchor = useCallback(() => {
-            const cosmo = cosmoRef.current;
-            if (!onAnchorChange) return;
-            if (!cosmo || !selectedNodeId) {
-                onAnchorChange(null);
-                return;
             }
 
-            // Selected node → anchor on the node itself.
-            const nodeIdx = idToIndex.get(selectedNodeId);
-            if (nodeIdx !== undefined) {
-                const space = cosmo.getPointPositionByIndex?.(nodeIdx);
-                const screen = space && cosmo.spaceToScreenPosition?.(space);
-                onAnchorChange(
-                    screen &&
-                        Number.isFinite(screen[0]) &&
-                        Number.isFinite(screen[1])
-                        ? { x: screen[0], y: screen[1] }
-                        : null,
-                );
-                return;
-            }
+            return {
+                cx,
+                cy,
+                nodeEntries,
+                edgeEntries,
+                degree,
+                neighbors,
+                incidentEdges,
+                edgeMap,
+                nodeMetaById,
+                allNodeIds,
+                allEdgeIds,
+                labelsEnabled: edgeEntries.length <= EDGE_LABEL_CAP,
+            };
+        }, [nodes, links, savedPositions]);
 
-            // Selected edge → anchor on the midpoint of its two endpoints.
-            const edgeIdx = edgeIdToEventId.indexOf(selectedNodeId);
-            if (edgeIdx >= 0) {
-                const edge = edges[edgeIdx];
-                const si = idToIndex.get(edge.source);
-                const ti = idToIndex.get(edge.target);
-                const src =
-                    si !== undefined
-                        ? cosmo.getPointPositionByIndex?.(si)
-                        : undefined;
-                const tgt =
-                    ti !== undefined
-                        ? cosmo.getPointPositionByIndex?.(ti)
-                        : undefined;
-                if (src && tgt) {
-                    const screen = cosmo.spaceToScreenPosition?.([
-                        (src[0] + tgt[0]) / 2,
-                        (src[1] + tgt[1]) / 2,
+        // ---- mutable handles, read by the once-mounted network event wiring ----
+        const containerRef = useRef<HTMLDivElement | null>(null);
+        const networkRef = useRef<Network | null>(null);
+        const nodesDsRef = useRef<DataSet<VisNode> | null>(null);
+        const edgesDsRef = useRef<DataSet<VisEdge> | null>(null);
+        const rafRef = useRef<number | null>(null);
+        const lastPointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+        const stabilizedRef = useRef(false);
+
+        // Latest props/derived, so the once-wired handlers never go stale.
+        const cbRef = useRef({ onNodeClick, onEdgeClick, onAnchorChange });
+        cbRef.current = { onNodeClick, onEdgeClick, onAnchorChange };
+        const selRef = useRef({ selectedNodeId, highlightedPath });
+        selRef.current = { selectedNodeId, highlightedPath };
+        const dataRef = useRef(derived);
+        dataRef.current = derived;
+        const workspaceRef = useRef(workspaceId);
+        workspaceRef.current = workspaceId;
+
+        // Previous selection styling, for delta DataSet updates.
+        const prevDimmingRef = useRef(false);
+        const prevLitNodesRef = useRef<Set<string>>(new Set());
+        const prevLitEdgesRef = useRef<Set<string>>(new Set());
+        const prevFocusRef = useRef<string | null>(null);
+
+        const baseNodeColor = useCallback((color: string) => {
+            return {
+                background: color,
+                border: color,
+                highlight: { background: color, border: color },
+                hover: { background: color, border: HOVER_BORDER },
+            };
+        }, []);
+
+        // ---- selection dimming (emulates Cosmograph greyout, store-driven) ----
+        const applySelectionStyling = useCallback(
+            (full = false) => {
+                const nodesDs = nodesDsRef.current;
+                const edgesDs = edgesDsRef.current;
+                if (!nodesDs || !edgesDs) return;
+                const d = dataRef.current;
+                const { selectedNodeId: sel, highlightedPath: path } =
+                    selRef.current;
+
+                let dimming = true;
+                const litNodes = new Set<string>();
+                const litEdges = new Set<string>();
+                let focus: string | null = null;
+
+                if (path && path.length > 0) {
+                    for (const id of path)
+                        if (d.allNodeIds.has(id)) litNodes.add(id);
+                    for (const [eid, e] of d.edgeMap)
+                        if (litNodes.has(e.from) && litNodes.has(e.to))
+                            litEdges.add(eid);
+                    focus = litNodes.size ? [...litNodes][0] : null;
+                } else if (!sel) {
+                    dimming = false;
+                } else if (d.allNodeIds.has(sel)) {
+                    for (const nb of d.neighbors.get(sel) ?? []) litNodes.add(nb);
+                    for (const eid of d.incidentEdges.get(sel) ?? [])
+                        litEdges.add(eid);
+                    focus = sel;
+                } else if (d.edgeMap.has(sel)) {
+                    const e = d.edgeMap.get(sel)!;
+                    litNodes.add(e.from);
+                    litNodes.add(e.to);
+                    litEdges.add(sel);
+                    focus = e.from;
+                } else {
+                    dimming = false;
+                }
+
+                const prevDimming = prevDimmingRef.current;
+                const updateAll = full || dimming !== prevDimming;
+
+                const nodeUpdates: VisNode[] = [];
+                const touchNode = (id: string) => {
+                    const meta = d.nodeMetaById.get(id);
+                    if (!meta) return;
+                    const lit = !dimming || litNodes.has(id);
+                    const bg = lit ? meta.color : withAlpha(meta.color, NODE_DIM);
+                    const isFocus = id === focus;
+                    nodeUpdates.push({
+                        id,
+                        color: {
+                            background: bg,
+                            border: isFocus ? FOCUS_COLOR : bg,
+                            highlight: {
+                                background: bg,
+                                border: isFocus ? FOCUS_COLOR : bg,
+                            },
+                            hover: { background: bg, border: HOVER_BORDER },
+                        },
+                        borderWidth: isFocus ? 3 : 1.5,
+                        font: { color: lit ? LABEL_LIT : LABEL_DIM, size: 12 },
+                    });
+                };
+                if (updateAll) {
+                    for (const id of d.allNodeIds) touchNode(id);
+                } else if (dimming) {
+                    const set = new Set<string>([
+                        ...prevLitNodesRef.current,
+                        ...litNodes,
                     ]);
-                    onAnchorChange(
-                        screen &&
-                            Number.isFinite(screen[0]) &&
-                            Number.isFinite(screen[1])
-                            ? { x: screen[0], y: screen[1] }
-                            : null,
+                    if (prevFocusRef.current) set.add(prevFocusRef.current);
+                    if (focus) set.add(focus);
+                    for (const id of set) touchNode(id);
+                }
+                if (nodeUpdates.length) nodesDs.update(nodeUpdates);
+
+                const edgeUpdates: VisEdge[] = [];
+                const touchEdge = (id: string) => {
+                    const lit = !dimming || litEdges.has(id);
+                    edgeUpdates.push({
+                        id,
+                        color: {
+                            color: lit
+                                ? EVENT_EDGE_COLOR
+                                : withAlpha(EVENT_EDGE_COLOR, EDGE_DIM),
+                            inherit: false,
+                        },
+                    });
+                };
+                if (updateAll) {
+                    for (const id of d.allEdgeIds) touchEdge(id);
+                } else if (dimming) {
+                    const set = new Set<string>([
+                        ...prevLitEdgesRef.current,
+                        ...litEdges,
+                    ]);
+                    for (const id of set) touchEdge(id);
+                }
+                if (edgeUpdates.length) edgesDs.update(edgeUpdates);
+
+                prevDimmingRef.current = dimming;
+                prevLitNodesRef.current = litNodes;
+                prevLitEdgesRef.current = litEdges;
+                prevFocusRef.current = focus;
+            },
+            [],
+        );
+
+        // ---- anchor for the floating detail card ----
+        const recomputeAnchor = useCallback(() => {
+            const net = networkRef.current;
+            const cb = cbRef.current;
+            if (!cb.onAnchorChange) return;
+            const sel = selRef.current.selectedNodeId;
+            if (!net || !sel) {
+                cb.onAnchorChange(null);
+                return;
+            }
+            const d = dataRef.current;
+            const finite = (p?: { x: number; y: number }) =>
+                !!p && Number.isFinite(p.x) && Number.isFinite(p.y);
+
+            if (d.allNodeIds.has(sel)) {
+                const pos = net.getPositions([sel])[sel];
+                const dom = pos && net.canvasToDOM(pos);
+                cb.onAnchorChange(finite(dom) ? { x: dom.x, y: dom.y } : null);
+                return;
+            }
+            const e = d.edgeMap.get(sel);
+            if (e) {
+                const ps = net.getPositions([e.from, e.to]);
+                const a = ps[e.from];
+                const b = ps[e.to];
+                if (a && b) {
+                    const dom = net.canvasToDOM({
+                        x: (a.x + b.x) / 2,
+                        y: (a.y + b.y) / 2,
+                    });
+                    cb.onAnchorChange(
+                        finite(dom) ? { x: dom.x, y: dom.y } : null,
                     );
                     return;
                 }
             }
+            cb.onAnchorChange(null);
+        }, []);
 
-            onAnchorChange(null);
-        }, [selectedNodeId, idToIndex, edgeIdToEventId, edges, onAnchorChange]);
-
-        // Re-anchor immediately when the selection changes (ticks/zoom handle the rest).
-        useEffect(() => {
-            recomputeAnchor();
-        }, [recomputeAnchor]);
-
-        const scheduleRecompute = useCallback(() => {
+        const scheduleAnchor = useCallback(() => {
             if (rafRef.current !== null) return;
             rafRef.current = requestAnimationFrame(() => {
                 rafRef.current = null;
-                recomputeEdgeLabels();
                 recomputeAnchor();
             });
-        }, [recomputeEdgeLabels, recomputeAnchor]);
-
-        useEffect(() => {
-            return () => {
-                if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-            };
-        }, []);
+        }, [recomputeAnchor]);
 
         // ---- persist settled layout ----
         const persistLayout = useCallback(() => {
-            const cosmo = cosmoRef.current;
-            if (!cosmo || !workspaceId) return;
-            const flat = cosmo.getPointPositions();
-            if (!flat) return;
+            const net = networkRef.current;
+            const wid = workspaceRef.current;
+            if (!net || !wid) return;
             const positions: SavedPositions = {};
-            for (let i = 0; i < points.length; i += 1) {
-                const x = flat[i * 2];
-                const y = flat[i * 2 + 1];
-                if (Number.isFinite(x) && Number.isFinite(y)) {
-                    positions[points[i].id] = [x, y];
-                }
+            const all = net.getPositions();
+            for (const id in all) {
+                const { x, y } = all[id];
+                if (Number.isFinite(x) && Number.isFinite(y))
+                    positions[id] = [x, y];
             }
-            saveGraphLayout(workspaceId, positions);
-        }, [workspaceId, points]);
-
-        const handleSimulationEnd = useCallback(() => {
-            recomputeEdgeLabels();
-            recomputeAnchor();
-            persistLayout();
-        }, [recomputeEdgeLabels, recomputeAnchor, persistLayout]);
-
-        // Save on unmount too, in case the user navigates away before the
-        // simulation settles. Ref keeps the cleanup from capturing a stale fn.
-        const persistLayoutRef = useRef(persistLayout);
-        persistLayoutRef.current = persistLayout;
-        useEffect(() => {
-            return () => persistLayoutRef.current();
+            saveGraphLayout(wid, positions);
         }, []);
 
-        const handleEdgeLabelClick = useCallback(
-            (eventId: string, e: React.MouseEvent) => {
-                e.stopPropagation();
-                onEdgeClick(eventId);
+        // ---- camera helpers ----
+        const fitToNodes = useCallback(
+            (ids: string[], durationMs: number, padFraction: number) => {
+                const net = networkRef.current;
+                if (!net || ids.length === 0) return;
+                net.fit({
+                    nodes: ids,
+                    animation: {
+                        duration: durationMs,
+                        easingFunction: 'easeInOutQuad',
+                    },
+                });
+                // vis fit() has no padding arg — shrink the scale afterwards.
+                if (padFraction > 0) {
+                    window.setTimeout(() => {
+                        const cur = net.getScale();
+                        const next = Math.min(
+                            cur * (1 - Math.min(padFraction, 0.9)),
+                            2,
+                        );
+                        net.moveTo({ scale: next, animation: false });
+                    }, durationMs + 16);
+                }
             },
-            [onEdgeClick],
+            [],
         );
 
-        if (points.length === 0) {
-            return (
-                <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
-                    No graph data yet.
-                </div>
+        // ---- create the network once ----
+        useEffect(() => {
+            const el = containerRef.current;
+            if (!el) return;
+            const nodesDs = new DataSet<VisNode>([]);
+            const edgesDs = new DataSet<VisEdge>([]);
+            nodesDsRef.current = nodesDs;
+            edgesDsRef.current = edgesDs;
+
+            const options: Options = {
+                autoResize: true,
+                layout: { improvedLayout: false },
+                physics: {
+                    enabled: true,
+                    solver: 'barnesHut',
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.25,
+                        springLength: 60,
+                        springConstant: 0.04,
+                        damping: 0.15,
+                        avoidOverlap: 0.1,
+                    },
+                    stabilization: { enabled: true, iterations: 1000, fit: true },
+                    maxVelocity: 30,
+                    minVelocity: 0.75,
+                },
+                nodes: {
+                    shape: 'dot',
+                    scaling: {
+                        min: 7,
+                        max: 20,
+                        label: { enabled: true, min: 11, max: 16, drawThreshold: 8 },
+                    },
+                    borderWidth: 1.5,
+                    font: { color: LABEL_LIT, size: 12 },
+                },
+                edges: {
+                    color: { color: EVENT_EDGE_COLOR, inherit: false },
+                    width: 1,
+                    smooth: false,
+                    arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+                    font: {
+                        size: 10,
+                        color: 'rgba(255,255,255,0.9)',
+                        strokeWidth: 4,
+                        strokeColor: 'rgba(0,0,0,0.7)',
+                        align: 'middle',
+                    },
+                },
+                interaction: {
+                    hover: true,
+                    dragNodes: true,
+                    dragView: true,
+                    zoomView: true,
+                    selectable: false,
+                    hoverConnectedEdges: false,
+                },
+            };
+
+            const network = new Network(el, { nodes: nodesDs, edges: edgesDs }, options);
+            networkRef.current = network;
+
+            const onMouseMove = (e: MouseEvent) => {
+                lastPointerRef.current = { x: e.clientX, y: e.clientY };
+            };
+            el.addEventListener('mousemove', onMouseMove);
+
+            network.on('click', (params: { nodes: IdType[]; edges: IdType[] }) => {
+                const cb = cbRef.current;
+                if (params.nodes.length) cb.onNodeClick(String(params.nodes[0]));
+                else if (params.edges.length)
+                    cb.onEdgeClick(String(params.edges[0]));
+                else cb.onNodeClick('');
+            });
+            network.on('hoverNode', (params: { node: IdType }) => {
+                const meta = dataRef.current.nodeMetaById.get(String(params.node));
+                if (!meta) return;
+                const p = lastPointerRef.current;
+                setHover({
+                    x: p.x,
+                    y: p.y,
+                    label: meta.label,
+                    sub: meta.entityType
+                        ? meta.entityType.toUpperCase()
+                        : undefined,
+                });
+            });
+            network.on('blurNode', () => setHover(null));
+            network.on('zoom', scheduleAnchor);
+            network.on('dragging', scheduleAnchor);
+            network.on('animationFinished', scheduleAnchor);
+            network.on('dragEnd', () => {
+                persistLayout();
+                scheduleAnchor();
+            });
+            network.on('stabilizationIterationsDone', () => {
+                stabilizedRef.current = true;
+                network.setOptions({ physics: { enabled: false } });
+                persistLayout();
+                recomputeAnchor();
+            });
+
+            return () => {
+                el.removeEventListener('mousemove', onMouseMove);
+                if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+                persistLayout();
+                network.destroy();
+                networkRef.current = null;
+                nodesDsRef.current = null;
+                edgesDsRef.current = null;
+            };
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
+
+        // ---- sync data into the DataSets (diff, preserving positions) ----
+        useEffect(() => {
+            const nodesDs = nodesDsRef.current;
+            const edgesDs = edgesDsRef.current;
+            const net = networkRef.current;
+            if (!nodesDs || !edgesDs || !net) return;
+            const d = derived;
+
+            const existingNodeIds = new Set(
+                nodesDs.getIds().map((id) => String(id)),
             );
-        }
+            let addedNew = false;
+
+            const staleNodes = [...existingNodeIds].filter(
+                (id) => !d.allNodeIds.has(id),
+            );
+            if (staleNodes.length) nodesDs.remove(staleNodes);
+
+            nodesDs.update(
+                d.nodeEntries.map((n) => {
+                    const isNew = !existingNodeIds.has(n.id);
+                    if (isNew) addedNew = true;
+                    const seed = isNew ? { x: n.seedX, y: n.seedY } : {};
+                    return {
+                        id: n.id,
+                        label: n.label,
+                        value: d.degree.get(n.id) ?? 1,
+                        color: baseNodeColor(n.color),
+                        borderWidth: 1.5,
+                        font: { color: LABEL_LIT, size: 12 },
+                        ...seed,
+                    };
+                }),
+            );
+
+            const existingEdgeIds = new Set(
+                edgesDs.getIds().map((id) => String(id)),
+            );
+            const staleEdges = [...existingEdgeIds].filter(
+                (id) => !d.allEdgeIds.has(id),
+            );
+            if (staleEdges.length) edgesDs.remove(staleEdges);
+
+            edgesDs.update(
+                d.edgeEntries.map((e) => ({
+                    id: e.id,
+                    from: e.from,
+                    to: e.to,
+                    label: d.labelsEnabled && e.label ? e.label : undefined,
+                    color: { color: EVENT_EDGE_COLOR, inherit: false },
+                })),
+            );
+
+            // New entities arrived after the graph had already settled — let
+            // physics briefly re-run so they tuck into the cluster.
+            if (addedNew && stabilizedRef.current) {
+                stabilizedRef.current = false;
+                net.setOptions({ physics: { enabled: true } });
+                net.stabilize();
+            }
+
+            applySelectionStyling(true);
+            recomputeAnchor();
+        }, [derived, applySelectionStyling, recomputeAnchor, baseNodeColor]);
+
+        // ---- reflect selection/path into styling + camera ----
+        useEffect(() => {
+            const net = networkRef.current;
+            if (!net) return;
+            applySelectionStyling();
+
+            if (highlightedPath && highlightedPath.length > 0) {
+                const ids = highlightedPath.filter((id) =>
+                    derived.allNodeIds.has(id),
+                );
+                fitToNodes(ids, 600, 0.2);
+            } else if (selectedNodeId && derived.allNodeIds.has(selectedNodeId)) {
+                const ids = [
+                    selectedNodeId,
+                    ...(derived.neighbors.get(selectedNodeId) ?? []),
+                ];
+                fitToNodes(ids, 600, ids.length > 1 ? 0.3 : 0.9);
+            } else if (selectedNodeId && derived.edgeMap.has(selectedNodeId)) {
+                const e = derived.edgeMap.get(selectedNodeId)!;
+                fitToNodes([e.from, e.to], 600, 0.3);
+            }
+            recomputeAnchor();
+        }, [
+            selectedNodeId,
+            highlightedPath,
+            derived,
+            applySelectionStyling,
+            recomputeAnchor,
+            fitToNodes,
+        ]);
+
+        // ---- imperative handle for GraphCanvas ----
+        useImperativeHandle(
+            ref,
+            (): ForceGraphHandle => ({
+                getViewState() {
+                    const net = networkRef.current;
+                    if (!net) return null;
+                    const scale = net.getScale();
+                    if (!Number.isFinite(scale)) return null;
+                    return { position: net.getViewPosition(), scale };
+                },
+                setViewState(v, durationMs) {
+                    networkRef.current?.moveTo({
+                        position: v.position,
+                        scale: v.scale,
+                        animation: {
+                            duration: durationMs,
+                            easingFunction: 'easeInOutQuad',
+                        },
+                    });
+                },
+                zoomBy(factor) {
+                    const net = networkRef.current;
+                    if (!net) return;
+                    net.moveTo({
+                        scale: net.getScale() * factor,
+                        animation: { duration: 300, easingFunction: 'easeInOutQuad' },
+                    });
+                },
+                fit() {
+                    networkRef.current?.fit({
+                        animation: {
+                            duration: 500,
+                            easingFunction: 'easeInOutQuad',
+                        },
+                    });
+                },
+            }),
+            [],
+        );
 
         return (
-            <>
-                <Cosmograph
-                    ref={setRefs}
-                    style={{ width: '100%', height: '100%' }}
-                    points={points as unknown as Record<string, unknown>[]}
-                    links={edges as unknown as Record<string, unknown>[]}
-                    pointIdBy="id"
-                    pointIndexBy="index"
-                    pointLabelBy="label"
-                    pointColorBy="color"
-                    {...(hasSavedLayout
-                        ? { pointXBy: 'x', pointYBy: 'y' }
-                        : {})}
-                    preservePointPositionsOnDataUpdate
-                    linkSourceBy="source"
-                    linkSourceIndexBy="sourceIndex"
-                    linkTargetBy="target"
-                    linkTargetIndexBy="targetIndex"
-                    linkDefaultColor={EVENT_EDGE_COLOR}
-                    pointDefaultSize={10}
-                    pointSizeRange={[7, 20]}
-                    pointSizeStrategy="degree"
-                    linkArrowsSizeScale={1}
-                    backgroundColor="transparent"
-                    enableSimulation
-                    simulationDecay={1000}
-                    simulationGravity={0.25}
-                    simulationRepulsion={1.0}
-                    simulationLinkSpring={1.0}
-                    simulationLinkDistance={8}
-                    simulationFriction={0.85}
-                    fitViewOnInit
-                    fitViewDelay={250}
-                    selectPointOnClick={false}
-                    focusPointOnClick={false}
-                    selectPointOnLabelClick={false}
-                    focusPointOnLabelClick={false}
-                    resetSelectionOnEmptyCanvasClick={false}
-                    showLabels
-                    showDynamicLabels
-                    showHoveredPointLabel
-                    showFocusedPointLabel
-                    pointGreyoutOpacity={0.15}
-                    linkGreyoutOpacity={0.05}
-                    focusedPointRingColor="#f97316"
-                    hoveredPointRingColor="#ffffff"
-                    onClick={handleClick}
-                    onLinkClick={handleLinkClick}
-                    onLabelClick={handleLabelClick}
-                    onPointMouseOver={handlePointMouseOver}
-                    onPointMouseOut={handlePointMouseOut}
-                    onSimulationTick={scheduleRecompute}
-                    onSimulationEnd={handleSimulationEnd}
-                    onZoom={scheduleRecompute}
-                />
+            <div className="relative h-full w-full">
+                <div ref={containerRef} className="h-full w-full" />
+                {nodes.length === 0 && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+                        No graph data yet.
+                    </div>
+                )}
                 {hover && (
                     <div
                         className="pointer-events-none fixed z-50 rounded-lg border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-xl whitespace-nowrap -translate-x-1/2 -translate-y-[calc(100%+0.5rem)]"
@@ -532,18 +690,7 @@ export const ForceGraph = forwardRef<CosmographRef, ForceGraphProps>(
                         )}
                     </div>
                 )}
-                {edgeLabels.map((l) => (
-                    <button
-                        key={l.eventId}
-                        type="button"
-                        onClick={(e) => handleEdgeLabelClick(l.eventId, e)}
-                        className="absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white hover:bg-black/90 hover:text-orange-300 transition-colors whitespace-nowrap cursor-pointer"
-                        style={{ left: l.x, top: l.y }}
-                    >
-                        {l.label}
-                    </button>
-                ))}
-            </>
+            </div>
         );
     },
 );

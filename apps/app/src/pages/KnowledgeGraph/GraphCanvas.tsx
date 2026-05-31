@@ -6,10 +6,11 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import type { CosmographRef } from '@cosmograph/react';
 import type { GraphNode, GraphLink } from '@/hooks/graph/useGraphData';
-import { ForceGraph } from './ForceGraph';
+import { ForceGraph, type ForceGraphHandle } from './ForceGraph';
 import { FloatingDetail } from './DetailPanel';
+
+type ViewState = { position: { x: number; y: number }; scale: number };
 
 export interface GraphCanvasProps {
     nodes: GraphNode[];
@@ -32,7 +33,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
     function GraphCanvas(props, ref) {
         const { detailPanel, selectedNodeId, highlightedPath, ...rest } = props;
 
-        const cosmoRef = useRef<CosmographRef | null>(null);
+        const fgRef = useRef<ForceGraphHandle | null>(null);
         const containerRef = useRef<HTMLDivElement | null>(null);
 
         // Selected node/edge screen position, reported by ForceGraph. Held here
@@ -41,43 +42,28 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
             null,
         );
 
-        // Snapshot the viewport corners (in world space) when a selection begins,
-        // and restore them when the panel closes — so closing the details rewinds
+        // Snapshot the viewport (camera position + zoom) when a selection begins,
+        // and restore it when the panel closes — so closing the details rewinds
         // the graph to whatever the user was looking at before.
         const prevSelectedRef = useRef<string | null>(null);
-        const prevViewRef = useRef<number[] | null>(null);
+        const prevViewRef = useRef<ViewState | null>(null);
 
         useLayoutEffect(() => {
-            const cosmo = cosmoRef.current;
-            const container = containerRef.current;
-            if (!cosmo || !container) return;
+            const fg = fgRef.current;
+            if (!fg) return;
 
             const wasSelected = prevSelectedRef.current !== null;
             const isSelected = selectedNodeId !== null;
 
             if (!wasSelected && isSelected) {
                 // Entering a selection session — snapshot the current view.
-                // Cosmograph occasionally returns [NaN, NaN] before its camera
-                // is initialized, so guard the coords before storing them.
-                const cw = container.clientWidth;
-                const ch = container.clientHeight;
-                const tl = cosmo.screenToSpacePosition?.([0, 0]);
-                const br = cosmo.screenToSpacePosition?.([cw, ch]);
-                if (
-                    tl &&
-                    br &&
-                    Number.isFinite(tl[0]) &&
-                    Number.isFinite(tl[1]) &&
-                    Number.isFinite(br[0]) &&
-                    Number.isFinite(br[1])
-                ) {
-                    prevViewRef.current = [tl[0], tl[1], br[0], br[1]];
-                }
+                const v = fg.getViewState();
+                if (v) prevViewRef.current = v;
             } else if (wasSelected && !isSelected && !highlightedPath) {
                 // Closing the details — rewind the camera. Skipped when a
                 // PathFinder highlight is active (it owns the camera then).
                 if (prevViewRef.current) {
-                    cosmo.fitViewByCoordinates?.(prevViewRef.current, 600, 0);
+                    fg.setViewState(prevViewRef.current, 600);
                     prevViewRef.current = null;
                 }
             }
@@ -89,19 +75,13 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
             ref,
             () => ({
                 zoomIn() {
-                    const cosmo = cosmoRef.current;
-                    if (!cosmo) return;
-                    const current = cosmo.getZoomLevel?.() ?? 1;
-                    cosmo.setZoomLevel?.(current * 1.3, 300);
+                    fgRef.current?.zoomBy(1.3);
                 },
                 zoomOut() {
-                    const cosmo = cosmoRef.current;
-                    if (!cosmo) return;
-                    const current = cosmo.getZoomLevel?.() ?? 1;
-                    cosmo.setZoomLevel?.(current / 1.3, 300);
+                    fgRef.current?.zoomBy(1 / 1.3);
                 },
                 fitToScreen() {
-                    cosmoRef.current?.fitView?.(500, 0.1);
+                    fgRef.current?.fit();
                 },
             }),
             [],
@@ -118,7 +98,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(
                 }}
             >
                 <ForceGraph
-                    ref={cosmoRef}
+                    ref={fgRef}
                     {...rest}
                     selectedNodeId={selectedNodeId}
                     highlightedPath={highlightedPath}

@@ -1,7 +1,7 @@
 /**
  * Per-workspace persistence of knowledge-graph entity positions in localStorage.
  *
- * Cosmograph generates random positions on every mount; saving the settled
+ * The force layout generates fresh positions on every mount; saving the settled
  * layout here lets the graph reopen in the same arrangement.
  */
 
