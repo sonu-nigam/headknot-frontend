@@ -542,13 +542,26 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
             };
             el.addEventListener('mousemove', onMouseMove);
 
-            network.on('click', (params: { nodes: IdType[]; edges: IdType[] }) => {
-                const cb = cbRef.current;
-                if (params.nodes.length) cb.onNodeClick(String(params.nodes[0]));
-                else if (params.edges.length)
-                    cb.onEdgeClick(String(params.edges[0]));
-                else cb.onNodeClick('');
-            });
+            network.on(
+                'click',
+                (params: { pointer: { DOM: { x: number; y: number } } }) => {
+                    const cb = cbRef.current;
+                    // Selection is store-driven (interaction.selectable is off),
+                    // so params.nodes/edges are always empty — hit-test the
+                    // pointer directly to find what was clicked.
+                    const nodeId = network.getNodeAt(params.pointer.DOM);
+                    if (nodeId !== undefined && nodeId !== null) {
+                        cb.onNodeClick(String(nodeId));
+                        return;
+                    }
+                    const edgeId = network.getEdgeAt(params.pointer.DOM);
+                    if (edgeId !== undefined && edgeId !== null) {
+                        cb.onEdgeClick(String(edgeId));
+                        return;
+                    }
+                    cb.onNodeClick('');
+                },
+            );
             network.on('hoverNode', (params: { node: IdType }) => {
                 const meta = dataRef.current.nodeMetaById.get(String(params.node));
                 if (!meta) return;
