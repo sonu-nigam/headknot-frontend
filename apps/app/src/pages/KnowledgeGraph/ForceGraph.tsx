@@ -49,10 +49,23 @@ const FOCUS_COLOR = '#f97316'; // orange ring on the focused node
 const HOVER_BORDER = '#ffffff';
 const NODE_DIM = 0.15; // ↔ Cosmograph pointGreyoutOpacity
 const EDGE_DIM = 0.05; // ↔ Cosmograph linkGreyoutOpacity
-const LABEL_LIT = 'rgba(255,255,255,0.85)';
-const LABEL_DIM = 'rgba(255,255,255,0.18)';
+const LABEL_LIT = 'rgba(255,255,255,0.95)';
+const LABEL_DIM = 'rgba(255,255,255,0.2)';
+/** Dark halo behind label text so it stays readable over edges and the dot grid. */
+const LABEL_STROKE = 'rgba(11,11,22,0.92)';
+const NODE_LABEL_SIZE = 13;
 /** Above this many edges, drop on-canvas labels — drawing thousands of text strokes is costly. */
 const EDGE_LABEL_CAP = 200;
+
+/** Node label styling — constant size + dark halo so labels are always legible. */
+function nodeFont(lit: boolean) {
+    return {
+        color: lit ? LABEL_LIT : LABEL_DIM,
+        size: NODE_LABEL_SIZE,
+        strokeWidth: 3,
+        strokeColor: LABEL_STROKE,
+    };
+}
 
 /** rgba() from a #rrggbb hex + alpha — used to dim node/edge colors. */
 function withAlpha(hex: string, alpha: number): string {
@@ -89,6 +102,15 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
         ref,
     ) {
         const [hover, setHover] = useState<HoverState | null>(null);
+        // Entrance animation: the graph expands from the center once the layout
+        // settles, instead of slowly fading in as physics stabilizes.
+        const [revealed, setRevealed] = useState(false);
+        const revealedOnceRef = useRef(false);
+        const reveal = useCallback(() => {
+            if (revealedOnceRef.current) return;
+            revealedOnceRef.current = true;
+            setRevealed(true);
+        }, []);
 
         const workspaceId = useAppStore((s) => s.selectedWorkspaceId) ?? '';
         const savedPositions = useMemo(
@@ -280,7 +302,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                             hover: { background: bg, border: HOVER_BORDER },
                         },
                         borderWidth: isFocus ? 3 : 1.5,
-                        font: { color: lit ? LABEL_LIT : LABEL_DIM, size: 12 },
+                        font: nodeFont(lit),
                     });
                 };
                 if (updateAll) {
@@ -446,13 +468,12 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 },
                 nodes: {
                     shape: 'dot',
-                    scaling: {
-                        min: 7,
-                        max: 20,
-                        label: { enabled: true, min: 11, max: 16, drawThreshold: 8 },
-                    },
+                    // Size scales with degree; labels stay a constant, legible
+                    // size (no value-scaling, no draw threshold) so they never
+                    // shrink away or get hidden when zoomed out.
+                    scaling: { min: 7, max: 20, label: { enabled: false } },
                     borderWidth: 1.5,
-                    font: { color: LABEL_LIT, size: 12 },
+                    font: nodeFont(true),
                 },
                 edges: {
                     color: { color: EVENT_EDGE_COLOR, inherit: false },
@@ -518,10 +539,15 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 network.setOptions({ physics: { enabled: false } });
                 persistLayout();
                 recomputeAnchor();
+                reveal();
             });
+
+            // Reveal even if stabilization never reports done (e.g. empty graph).
+            const revealFallback = window.setTimeout(reveal, 800);
 
             return () => {
                 el.removeEventListener('mousemove', onMouseMove);
+                window.clearTimeout(revealFallback);
                 if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
                 persistLayout();
                 network.destroy();
@@ -561,7 +587,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                         value: d.degree.get(n.id) ?? 1,
                         color: baseNodeColor(n.color),
                         borderWidth: 1.5,
-                        font: { color: LABEL_LIT, size: 12 },
+                        font: nodeFont(true),
                         ...seed,
                     };
                 }),
@@ -671,7 +697,18 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
 
         return (
             <div className="relative h-full w-full">
-                <div ref={containerRef} className="h-full w-full" />
+                <div
+                    className="h-full w-full"
+                    style={{
+                        transformOrigin: 'center center',
+                        transition:
+                            'transform 280ms ease-out, opacity 280ms ease-out',
+                        transform: revealed ? 'scale(1)' : 'scale(0.5)',
+                        opacity: revealed ? 1 : 0,
+                    }}
+                >
+                    <div ref={containerRef} className="h-full w-full" />
+                </div>
                 {nodes.length === 0 && (
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
                         No graph data yet.
