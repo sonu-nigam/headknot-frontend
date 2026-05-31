@@ -63,6 +63,8 @@ const EDGE_LABEL_CAP = 200;
  * entirely — either a full label is shown or none is.
  */
 const LABEL_MIN_SCALE = 0.65;
+/** Zoom level a node animates to when clicked (never zooms out below current). */
+const FOCUS_SCALE = 1.5;
 
 /** Node label styling — constant size + dark halo so labels are always legible. */
 function nodeFont(lit: boolean) {
@@ -689,11 +691,16 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 );
                 fitToNodes(ids, 600, 0.2);
             } else if (selectedNodeId && derived.allNodeIds.has(selectedNodeId)) {
-                const ids = [
-                    selectedNodeId,
-                    ...(derived.neighbors.get(selectedNodeId) ?? []),
-                ];
-                fitToNodes(ids, 600, ids.length > 1 ? 0.3 : 0.9);
+                // Focus the clicked node: center on it and zoom in (but never
+                // zoom further out than the user already is).
+                net.focus(selectedNodeId, {
+                    scale: Math.max(net.getScale(), FOCUS_SCALE),
+                    locked: false,
+                    animation: {
+                        duration: 600,
+                        easingFunction: 'easeInOutQuad',
+                    },
+                });
             } else if (selectedNodeId && derived.edgeMap.has(selectedNodeId)) {
                 const e = derived.edgeMap.get(selectedNodeId)!;
                 fitToNodes([e.from, e.to], 600, 0.3);
