@@ -5,10 +5,9 @@
         "types": [
             "vite/client"
         ],
-        "baseUrl": ".",
         "paths": {
             "@/*": [
-                "src/*"
+                "./src/*"
             ],
             "@workspace/ui/*": [
                 "../../packages/ui/src/*"
