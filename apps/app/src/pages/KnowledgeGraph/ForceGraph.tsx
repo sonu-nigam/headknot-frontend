@@ -54,6 +54,8 @@ const LABEL_DIM = 'rgba(255,255,255,0.2)';
 /** Dark halo behind label text so it stays readable over edges and the dot grid. */
 const LABEL_STROKE = 'rgba(11,11,22,0.92)';
 const NODE_LABEL_SIZE = 13;
+/** All nodes render at this fixed radius (no degree-based scaling). */
+const NODE_SIZE = 14;
 const EDGE_LABEL_SIZE = 11;
 /** Solid chip behind edge labels so the relationship text reads cleanly over edges/nodes. */
 const EDGE_LABEL_BG = 'rgba(11,11,22,0.9)';
@@ -147,7 +149,6 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
 
             const allNodeIds = new Set<string>();
             const nodeMetaById = new Map<string, NodeMeta>();
-            const degree = new Map<string, number>();
             const neighbors = new Map<string, Set<string>>();
             const incidentEdges = new Map<string, Set<string>>();
 
@@ -159,7 +160,6 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                     color,
                     entityType: n.entityType ?? '',
                 });
-                degree.set(n.id, 0);
                 neighbors.set(n.id, new Set([n.id]));
                 incidentEdges.set(n.id, new Set());
                 const saved = savedPositions[n.id];
@@ -188,8 +188,6 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 seen.add(l.eventId);
                 allEdgeIds.add(l.eventId);
                 edgeMap.set(l.eventId, { from: l.source, to: l.target });
-                degree.set(l.source, (degree.get(l.source) ?? 0) + 1);
-                degree.set(l.target, (degree.get(l.target) ?? 0) + 1);
                 neighbors.get(l.source)?.add(l.target);
                 neighbors.get(l.target)?.add(l.source);
                 incidentEdges.get(l.source)?.add(l.eventId);
@@ -207,7 +205,6 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 cy,
                 nodeEntries,
                 edgeEntries,
-                degree,
                 neighbors,
                 incidentEdges,
                 edgeMap,
@@ -508,10 +505,9 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                 },
                 nodes: {
                     shape: 'dot',
-                    // Size scales with degree; labels stay a constant, legible
-                    // size (no value-scaling, no draw threshold) so they never
-                    // shrink away or get hidden when zoomed out.
-                    scaling: { min: 7, max: 20, label: { enabled: false } },
+                    // Every node is the same fixed size. Labels stay a constant,
+                    // legible size (set via font, no value-scaling).
+                    size: NODE_SIZE,
                     borderWidth: 1.5,
                     font: nodeFont(true),
                 },
@@ -642,7 +638,6 @@ export const ForceGraph = forwardRef<ForceGraphHandle, ForceGraphProps>(
                     return {
                         id: n.id,
                         label: labelsShownRef.current ? n.label : '',
-                        value: d.degree.get(n.id) ?? 1,
                         color: baseNodeColor(n.color),
                         borderWidth: 1.5,
                         font: nodeFont(true),
