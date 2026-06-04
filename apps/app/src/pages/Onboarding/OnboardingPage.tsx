@@ -17,10 +17,10 @@ import {
 } from '@workspace/ui/components/form';
 import { ArrowRight, HelpCircle, CheckIcon, Loader2 } from 'lucide-react';
 import { useCreateWorkspace } from '@/hooks/workspace/useCreateWorkspace';
-import { useCreateCheckoutSession } from '@/hooks/billing/useCreateCheckoutSession';
+import { useRazorpayCheckout } from '@/hooks/billing/useRazorpayCheckout';
 import { useSelectFreePlan } from '@/hooks/billing/useSelectFreePlan';
 import { useAppStore } from '@/state/store';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatPrice } from '@/lib/format';
 import type { Schemas } from '@/types/api';
 
 type Step = 'workspace' | 'plan';
@@ -300,7 +300,7 @@ function PlanStep({ workspaceId }: { workspaceId: string | null }) {
     const [cycle, setCycle] = useState<BillingCycle>('monthly');
 
     const { data: plans, isLoading } = $api.useQuery('get', '/billing/plans');
-    const checkout = useCreateCheckoutSession();
+    const checkout = useRazorpayCheckout({ onSuccess: () => navigate('/') });
     const selectFree = useSelectFreePlan();
 
     if (!workspaceId) {
@@ -327,9 +327,9 @@ function PlanStep({ workspaceId }: { workspaceId: string | null }) {
     );
 
     const handlePaid = (planName: string) => {
-        checkout.mutate({
-            params: { path: { workspaceId } },
-            body: { priceLookupKey: `${planName}_${cycle}` },
+        checkout.startCheckout({
+            workspaceId,
+            priceLookupKey: `${planName}_${cycle}`,
         });
     };
 
@@ -451,7 +451,7 @@ function OnboardingPlanCard({
                 ) : (
                     <>
                         <span className="text-2xl font-bold text-white">
-                            ${price}
+                            {formatPrice(Number(price), plan.currency)}
                         </span>
                         <span className="text-gray-400">{priceSuffix}</span>
                     </>

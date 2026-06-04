@@ -13,8 +13,6 @@ import { WorkspaceSection } from './pages/Settings/sections/WorkspaceSection';
 import { PreferencesSection } from './pages/Settings/sections/PreferencesSection';
 import { NotificationsSettingsSection } from './pages/Settings/sections/NotificationsSettingsSection';
 import { BillingSection } from './pages/Settings/sections/BillingSection';
-import { CheckoutSuccessPage } from './pages/Billing/CheckoutSuccessPage';
-import { CheckoutCancelPage } from './pages/Billing/CheckoutCancelPage';
 import { NotificationsInboxPage } from './pages/Notifications/NotificationsInboxPage';
 import Archives from './pages/Archives';
 
@@ -248,22 +246,6 @@ export default function App() {
             <Route
                 path="/billing"
                 element={<Navigate to="/settings/billing" replace />}
-            />
-            <Route
-                path="/billing/success"
-                element={
-                    <ProtectedRoute>
-                        <CheckoutSuccessPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/billing/cancel"
-                element={
-                    <ProtectedRoute>
-                        <CheckoutCancelPage />
-                    </ProtectedRoute>
-                }
             />
             <Route
                 path="/notifications"

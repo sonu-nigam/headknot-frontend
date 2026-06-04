@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
-import { useCreateCheckoutSession } from '@/hooks/billing/useCreateCheckoutSession';
-import { useOpenCustomerPortal } from '@/hooks/billing/useOpenCustomerPortal';
+import { useRazorpayCheckout } from '@/hooks/billing/useRazorpayCheckout';
 import { useSelectFreePlan } from '@/hooks/billing/useSelectFreePlan';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -16,7 +15,7 @@ import {
 import { Badge } from '@workspace/ui/components/badge';
 import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs';
 import { CheckIcon, Loader2 } from 'lucide-react';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatPrice } from '@/lib/format';
 import type { Schemas } from '@/types/api';
 
 type BillingCycle = 'monthly' | 'yearly';
@@ -35,8 +34,7 @@ export function Plans() {
         { params: { path: { workspaceId: selectedWorkspaceId ?? '' } } },
         { enabled: !!selectedWorkspaceId },
     );
-    const checkout = useCreateCheckoutSession();
-    const portal = useOpenCustomerPortal();
+    const checkout = useRazorpayCheckout();
     const selectFree = useSelectFreePlan();
 
     if (isLoading) {
@@ -67,22 +65,15 @@ export function Plans() {
 
     const handleCheckout = (planName: string) => {
         if (!selectedWorkspaceId) return;
-        checkout.mutate({
-            params: { path: { workspaceId: selectedWorkspaceId } },
-            body: { priceLookupKey: `${planName}_${cycle}` },
+        checkout.startCheckout({
+            workspaceId: selectedWorkspaceId,
+            priceLookupKey: `${planName}_${cycle}`,
         });
     };
 
     const handleSelectFree = () => {
         if (!selectedWorkspaceId) return;
         selectFree.mutate({
-            params: { path: { workspaceId: selectedWorkspaceId } },
-        });
-    };
-
-    const handleManageInPortal = () => {
-        if (!selectedWorkspaceId) return;
-        portal.mutate({
             params: { path: { workspaceId: selectedWorkspaceId } },
         });
     };
@@ -118,13 +109,11 @@ export function Plans() {
                         }
                         hasActiveSubscription={hasActiveSubscription}
                         isCheckoutPending={checkout.isPending}
-                        isPortalPending={portal.isPending}
                         isSelectFreePending={selectFree.isPending}
                         onCheckout={() =>
                             plan.name && handleCheckout(plan.name)
                         }
                         onSelectFree={handleSelectFree}
-                        onManageInPortal={handleManageInPortal}
                     />
                 ))}
             </div>
@@ -138,11 +127,9 @@ interface PlanCardProps {
     isCurrent: boolean;
     hasActiveSubscription: boolean;
     isCheckoutPending: boolean;
-    isPortalPending: boolean;
     isSelectFreePending: boolean;
     onCheckout: () => void;
     onSelectFree: () => void;
-    onManageInPortal: () => void;
 }
 
 function PlanCard({
@@ -151,11 +138,9 @@ function PlanCard({
     isCurrent,
     hasActiveSubscription,
     isCheckoutPending,
-    isPortalPending,
     isSelectFreePending,
     onCheckout,
     onSelectFree,
-    onManageInPortal,
 }: PlanCardProps) {
     const isFree = plan.name === 'free';
     const isEnterprise = plan.name === 'enterprise';
@@ -196,7 +181,9 @@ function PlanCard({
                         <span className="text-2xl font-bold">Free</span>
                     ) : (
                         <>
-                            <span className="text-2xl font-bold">${price}</span>
+                            <span className="text-2xl font-bold">
+                                {formatPrice(Number(price), plan.currency)}
+                            </span>
                             <span className="text-muted-foreground">
                                 {priceSuffix}
                             </span>
@@ -258,11 +245,9 @@ function PlanCard({
                     isCurrent,
                     hasActiveSubscription,
                     isCheckoutPending,
-                    isPortalPending,
                     isSelectFreePending,
                     onCheckout,
                     onSelectFree,
-                    onManageInPortal,
                 })}
             </CardFooter>
         </Card>
@@ -277,11 +262,9 @@ interface CtaArgs {
     isCurrent: boolean;
     hasActiveSubscription: boolean;
     isCheckoutPending: boolean;
-    isPortalPending: boolean;
     isSelectFreePending: boolean;
     onCheckout: () => void;
     onSelectFree: () => void;
-    onManageInPortal: () => void;
 }
 
 function renderCta({
@@ -292,11 +275,9 @@ function renderCta({
     isCurrent,
     hasActiveSubscription,
     isCheckoutPending,
-    isPortalPending,
     isSelectFreePending,
     onCheckout,
     onSelectFree,
-    onManageInPortal,
 }: CtaArgs) {
     const planLabel = plan.displayName ?? plan.name ?? '';
 
@@ -316,17 +297,17 @@ function renderCta({
         );
     }
 
-    // Already on a paid plan → upgrades/downgrades go through the Customer Portal so Stripe owns
-    // proration. Free has no portal path; switching off Free requires Checkout for a paid plan.
+    // Already on a paid plan → upgrades/downgrades re-run Razorpay Checkout for the target plan
+    // (no hosted portal). Free has no checkout path; switching off Free requires a paid Checkout.
     if (hasActiveSubscription && !isFree) {
         return (
             <Button
                 className="w-full"
                 variant={isPro ? 'default' : 'outline'}
-                onClick={onManageInPortal}
-                disabled={isPortalPending}
+                onClick={onCheckout}
+                disabled={isCheckoutPending}
             >
-                {isPortalPending ? (
+                {isCheckoutPending ? (
                     <Loader2 className="size-4 animate-spin" />
                 ) : (
                     `Switch to ${planLabel}`

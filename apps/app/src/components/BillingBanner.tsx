@@ -2,9 +2,8 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
-import { useOpenCustomerPortal } from '@/hooks/billing/useOpenCustomerPortal';
 import { Button } from '@workspace/ui/components/button';
-import { AlertCircle, AlertTriangle, Info, X, Loader2 } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 import type { Schemas } from '@/types/api';
 
 const REFETCH_INTERVAL_MS = 60_000;
@@ -30,7 +29,6 @@ export default function BillingBanner() {
     const navigate = useNavigate();
     const { selectedWorkspaceId, dismissedBillingBanner, dismissBillingBanner } =
         useAppStore();
-    const portalMutation = useOpenCustomerPortal();
 
     const { data: subscription, error: subscriptionError } = $api.useQuery(
         'get',
@@ -53,13 +51,6 @@ export default function BillingBanner() {
         },
     );
 
-    const openPortal = () => {
-        if (!selectedWorkspaceId) return;
-        portalMutation.mutate({
-            params: { path: { workspaceId: selectedWorkspaceId } },
-        });
-    };
-
     const spec = useMemo<BannerSpec | null>(() => {
         const noSubscription =
             !subscription &&
@@ -81,9 +72,9 @@ export default function BillingBanner() {
                 kind: 'payment-failed',
                 severity: 'error',
                 message:
-                    'Your last payment failed. Update your card to restore access.',
+                    'Your last payment failed. Choose a plan to restore access.',
                 ctaLabel: 'Update payment',
-                onCta: openPortal,
+                onCta: () => navigate('/billing'),
                 dismissible: false,
             };
         }
@@ -178,13 +169,8 @@ export default function BillingBanner() {
                         spec.severity === 'error' ? 'destructive' : 'default'
                     }
                     onClick={spec.onCta}
-                    disabled={portalMutation.isPending}
                 >
-                    {portalMutation.isPending ? (
-                        <Loader2 className="size-3 animate-spin" />
-                    ) : (
-                        spec.ctaLabel
-                    )}
+                    {spec.ctaLabel}
                 </Button>
                 {spec.dismissible && (
                     <button

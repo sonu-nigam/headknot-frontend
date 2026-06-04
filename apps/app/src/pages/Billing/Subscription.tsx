@@ -2,7 +2,6 @@ import React from 'react';
 import { $api } from '@workspace/api-client';
 import { useAppStore } from '@/state/store';
 import { useCancelSubscription } from '@/hooks/billing/useCancelSubscription';
-import { useOpenCustomerPortal } from '@/hooks/billing/useOpenCustomerPortal';
 import { Button } from '@workspace/ui/components/button';
 import {
     Card,
@@ -14,7 +13,7 @@ import {
 } from '@workspace/ui/components/card';
 import { Badge } from '@workspace/ui/components/badge';
 import { format } from 'date-fns';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Schemas } from '@/types/api';
 
 function StatusBadge({ status }: { status?: string }) {
@@ -53,14 +52,12 @@ export function Subscription() {
     );
     const { data: plans } = $api.useQuery('get', '/billing/plans');
     const cancelMutation = useCancelSubscription();
-    const portalMutation = useOpenCustomerPortal();
     const [showConfirm, setShowConfirm] = React.useState(false);
 
     const currentPlan = plans?.find(
         (p: Schemas['PlanResponse']) => p.id === subscription?.planId,
     );
     const status = (subscription?.status ?? '').toUpperCase();
-    const isSuspended = status === 'SUSPENDED';
 
     const periodEnd = subscription?.expiresAt
         ? new Date(subscription.expiresAt)
@@ -97,13 +94,6 @@ export function Subscription() {
             { params: { path: { workspaceId: selectedWorkspaceId } } },
             { onSuccess: () => setShowConfirm(false) },
         );
-    };
-
-    const handleManage = () => {
-        if (!selectedWorkspaceId) return;
-        portalMutation.mutate({
-            params: { path: { workspaceId: selectedWorkspaceId } },
-        });
     };
 
     return (
@@ -149,20 +139,6 @@ export function Subscription() {
                 </div>
             </CardContent>
             <CardFooter className="flex flex-wrap items-center gap-2">
-                <Button
-                    onClick={handleManage}
-                    disabled={portalMutation.isPending}
-                    className="gap-2"
-                    variant={isSuspended ? 'default' : 'default'}
-                >
-                    {portalMutation.isPending ? (
-                        <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                        <CreditCard className="size-4" />
-                    )}
-                    {isSuspended ? 'Update payment method' : 'Manage billing'}
-                </Button>
-
                 {status === 'ACTIVE' && !showConfirm && (
                     <Button
                         variant="outline"
