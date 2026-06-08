@@ -42,6 +42,16 @@
     />
     <meta name="twitter:image" content="https://headknot.com/og-image.png" />
 
+    <!-- Google Analytics 4 (gtag.js). page_view is sent manually on route
+         changes from src/lib/analytics.ts, so auto page_view is disabled here. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FHWE6R9QXC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-FHWE6R9QXC', { send_page_view: false });
+    </script>
+
     <!-- Structured data -->
     <script type="application/ld+json">
         [

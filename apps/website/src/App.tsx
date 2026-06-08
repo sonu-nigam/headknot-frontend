@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Terms } from './pages/Terms';
 import { Support } from './pages/Support';
+import { usePageTracking } from './lib/analytics';
 
 // On navigation, jump to the top for new pages, or to the targeted section when
 // the URL carries a hash (e.g. /#faq from another page).
@@ -22,6 +23,8 @@ function ScrollManager() {
 }
 
 export default function App() {
+    usePageTracking();
+
     return (
         <>
             <ScrollManager />
