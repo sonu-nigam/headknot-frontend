@@ -12,6 +12,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@workspace/ui/components/button';
 import { PageLayout } from '../components/PageLayout';
+import { useSeo } from '../lib/seo';
 
 const SUPPORT_EMAIL = 'support@headknot.com';
 const SALES_EMAIL = 'sales@headknot.com';
@@ -99,6 +100,13 @@ const CHANNELS: Channel[] = [
 ];
 
 export function Support() {
+    useSeo({
+        title: 'Support — Headknot',
+        description:
+            'Browse common topics, read the docs, or reach the Headknot team directly.',
+        path: '/support',
+    });
+
     return (
         <PageLayout
             eyebrow="Support"

@@ -1,4 +1,5 @@
 import { PageLayout } from '../components/PageLayout';
+import { useSeo } from '../lib/seo';
 
 const LAST_UPDATED = 'May 31, 2026';
 const SUPPORT_EMAIL = 'support@headknot.com';
@@ -103,6 +104,13 @@ const SECTIONS: Section[] = [
 ];
 
 export function Terms() {
+    useSeo({
+        title: 'Terms & Conditions — Headknot',
+        description:
+            'The terms and conditions that govern your use of Headknot.',
+        path: '/terms',
+    });
+
     return (
         <PageLayout
             eyebrow="Legal"

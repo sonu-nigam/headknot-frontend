@@ -9,8 +9,16 @@ import { Pricing } from '../components/Pricing';
 import { FAQ } from '../components/FAQ';
 import { CTA } from '../components/CTA';
 import { Footer } from '../components/Footer';
+import { useSeo } from '../lib/seo';
 
 export function Landing() {
+    useSeo({
+        title: 'Headknot — Searchable knowledge graph for Slack, Notion & Google Drive',
+        description:
+            'Headknot turns scattered knowledge across Slack, Notion and Google Drive into a connected, searchable knowledge graph. Discover relationships and search with natural language.',
+        path: '/',
+    });
+
     return (
         <div className="min-h-screen">
             <Navbar />
