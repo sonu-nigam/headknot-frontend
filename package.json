@@ -6,6 +6,7 @@
         "dev:website": "turbo dev --filter=@headknot/website",
         "dev:app": "turbo dev --filter=@headknot/app",
         "build": "turbo build",
+        "build:app": "turbo build --filter=@headknot/app",
         "build:website": "turbo build --filter=@headknot/website",
         "preview:website": "turbo preview --filter=@headknot/website",
         "lint": "turbo lint",
