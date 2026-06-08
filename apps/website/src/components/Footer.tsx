@@ -10,6 +10,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
         title: 'Product',
         links: [
             { label: 'Features', href: '/#features' },
+            { label: 'Integrations', href: '/#integrations' },
             { label: 'How it works', href: '/#how-it-works' },
             { label: 'Use cases', href: '/#use-cases' },
             { label: 'Pricing', href: '/#pricing' },
@@ -54,8 +55,8 @@ export function Footer() {
                     <div>
                         <Logo />
                         <p className="mt-4 max-w-xs text-sm text-white/50">
-                            Knowledge Evolution Tracking. Turn what your team knows
-                            into a living, connected graph.
+                            Turn scattered knowledge across Slack, Notion, and Google
+                            Drive into a searchable knowledge graph.
                         </p>
                         <a
                             href={`${APP_URL}/signup`}

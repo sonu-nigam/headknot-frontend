@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, Minus } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 
 const APP_URL = 'https://app.headknot.com';
@@ -8,7 +8,9 @@ type Plan = {
     price: string;
     cadence?: string;
     description: string;
+    inherits?: string;
     features: string[];
+    limits?: string[];
     cta: string;
     href: string;
     featured?: boolean;
@@ -18,43 +20,58 @@ const PLANS: Plan[] = [
     {
         name: 'Free',
         price: '$0',
-        cadence: '/mo',
-        description: 'For individuals organizing their own knowledge.',
+        cadence: '/month',
+        description: 'Perfect for individuals exploring connected knowledge.',
         features: [
-            'Up to 1,000 entities',
-            '1 connected source',
-            'Knowledge graph & search',
+            '1 workspace',
+            'Slack, Google Drive, or Notion connection',
+            'Up to 100,000 words indexed',
+            'Knowledge graph generation',
+            'Entity & relationship extraction',
+            'Natural language search',
+            'Basic graph exploration',
+        ],
+        limits: [
+            '1 connector active at a time',
+            'No priority processing',
             'Community support',
         ],
-        cta: 'Start free',
+        cta: 'Get started free',
         href: `${APP_URL}/signup`,
     },
     {
-        name: 'Team',
-        price: '$24',
-        cadence: '/user / mo',
-        description: 'For teams building a shared, living knowledge base.',
+        name: 'Pro',
+        price: '$9',
+        cadence: '/month',
+        description:
+            'For professionals and small teams building a shared knowledge base.',
+        inherits: 'Everything in Free, plus:',
         features: [
-            'Unlimited entities',
-            'All integrations',
-            'Evolution tracking & conflict detection',
-            'Deep reasoning queries',
-            'Priority support',
+            'Up to 3 connectors',
+            'Slack + Google Drive + Notion together',
+            'Up to 5 million words indexed',
+            'Unlimited graph exploration',
+            'Faster indexing',
+            'Advanced search capabilities',
+            'Email support',
         ],
-        cta: 'Start free trial',
-        href: `${APP_URL}/signup?plan=team`,
+        cta: 'Start 7-day free trial',
+        href: `${APP_URL}/signup?plan=pro`,
         featured: true,
     },
     {
         name: 'Enterprise',
         price: 'Custom',
-        description: 'For organizations with scale, security, and SSO needs.',
+        description: 'For organizations managing large-scale knowledge.',
+        inherits: 'Everything in Pro, plus:',
         features: [
-            'Everything in Team',
-            'SSO & advanced permissions',
-            'Audit logs & data residency',
-            'Dedicated success manager',
-            'SLA & onboarding',
+            'Custom ingestion limits',
+            'Dedicated support',
+            'Priority indexing',
+            'SSO (coming soon)',
+            'Advanced permissions (coming soon)',
+            'Custom integrations',
+            'SLA support',
         ],
         cta: 'Contact sales',
         href: 'mailto:sales@headknot.com',
@@ -115,7 +132,15 @@ export function Pricing() {
                                 <a href={plan.href}>{plan.cta}</a>
                             </Button>
 
-                            <ul className="mt-7 space-y-3">
+                            {plan.inherits && (
+                                <p className="mt-7 text-sm font-medium text-white/80">
+                                    {plan.inherits}
+                                </p>
+                            )}
+
+                            <ul
+                                className={`space-y-3 ${plan.inherits ? 'mt-4' : 'mt-7'}`}
+                            >
                                 {plan.features.map((f) => (
                                     <li
                                         key={f}
@@ -126,6 +151,25 @@ export function Pricing() {
                                     </li>
                                 ))}
                             </ul>
+
+                            {plan.limits && (
+                                <>
+                                    <p className="mt-6 text-xs font-semibold tracking-widest text-white/40 uppercase">
+                                        Limits
+                                    </p>
+                                    <ul className="mt-4 space-y-3">
+                                        {plan.limits.map((l) => (
+                                            <li
+                                                key={l}
+                                                className="flex gap-3 text-sm text-white/45"
+                                            >
+                                                <Minus className="mt-0.5 size-4 shrink-0 text-white/30" />
+                                                {l}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
                         </div>
                     ))}
                 </div>

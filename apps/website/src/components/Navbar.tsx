@@ -6,9 +6,10 @@ import { Logo } from './Logo';
 // Section links are absolute (/#…) so they jump back to the landing page and
 // scroll, even when clicked from another route like /terms or /support.
 const LINKS = [
+    { label: 'Product', href: '/#product' },
     { label: 'Features', href: '/#features' },
+    { label: 'Integrations', href: '/#integrations' },
     { label: 'How it works', href: '/#how-it-works' },
-    { label: 'Use cases', href: '/#use-cases' },
     { label: 'Pricing', href: '/#pricing' },
     { label: 'FAQ', href: '/#faq' },
 ];

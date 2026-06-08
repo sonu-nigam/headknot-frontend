@@ -12,8 +12,8 @@ export function CTA() {
                     Stop searching. Start knowing.
                 </h2>
                 <p className="mx-auto mt-4 max-w-xl text-lg text-white/65 text-pretty">
-                    Give your team a knowledge base that thinks. Connect your first
-                    source in minutes and watch the graph come alive.
+                    Give your team a searchable knowledge graph. Connect your first
+                    source in minutes and watch the graph come together.
                 </p>
                 <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
                     <Button

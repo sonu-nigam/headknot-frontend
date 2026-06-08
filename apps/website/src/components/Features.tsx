@@ -1,11 +1,4 @@
-import {
-    GitBranch,
-    History,
-    AlertTriangle,
-    Search,
-    Boxes,
-    Plug,
-} from 'lucide-react';
+import { GitBranch, Search, Boxes, Plug } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 type Feature = {
@@ -17,39 +10,27 @@ type Feature = {
 const FEATURES: Feature[] = [
     {
         icon: GitBranch,
-        title: 'Living knowledge graph',
+        title: 'Linked knowledge graph',
         description:
             'Entities and the relationships between them are extracted automatically and woven into one connected, queryable graph.',
-    },
-    {
-        icon: History,
-        title: 'Evolution tracking',
-        description:
-            'See how a fact, decision, or definition changed over time — who changed it, when, and why it matters now.',
-    },
-    {
-        icon: AlertTriangle,
-        title: 'Conflict detection',
-        description:
-            'Headknot flags contradictions between sources the moment they appear, so stale or competing answers never slip through.',
-    },
-    {
-        icon: Search,
-        title: 'Deep search & reasoning',
-        description:
-            'Go beyond keywords with causal, procedural, comparative, and impact-analysis queries across everything you know.',
     },
     {
         icon: Boxes,
         title: 'Extraction engine',
         description:
-            'Turn unstructured docs and conversations into structured, verifiable claims you can trust and trace back to the source.',
+            'Turn unstructured docs and conversations into structured entities and relationships you can trace back to the source.',
+    },
+    {
+        icon: Search,
+        title: 'Semantic knowledge search',
+        description:
+            'Search across connected knowledge using natural language and discover relevant information beyond keyword matching.',
     },
     {
         icon: Plug,
         title: 'Integrations',
         description:
-            'Connect the tools your team already uses. Knowledge flows in continuously and stays in sync as things change.',
+            'Connect Slack, Google Drive and Notion to unify organizational knowledge.',
     },
 ];
 
@@ -62,15 +43,16 @@ export function Features() {
                         Everything in one graph
                     </p>
                     <h2 className="mt-3 text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-                        Not another doc dump. A system that understands.
+                        Not another doc dump. A connected knowledge graph.
                     </h2>
                     <p className="mt-4 text-lg text-white/60 text-pretty">
-                        Most tools store what you write. Headknot understands what it
-                        means, how it connects, and how it changes.
+                        Most tools just store what you write. Headknot extracts the
+                        entities and relationships inside it, so you can search and
+                        explore your knowledge by meaning.
                     </p>
                 </div>
 
-                <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-16 grid gap-6 sm:grid-cols-2">
                     {FEATURES.map(({ icon: Icon, title, description }) => (
                         <div
                             key={title}

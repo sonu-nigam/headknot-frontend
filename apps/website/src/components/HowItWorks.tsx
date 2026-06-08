@@ -3,19 +3,19 @@ const STEPS = [
         step: '01',
         title: 'Connect your sources',
         description:
-            'Plug in your docs, wikis, chats, and tools. Headknot ingests them continuously — no manual tagging or upkeep.',
+            'Connect Slack, Google Drive, and Notion. Headknot ingests your knowledge automatically — no manual tagging or upkeep.',
     },
     {
         step: '02',
         title: 'Headknot builds the graph',
         description:
-            'The extraction engine pulls out entities, claims, and relationships, then links them into a single living knowledge graph.',
+            'The extraction engine pulls out entities and relationships, then links them into a single connected knowledge graph.',
     },
     {
         step: '03',
-        title: 'Search, reason & track',
+        title: 'Search, explore & discover',
         description:
-            'Ask deep questions, follow how knowledge evolved, and get alerted when sources start to disagree.',
+            'Explore connected knowledge through natural language search and relationship discovery.',
     },
 ];
 

@@ -14,35 +14,35 @@ const USE_CASES: UseCase[] = [
         audience: 'Product & Strategy',
         headline: 'Keep every decision traceable',
         points: [
-            'Track why a decision was made and what changed since',
-            'Catch when new data contradicts an old assumption',
+            'Trace how decisions connect to the docs and discussions behind them',
+            'Follow relationships between projects, people, and decisions',
         ],
     },
     {
         icon: FlaskConical,
         audience: 'Research & Analysis',
-        headline: 'Reason over a body of knowledge',
+        headline: 'Discover connections across knowledge',
         points: [
-            'Run causal and comparative queries across sources',
-            'Trace every claim back to where it came from',
+            'Explore relationships across documents and conversations',
+            'Trace every result back to its original source',
         ],
     },
     {
         icon: Scale,
         audience: 'Operations & Compliance',
-        headline: 'A single source of truth that stays true',
+        headline: 'A single source of truth',
         points: [
-            'Surface conflicting policies before they ship',
-            'See the full history of how a rule evolved',
+            'Unify policies and procedures into one searchable graph',
+            'Find the right document with natural language search',
         ],
     },
     {
         icon: Headphones,
         audience: 'Support & Success',
-        headline: 'Answers that are never stale',
+        headline: 'Find answers faster',
         points: [
-            'Always reference the most current, non-conflicting answer',
-            'Understand the impact of a change across the graph',
+            'Access connected knowledge across teams and sources',
+            'Surface related answers through the knowledge graph',
         ],
     },
 ];

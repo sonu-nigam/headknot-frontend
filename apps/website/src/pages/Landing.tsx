@@ -1,7 +1,8 @@
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
-import { LogoCloud } from '../components/LogoCloud';
+import { ProductShowcase } from '../components/ProductShowcase';
 import { Features } from '../components/Features';
+import { Integrations } from '../components/Integrations';
 import { HowItWorks } from '../components/HowItWorks';
 import { UseCases } from '../components/UseCases';
 import { Pricing } from '../components/Pricing';
@@ -15,8 +16,9 @@ export function Landing() {
             <Navbar />
             <main>
                 <Hero />
-                <LogoCloud />
+                <ProductShowcase />
                 <Features />
+                <Integrations />
                 <HowItWorks />
                 <UseCases />
                 <Pricing />

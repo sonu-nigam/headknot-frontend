@@ -1,23 +1,27 @@
 const FAQS = [
     {
         q: 'What exactly is a knowledge graph?',
-        a: 'Instead of storing documents in folders, Headknot stores the concepts inside them — entities like people, products, and decisions — and the relationships between them. That structure is what lets you search by meaning, reason across sources, and track how things change.',
+        a: 'Instead of storing documents in folders, Headknot stores the concepts inside them — entities like people, products, and decisions — and the relationships between them. That structure is what lets you search by meaning and explore how concepts connect.',
     },
     {
-        q: 'How does evolution tracking work?',
-        a: 'Every claim in your graph is versioned. When a source updates or a new one contradicts an old one, Headknot records the change and keeps the full history, so you can always see how a fact got to its current state.',
+        q: 'What sources can I connect today?',
+        a: 'Slack, Google Drive and Notion.',
     },
     {
-        q: 'What can it connect to?',
-        a: 'Headknot connects to the docs, wikis, and chat tools your team already uses. New sources are ingested continuously, and the graph stays in sync as content changes.',
+        q: 'How does Headknot organize information?',
+        a: 'Headknot automatically extracts entities and relationships from connected sources and builds a searchable knowledge graph.',
     },
     {
-        q: 'Is my data secure?',
-        a: 'Your knowledge is encrypted in transit and at rest. Enterprise plans add SSO, granular permissions, audit logs, and data-residency options.',
+        q: 'Does Headknot use AI?',
+        a: 'Yes. Headknot uses AI to extract entities, identify relationships and improve search across connected knowledge.',
     },
     {
         q: 'Do I need to tag or structure anything manually?',
         a: 'No. The extraction engine builds the graph automatically. You can refine and correct entities when you want to, but Headknot does the heavy lifting out of the box.',
+    },
+    {
+        q: 'Is my data secure?',
+        a: 'Your knowledge is encrypted in transit and at rest. Enterprise plans add SSO, granular permissions, audit logs, and data-residency options.',
     },
 ];
 

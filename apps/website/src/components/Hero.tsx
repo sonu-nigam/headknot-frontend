@@ -17,7 +17,7 @@ export function Hero() {
                         className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/80 transition-colors hover:border-violet-500/40"
                     >
                         <Sparkles className="size-3.5 text-violet-400" />
-                        Knowledge Evolution Tracking
+                        Now connecting Slack, Notion &amp; Google Drive
                     </a>
 
                     <h1 className="mt-6 text-4xl font-bold tracking-tight text-balance sm:text-6xl">
@@ -27,10 +27,9 @@ export function Hero() {
                     </h1>
 
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-white/65 text-pretty">
-                        Headknot turns scattered docs, conversations, and decisions
-                        into a living knowledge graph — capturing what you know,
-                        tracking how it changes, and surfacing conflicts before they
-                        cost you.
+                        Transform Slack, Notion and Google Drive into a connected
+                        knowledge graph. Discover relationships across documents,
+                        conversations and information using natural language search.
                     </p>
 
                     <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

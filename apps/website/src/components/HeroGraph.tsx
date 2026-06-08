@@ -4,8 +4,8 @@ import { DataSet } from 'vis-data';
 import type { Edge, IdType, Node, Options } from 'vis-network';
 
 // The hero "Unified Lattice": a central Headknot hub that connects scattered
-// source tools (Notion, Slack, Jira…) and the knowledge entities extracted from
-// them into one living graph. Rendered with vis-network on a fixed, centered
+// source tools (Notion, Slack, Drive…) and the knowledge entities extracted from
+// them into one connected graph. Rendered with vis-network on a fixed, centered
 // layout: physics is off and we drive a gentle in-place drift ourselves, so the
 // frame never moves while the nodes wander slowly.
 
@@ -21,7 +21,7 @@ const KIND_COLOR: Record<Kind, string> = {
     hub: '#8b5cf6', // violet-500 — the Headknot core
     source: '#4cd7f6', // cyan — connected tools (echoes the Stitch lattice gradient)
     concept: '#c4b5fd', // violet-300 — extracted knowledge
-    highlight: '#f59e0b', // amber — a flagged / evolving entity
+    highlight: '#f59e0b', // amber — an emphasized entity
 };
 
 const NODES: RawNode[] = [
