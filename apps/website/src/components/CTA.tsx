@@ -15,7 +15,7 @@ export function CTA() {
                     Give your team a searchable knowledge graph. Connect your first
                     source in minutes and watch the graph come together.
                 </p>
-                <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <div className="mt-9 flex justify-center">
                     <Button
                         asChild
                         size="lg"
@@ -25,14 +25,6 @@ export function CTA() {
                             Start free
                             <ArrowRight className="size-4" />
                         </a>
-                    </Button>
-                    <Button
-                        asChild
-                        size="lg"
-                        variant="outline"
-                        className="border-white/15 bg-transparent text-white hover:bg-white/5 hover:text-white"
-                    >
-                        <a href="mailto:sales@headknot.com">Book a demo</a>
                     </Button>
                 </div>
             </div>
