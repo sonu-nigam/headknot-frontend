@@ -1015,6 +1015,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forgot password
+         * @description Request a 6-digit password reset code by email (always 202, regardless of account existence/state)
+         */
+        post: operations["forgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset password
+         * @description Set a new password using the 6-digit reset code. Terminates all existing sessions.
+         */
+        post: operations["resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/oauth/google": {
         parameters: {
             query?: never;
@@ -2757,6 +2797,14 @@ export interface components {
         };
         ResendVerificationRequest: {
             email?: string;
+        };
+        ForgotPasswordRequest: {
+            email?: string;
+        };
+        ResetPasswordRequest: {
+            email?: string;
+            code?: string;
+            newPassword?: string;
         };
         /** @description Hard filters applied as SQL/Cypher WHERE clauses inside every graph tool the agent uses. The LLM cannot retrieve out-of-filter data. */
         AskFilters: {
@@ -5281,6 +5329,64 @@ export interface operations {
                 content?: never;
             };
             /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    forgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Request accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Password reset successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid, expired, or exhausted reset code, or new password fails the password policy */
             400: {
                 headers: {
                     [name: string]: unknown;
