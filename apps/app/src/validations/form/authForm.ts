@@ -19,3 +19,11 @@ export const signupSchema = z.object({
 export const signupResolver = zodResolver(signupSchema);
 
 export type SignupFormValues = z.infer<typeof signupSchema>;
+
+export const verifyEmailSchema = z.object({
+    code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code'),
+});
+
+export const verifyEmailResolver = zodResolver(verifyEmailSchema);
+
+export type VerifyEmailFormValues = z.infer<typeof verifyEmailSchema>;

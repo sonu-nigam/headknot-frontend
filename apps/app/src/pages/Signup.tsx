@@ -1,4 +1,4 @@
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
     SignupFormValues,
     signupResolver,
@@ -60,6 +60,7 @@ function GoogleIcon() {
 export default function Signup() {
     const [sp] = useSearchParams();
     const next = sp.get('next') || '/';
+    const navigate = useNavigate();
     const signup = useSignup();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -88,7 +89,12 @@ export default function Signup() {
             },
             {
                 onSuccess: () => {
-                    window.location.href = next;
+                    // Signup no longer logs in — go verify the email first.
+                    navigate(
+                        `/verify-email?email=${encodeURIComponent(
+                            values.username,
+                        )}&next=${encodeURIComponent(next)}`,
+                    );
                 },
             },
         );

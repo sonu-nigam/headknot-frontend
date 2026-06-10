@@ -1,4 +1,5 @@
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { LoginFormValues, loginResolver } from '@/validations/form/authForm';
 import { $api } from '@workspace/api-client';
 import { useCallback, useState } from 'react';
@@ -57,6 +58,7 @@ function GoogleIcon() {
 export default function Login() {
     const [sp] = useSearchParams();
     const next = sp.get('next') || '/';
+    const navigate = useNavigate();
     const login = useLogin();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -81,6 +83,31 @@ export default function Login() {
             {
                 onSuccess: () => {
                     window.location.href = next;
+                },
+                onError: (err: unknown) => {
+                    const e = err as {
+                        status?: number;
+                        details?: string[];
+                        message?: string;
+                    };
+                    // Email-not-verified is a 403 carrying EMAIL_NOT_VERIFIED —
+                    // route the user to the verification step instead of erroring.
+                    const notVerified =
+                        e?.status === 403 ||
+                        e?.details?.includes('EMAIL_NOT_VERIFIED');
+                    if (notVerified) {
+                        navigate(
+                            `/verify-email?email=${encodeURIComponent(
+                                values.username,
+                            )}&next=${encodeURIComponent(next)}`,
+                        );
+                        return;
+                    }
+                    toast.error(
+                        e?.message
+                            ? `Login failed: ${e.message}`
+                            : 'Login failed. Check your credentials.',
+                    );
                 },
             },
         );

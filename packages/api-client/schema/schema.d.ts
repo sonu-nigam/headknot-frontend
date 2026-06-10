@@ -935,6 +935,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify email
+         * @description Verify a user's email with the 6-digit code and receive access + refresh tokens
+         */
+        post: operations["verifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend verification code
+         * @description Re-send a verification code (always 202, regardless of account existence/state)
+         */
+        post: operations["resendVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/oauth/google": {
         parameters: {
             query?: never;
@@ -2661,6 +2701,17 @@ export interface components {
         LoginRequest: {
             username?: string;
             password?: string;
+        };
+        SignupResponse: {
+            message?: string;
+            email?: string;
+        };
+        VerifyEmailRequest: {
+            email?: string;
+            code?: string;
+        };
+        ResendVerificationRequest: {
+            email?: string;
         };
         /** @description Hard filters applied as SQL/Cypher WHERE clauses inside every graph tool the agent uses. The LLM cannot retrieve out-of-filter data. */
         AskFilters: {
@@ -5054,13 +5105,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description User created successfully */
-            200: {
+            /** @description User created; verification code sent */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenPairResponse"];
+                    "application/json": components["schemas"]["SignupResponse"];
                 };
             };
             /** @description Invalid request payload or validation failed */
@@ -5072,6 +5123,66 @@ export interface operations {
             };
             /** @description Username already exists */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    verifyEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Email verified; tokens issued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPairResponse"];
+                };
+            };
+            /** @description Invalid, expired, or exhausted verification code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resendVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Request accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request payload */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
