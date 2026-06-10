@@ -27,3 +27,20 @@ export const verifyEmailSchema = z.object({
 export const verifyEmailResolver = zodResolver(verifyEmailSchema);
 
 export type VerifyEmailFormValues = z.infer<typeof verifyEmailSchema>;
+
+export const forgotPasswordSchema = z.object({
+    email: z.string().email().min(2).max(100),
+});
+
+export const forgotPasswordResolver = zodResolver(forgotPasswordSchema);
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+    code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code'),
+    newPassword: z.string().min(6).max(100),
+});
+
+export const resetPasswordResolver = zodResolver(resetPasswordSchema);
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;

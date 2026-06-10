@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MemoryPage from './pages/Memory/MemoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GoogleCallback from './pages/GoogleCallback';
@@ -45,6 +47,8 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/google/callback" element={<GoogleCallback />} />
             <Route
                 path="/onboarding"
