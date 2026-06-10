@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod/src/zod.js';
@@ -19,6 +19,7 @@ import { ArrowRight, HelpCircle, CheckIcon, Loader2 } from 'lucide-react';
 import { useCreateWorkspace } from '@/hooks/workspace/useCreateWorkspace';
 import { useRazorpayCheckout } from '@/hooks/billing/useRazorpayCheckout';
 import { useSelectFreePlan } from '@/hooks/billing/useSelectFreePlan';
+import { useCompleteOnboarding } from '@/hooks/onboarding/useCompleteOnboarding';
 import { useAppStore } from '@/state/store';
 import { formatNumber, formatPrice } from '@/lib/format';
 import type { Schemas } from '@/types/api';
@@ -298,10 +299,39 @@ function WorkspaceStep({
 function PlanStep({ workspaceId }: { workspaceId: string | null }) {
     const navigate = useNavigate();
     const [cycle, setCycle] = useState<BillingCycle>('monthly');
+    const completeOnboarding = useCompleteOnboarding();
+
+    // Record onboarding completion (server-side) BEFORE leaving. The route guard gates on that
+    // flag, so navigating before it's persisted would bounce the user straight back to /onboarding.
+    const finish = async () => {
+        try {
+            await completeOnboarding.mutateAsync({});
+        } finally {
+            navigate('/');
+        }
+    };
 
     const { data: plans, isLoading } = $api.useQuery('get', '/billing/plans');
-    const checkout = useRazorpayCheckout({ onSuccess: () => navigate('/') });
+    const checkout = useRazorpayCheckout({ onSuccess: finish });
     const selectFree = useSelectFreePlan();
+
+    // Self-heal: if this workspace already has a subscription (e.g. the user paid but closed the
+    // tab before completion was recorded), finish onboarding instead of asking them to pick a plan
+    // again — selecting a plan now would 409.
+    const { data: existingSubscription } = $api.useQuery(
+        'get',
+        '/billing/workspace/{workspaceId}/subscription',
+        { params: { path: { workspaceId: workspaceId ?? '' } } },
+        { enabled: !!workspaceId, retry: false },
+    );
+    const healedRef = useRef(false);
+    useEffect(() => {
+        if (existingSubscription && !healedRef.current) {
+            healedRef.current = true;
+            void finish();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [existingSubscription]);
 
     if (!workspaceId) {
         return (
@@ -337,7 +367,9 @@ function PlanStep({ workspaceId }: { workspaceId: string | null }) {
         selectFree.mutate(
             { params: { path: { workspaceId } } },
             {
-                onSuccess: () => navigate('/'),
+                onSuccess: () => {
+                    void finish();
+                },
             },
         );
     };
