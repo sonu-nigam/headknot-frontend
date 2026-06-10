@@ -1,22 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod/src/zod.js';
-import z from 'zod';
 import { $api } from '@workspace/api-client';
 import { Button } from '@workspace/ui/components/button';
-import { Input } from '@workspace/ui/components/input';
-import { Textarea } from '@workspace/ui/components/textarea';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@workspace/ui/components/form';
-import { ArrowRight, HelpCircle, CheckIcon, Loader2 } from 'lucide-react';
-import { useCreateWorkspace } from '@/hooks/workspace/useCreateWorkspace';
+import { HelpCircle, CheckIcon, Loader2 } from 'lucide-react';
 import { useRazorpayCheckout } from '@/hooks/billing/useRazorpayCheckout';
 import { useSelectFreePlan } from '@/hooks/billing/useSelectFreePlan';
 import { useCompleteOnboarding } from '@/hooks/onboarding/useCompleteOnboarding';
@@ -24,21 +10,10 @@ import { useAppStore } from '@/state/store';
 import { formatNumber, formatPrice } from '@/lib/format';
 import type { Schemas } from '@/types/api';
 
-type Step = 'workspace' | 'plan';
 type BillingCycle = 'monthly' | 'yearly';
 
 const PLAN_ORDER = ['free', 'lite', 'pro', 'enterprise'];
 const SALES_EMAIL = import.meta.env.VITE_SALES_EMAIL ?? 'sales@headknot.com';
-
-const workspaceSchema = z.object({
-    name: z
-        .string()
-        .min(1, 'Workspace name is required')
-        .max(100, 'Workspace name must be 100 characters or less'),
-    description: z.string().max(500).optional(),
-});
-
-type WorkspaceFormValues = z.infer<typeof workspaceSchema>;
 
 function DotGridPattern() {
     return (
@@ -72,38 +47,20 @@ export default function OnboardingPage() {
     const setSelectedWorkspaceId = useAppStore(
         (s) => s.setSelectedWorkspaceId,
     );
-    const { data: workspaces } = $api.useQuery(
+    const { data: workspaces, isLoading } = $api.useQuery(
         'get',
         '/workspaces/my-workspaces',
     );
 
-    const [step, setStep] = useState<Step>('workspace');
-    const [createdWorkspaceId, setCreatedWorkspaceId] = useState<string | null>(
-        null,
-    );
+    // The backend auto-creates a default workspace on signup, so onboarding is purely plan
+    // selection — there is no workspace-creation step. Use the selected (or first) workspace.
+    const workspaceId = selectedWorkspaceId ?? workspaces?.[0]?.id ?? null;
 
-    // If the user already owns a workspace (e.g. legacy account with no subscription yet, or
-    // they refreshed mid-flow), skip Step 1 and jump to plan selection.
     useEffect(() => {
-        if (createdWorkspaceId) return;
-        const existing =
-            selectedWorkspaceId ??
-            (workspaces && workspaces.length > 0
-                ? workspaces[0]?.id
-                : undefined);
-        if (existing) {
-            if (existing !== selectedWorkspaceId) {
-                setSelectedWorkspaceId(existing);
-            }
-            setCreatedWorkspaceId(existing);
-            setStep('plan');
+        if (workspaceId && workspaceId !== selectedWorkspaceId) {
+            setSelectedWorkspaceId(workspaceId);
         }
-    }, [
-        workspaces,
-        selectedWorkspaceId,
-        createdWorkspaceId,
-        setSelectedWorkspaceId,
-    ]);
+    }, [workspaceId, selectedWorkspaceId, setSelectedWorkspaceId]);
 
     return (
         <div
@@ -117,11 +74,7 @@ export default function OnboardingPage() {
                         Headknot
                     </span>
                     <span className="text-gray-500">|</span>
-                    <span className="text-sm text-gray-400">
-                        {step === 'workspace'
-                            ? 'Create Workspace'
-                            : 'Choose Plan'}
-                    </span>
+                    <span className="text-sm text-gray-400">Choose Plan</span>
                 </div>
                 <button
                     type="button"
@@ -134,164 +87,16 @@ export default function OnboardingPage() {
 
             <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8">
                 <div className="w-full max-w-5xl">
-                    <StepIndicator step={step} />
-                    {step === 'workspace' ? (
-                        <WorkspaceStep
-                            onCreated={(id) => {
-                                setCreatedWorkspaceId(id);
-                                setStep('plan');
-                            }}
-                        />
+                    {isLoading ? (
+                        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+                            <Loader2 className="size-4 animate-spin" />
+                            Loading…
+                        </div>
                     ) : (
-                        <PlanStep workspaceId={createdWorkspaceId} />
+                        <PlanStep workspaceId={workspaceId} />
                     )}
                 </div>
             </main>
-        </div>
-    );
-}
-
-function StepIndicator({ step }: { step: Step }) {
-    return (
-        <div className="mb-8">
-            <div className="mb-2 flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                    <div className="h-1.5 w-8 rounded-full bg-purple-500" />
-                    <div
-                        className={`h-1.5 w-8 rounded-full ${
-                            step === 'plan' ? 'bg-purple-500' : 'bg-white/10'
-                        }`}
-                    />
-                </div>
-                <span className="text-xs text-gray-400">
-                    {step === 'workspace'
-                        ? 'Step 1 of 2 — Workspace Setup'
-                        : 'Step 2 of 2 — Choose your plan'}
-                </span>
-            </div>
-        </div>
-    );
-}
-
-function WorkspaceStep({
-    onCreated,
-}: {
-    onCreated: (workspaceId: string) => void;
-}) {
-    const createWorkspace = useCreateWorkspace();
-    const setSelectedWorkspaceId = useAppStore(
-        (s) => s.setSelectedWorkspaceId,
-    );
-
-    const form = useForm<WorkspaceFormValues>({
-        resolver: zodResolver(workspaceSchema),
-        defaultValues: { name: '', description: '' },
-    });
-
-    async function onSubmit(values: WorkspaceFormValues) {
-        createWorkspace.mutate(
-            {
-                body: {
-                    name: values.name,
-                    description: values.description || undefined,
-                },
-            },
-            {
-                onSuccess: (data: Schemas['WorkspaceResponse']) => {
-                    if (data?.id) {
-                        setSelectedWorkspaceId(data.id);
-                        onCreated(data.id);
-                    }
-                },
-            },
-        );
-    }
-
-    return (
-        <div className="mx-auto max-w-lg">
-            <div
-                className="rounded-2xl border border-white/10 p-8 shadow-2xl backdrop-blur-xl"
-                style={{ backgroundColor: 'rgba(30, 30, 46, 0.7)' }}
-            >
-                <h1 className="mb-2 text-2xl font-bold text-white">
-                    Create your first workspace
-                </h1>
-                <p className="mb-8 text-sm leading-relaxed text-gray-400">
-                    Workspaces organize your knowledge into separate
-                    environments for different projects or teams.
-                </p>
-
-                <Form {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-6"
-                    >
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm text-gray-300">
-                                        Workspace Name{' '}
-                                        <span className="text-red-400">*</span>
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="e.g. My Project"
-                                            className="border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/20"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm text-gray-300">
-                                        Description{' '}
-                                        <span className="text-gray-500">
-                                            (optional)
-                                        </span>
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="A workspace for project collaboration"
-                                            rows={3}
-                                            className="resize-none border-white/10 bg-white/5 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/20"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <Button
-                            type="submit"
-                            className="w-full cursor-pointer bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/25 hover:from-purple-500 hover:to-purple-400"
-                            disabled={createWorkspace.isPending}
-                        >
-                            {createWorkspace.isPending
-                                ? 'Creating...'
-                                : 'Continue'}
-                            {!createWorkspace.isPending && (
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            )}
-                        </Button>
-                    </form>
-                </Form>
-
-                {createWorkspace.isError && (
-                    <p className="mt-3 text-center text-sm text-red-400">
-                        Failed to create workspace. Please try again.
-                    </p>
-                )}
-            </div>
         </div>
     );
 }
